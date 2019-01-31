@@ -1,4 +1,4 @@
-*! version 1.1.0  25jan2019  Ben Jann
+*! version 1.1.1  31jan2019  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -131,14 +131,15 @@ program Palette_Get
 end
 
 program _Palette_Get, rclass
-    syntax [anything(name=palette id="palette" everything equalok)] ///
-        [, N(numlist max=1 integer >=1) Select(numlist integer) ///
+    local opts [, N(numlist max=1 integer >=1) Select(numlist integer) ///
         order(numlist integer) REVerse ///
         INtensity(numlist >=0 missingokay) ///
         OPacity(numlist int >=0 missingokay) ///
         IPolate(str) intensify(numlist >=0 missingokay) ///
         SATurate(str) LUMinate(str) GScale GScale2(str) CBlind CBlind2(str) ///
         NOEXPAND class(str) FORCErgb cmyk * ]
+    syntax [anything(name=palette id="palette" everything equalok)] `opts'
+    remove_repeatedopts `"`opts'"' `", `options'"'
     if `"`opacity'"'!="" {
         if c(stata_version)<15 {
             di as err "{bf:opacity()} requires Stata 15"
@@ -195,6 +196,12 @@ program _Palette_Get, rclass
     return local pname `"`palette'"'
     return local ptype "color"
     return scalar n = `i'
+end
+
+program remove_repeatedopts
+    args opts 0
+    syntax `opts'
+    c_local options `"`options'"'
 end
 
 program parse_mata

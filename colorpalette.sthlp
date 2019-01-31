@@ -1,5 +1,5 @@
 {smcl}
-{* 30jan2019}{...}
+{* 31jan2019}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {hline}
@@ -457,7 +457,13 @@ or {cmd:.} to insert a gap.
 {marker other}{...}
 {phang}
     {it:other} are additional palette-specific options. See the descriptions of
-    the palettes below.
+    the palettes below. Palette-specific options have to be unique, that is, they 
+    can only be specified once per palette. When collecting results from multiple
+    palettes, palette options can be specified at the global level, to define
+    default settings for all palettes, or at the local level of an individual 
+    palette. For general palette options, defaults set at the global 
+    level can be overridden by repeating an option at the local level. Such 
+    repetitions are not allowed for palette-specific options.
 
 {marker forcergb}{...}
 {phang}
