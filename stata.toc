@@ -1,0 +1,2 @@
+v 3
+p palettes module providing color palettes, symbol palettes, and line pattern palettes
