@@ -1,4 +1,4 @@
-*! version 1.1.1  31jan2019  Ben Jann
+*! version 1.1.2  09may2020  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -124,10 +124,12 @@ end
 
 program Palette_Get
     _parse comma palette 0 : 0
-    syntax [, noGRaph GRopts(str asis) TItle(passthru) rows(passthru) names NONUMbers * ]
-    c_local GRAPH "`graph'"
+    syntax [, NOGRaph GRAPH GRopts(str asis) TItle(passthru) rows(passthru) ///
+        names NONUMbers GLobals GLobals2(passthru) * ]
+    if `"`globals'`globals2'"'!="" & "`graph'"=="" local nograph nograph
+    c_local GRAPH "`nograph'"
     c_local GROPTS `"`rows' `title' `names' `gropts' `nonumbers'"'
-    _Palette_Get `palette', `options'
+    _Palette_Get `palette', `globals' `globals2' `options'
 end
 
 program _Palette_Get, rclass
@@ -137,7 +139,8 @@ program _Palette_Get, rclass
         OPacity(numlist int >=0 missingokay) ///
         IPolate(str) intensify(numlist >=0 missingokay) ///
         SATurate(str) LUMinate(str) GScale GScale2(str) CBlind CBlind2(str) ///
-        NOEXPAND class(str) FORCErgb cmyk * ]
+        NOEXPAND class(str) FORCErgb cmyk ///
+        GLobals GLobals2(str) * ]
     syntax [anything(name=palette id="palette" everything equalok)] `opts'
     remove_repeatedopts `"`opts'"' `", `options'"'
     if `"`opacity'"'!="" {
@@ -159,6 +162,10 @@ program _Palette_Get, rclass
     if `"`cblind2'"'!=""    local cblind cblind
     if "`cblind'"!=""       parse_cblind `cblind2'
     if `"`class'"'!=""      capture parse_class, `class'
+    if `"`globals2'"'!=""   {
+        local globals globals
+        parse_globals `globals2'
+    }
     // get palette
     local ptype 0
     if `"`palette'"'=="" {
@@ -196,6 +203,38 @@ program _Palette_Get, rclass
     return local pname `"`palette'"'
     return local ptype "color"
     return scalar n = `i'
+    // return globals
+    local gnames
+    if "`globals'"!="" {
+        if "`globals_prefix1'"=="" local globals_prefix1 "p"
+        local globals_prefix1 = substr("`globals_prefix1'",1,32-floor(log10(`i')))
+        forv i = 1/`i' {
+            local p `"`return(p`i')'"'
+            if `: list sizeof p'>1 {
+                local p `""`p'""'
+            }
+            local pinfo `"`return(p`i'info)'"'
+            gettoken gname globals_names : globals_names
+            if "`gname'`globals_nonames'"=="" {
+                capt confirm name `p'
+                if _rc==0 local gname `globals_prefix'`p'
+                else {
+                    if `: list sizeof pinfo'==1 {
+                        capt confirm name `pinfo'
+                        if _rc==0 local gname `globals_prefix'`pinfo'
+                    }
+                }
+                local gname = substr("`gname'",1,32)
+            }
+            if "`gname'"=="" local gname `globals_prefix1'`i'
+            local gnames `gnames' `gname'
+            global `gname' `"`p'"'
+        }
+        di _n as txt "globals:"
+        foreach gname of local gnames {
+            di as txt %22s "`gname'" " : " as res `"${`gname'}"'
+        }
+    }
 end
 
 program remove_repeatedopts
@@ -298,6 +337,47 @@ program parse_class
     local class `qualitative' `sequential' `diverging'
     if `:list sizeof class'>1 exit 198
     c_local class `class'
+end
+
+program parse_globals
+    capt n syntax [anything] [, NONames Prefix(name) ]
+    if _rc==1 exit _rc
+    if _rc {
+        di as err "(error in option {bf:globals()})"
+        exit _rc
+    }
+    while (`"`anything'"'!="") {
+        gettoken name anything : anything
+        if `"`anything'"'=="" { // last element
+            if substr(`"`name'"',-1,1)=="*" {
+                local name = substr(`"`name'"',1,strlen(`"`name'"')-1)
+                capt confirm name `name'
+                if _rc==1 exit _rc
+                if _rc {
+                    di as err "'" `"`name'"' "' not allowed in {bf:globals()}"
+                    exit _rc
+                }
+                local prefix1 `name'
+                continue, break
+            }
+        }
+        capt n confirm name `name'
+        if _rc==1 exit _rc
+        if _rc {
+            di as err "(error in option {bf:globals()})"
+            exit _rc
+        }
+        if "`prefix'"!="" {
+            local name `prefix'`name'
+            local name = substr("`name'",1,32)
+        }
+        local names `names' `name'
+    }
+    if `"`prefix1'"'=="" local prefix1 `prefix'
+    c_local globals_names   `names'
+    c_local globals_prefix  `prefix'
+    c_local globals_prefix1 `prefix1'
+    c_local globals_nonames `nonames'
 end
 
 /*----------------------------------------------------------------------------*/
@@ -532,23 +612,28 @@ mata set matastrict on
 
 void checkpalette()
 {
-    string scalar  palettes
+    string scalar pal
+    string scalar palettes
     
+    pal = st_local("palette")
     palettes = ("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1",
     "Set2", "Set3", "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "OrRd",
     "Oranges", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn",
     "YlGnBu", "YlOrBr", "YlOrRd", "BrBG", "PRGn", "PiYG", "PuOr", "RdBu",
     "RdGy", "RdYlBu", "RdYlGn", "Spectral", "sfso")
-    if (anyof(palettes, st_local("palette"))) {
+    if (anyof(palettes, pal)) {
         if (st_local("cmyk")!="") return
         st_local("ptype", "2")
         return
     }
     palettes = ("s1", "s1r", "s2", "economist", "mono", "cblind", "plottig",
-    "538", "tfl", "mrc", "burd", "lean", "d3", "ptol", "tableau", "lin",
-    "spmap", "matplotlib", "magma", "inferno", "plasma", "viridis", "cividis",
-    "twilight", "hue", "hcl", "lch", "jmh", "hsv")
-    if (anyof(palettes, st_local("palette"))) st_local("ptype", "2")
+    "538", "tfl", "mrc", "burd", "lean", "webcolors", "d3", "ptol", "tableau",
+    "lin", "spmap", "matplotlib", "magma", "inferno", "plasma", "viridis",
+    "cividis", "twilight", "hue", "hcl", "lch", "jmh", "hsv")
+    if (anyof(palettes, pal)) st_local("ptype", "2")
+    // allow some abbreviations
+    else if (substr("webcolors",1,max((3,strlen(pal))))==pal)  st_local("ptype","2")
+    else if (substr("matplotlib",1,max((7,strlen(pal))))==pal) st_local("ptype","2")
 }
 
 void getpalette(real scalar ptype, real scalar n)
@@ -1434,6 +1519,31 @@ program colorpalette_sfso
     c_local class "`class'"
 end
 
+/*
+program colorpalette_webcolors
+    local PAL PInk PUrple REDorange Yellow green CYan BLue BRown WHite grey
+    local pal0 = strlower("`PAL'")
+    syntax [, `PAL' * ]
+    foreach p of local pal0 {
+        local pal `pal' ``p''
+    }
+    if `:list sizeof pal'==0 {
+        local pal `pal0'
+    }
+    else {
+        local note `pal'
+    }
+    local comma
+    foreach p of local pal {
+        colorpalette_webcolors_`p'
+        local Pnew `Pnew'`comma'`P'
+        local comma ","
+    }
+    c_local note `note'
+    c_local P `Pnew'
+    c_local class "qualitative"
+end
+
 program colorpalette_webcolors_pink
 c_local P Pink,LightPink,HotPink,DeepPink,PaleVioletRed,MediumVioletRed
 c_local class "qualitative"
@@ -1495,5 +1605,6 @@ program colorpalette_webcolors_grey
 c_local P Gainsboro,LightGray,Silver,DarkGray,DimGray,Gray,LightSlateGray,SlateGray,DarkSlateGray,Black
 c_local class "qualitative"
 end
+*/
 
 exit

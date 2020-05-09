@@ -29,6 +29,11 @@ Installation from GitHub:
 
 Main changes:
 
+    09may2020
+    - option -globals- added to store colors as globals
+    - -webcolors- added as a palette
+    - some fixed to help file
+    
     17apr2020
     - installation files added to GitHub distribution
     
