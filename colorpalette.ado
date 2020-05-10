@@ -1,4 +1,4 @@
-*! version 1.1.2  09may2020  Ben Jann
+*! version 1.1.3  10may2020  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -65,7 +65,7 @@ program colorpalette
         if `"`palette'"'!="" { // handle syntax after last slash
             _parse comma p rhs : palette
             if `"`p'"'!="" {
-                Parse_Graph_Opts `rhs'  // returns rhs and 0
+                Parse_Global_Opts `rhs'  // returns rhs and 0
                 local palettes `"`palettes'`"`p'`rhs'"'"'
             }
             else local 0: copy local palette
@@ -75,7 +75,11 @@ program colorpalette
     else {
         Palette_Get `0'
     }
-    if "`GRAPH'"=="" {
+    if `"`GLOBALS'`GLOBALS2'"'!="" {
+        if "`GRAPH'"=="" local NOGRAPH nograph
+        Globals `GLOBALS2'
+    }
+    if "`NOGRAPH'"=="" {
         tempname hcurrent
         _return hold `hcurrent'
         _return restore `hcurrent', hold // make copy
@@ -88,10 +92,12 @@ end
 /* retrieve palette(s)                                                        */
 /*----------------------------------------------------------------------------*/
 
-program Parse_Graph_Opts
-    syntax [, noGRaph GRopts(passthru) TItle(passthru) rows(passthru) names NONUMbers * ]
-    if `"`graph'`gropts'`title'`rows'"'!="" {
-        c_local 0 `", `graph' `gropts' `title' `rows' `names' `nonumbers'"'
+program Parse_Global_Opts
+    syntax [, NOGRaph GRAPH GRopts(passthru) TItle(passthru) rows(passthru) ///
+        names NONUMbers GLobals GLobals2(passthru) * ]
+    local 0 `nograph' `graph' `gropts' `title' `rows' `names' `nonumbers' `globals' `globals2'
+    if `"`0'"'!="" {
+        c_local 0 `", `0'"'
     }
     if `"`options'"'!="" c_local rhs `", `options'"'
     else                 c_local rhs
@@ -99,7 +105,11 @@ end
 
 program Palette_Get2, rclass
     _parse comma palettes 0 : 0
-    syntax [, noGRaph GRopts(str asis) TItle(passthru) rows(passthru) names NONUMbers * ]
+    syntax [, NOGRaph GRAPH GRopts(str asis) TItle(passthru) rows(passthru) ///
+        names NONUMbers GLobals GLobals2(str asis) * ]
+    c_local GLOBALS "`globals'"
+    c_local GLOBALS2 `"`globals2'"'
+    c_local NOGRAPH "`nograph'"
     c_local GRAPH "`graph'"
     c_local GROPTS `"`rows' `title' `names' `gropts' `nonumbers'"'
     local space
@@ -125,11 +135,13 @@ end
 program Palette_Get
     _parse comma palette 0 : 0
     syntax [, NOGRaph GRAPH GRopts(str asis) TItle(passthru) rows(passthru) ///
-        names NONUMbers GLobals GLobals2(passthru) * ]
-    if `"`globals'`globals2'"'!="" & "`graph'"=="" local nograph nograph
-    c_local GRAPH "`nograph'"
+        names NONUMbers GLobals GLobals2(str asis) * ]
+    c_local GLOBALS "`globals'"
+    c_local GLOBALS2 `"`globals2'"'
+    c_local NOGRAPH "`nograph'"
+    c_local GRAPH "`graph'"
     c_local GROPTS `"`rows' `title' `names' `gropts' `nonumbers'"'
-    _Palette_Get `palette', `globals' `globals2' `options'
+    _Palette_Get `palette', `options'
 end
 
 program _Palette_Get, rclass
@@ -139,8 +151,7 @@ program _Palette_Get, rclass
         OPacity(numlist int >=0 missingokay) ///
         IPolate(str) intensify(numlist >=0 missingokay) ///
         SATurate(str) LUMinate(str) GScale GScale2(str) CBlind CBlind2(str) ///
-        NOEXPAND class(str) FORCErgb cmyk ///
-        GLobals GLobals2(str) * ]
+        NOEXPAND class(str) FORCErgb cmyk  * ]
     syntax [anything(name=palette id="palette" everything equalok)] `opts'
     remove_repeatedopts `"`opts'"' `", `options'"'
     if `"`opacity'"'!="" {
@@ -162,10 +173,6 @@ program _Palette_Get, rclass
     if `"`cblind2'"'!=""    local cblind cblind
     if "`cblind'"!=""       parse_cblind `cblind2'
     if `"`class'"'!=""      capture parse_class, `class'
-    if `"`globals2'"'!=""   {
-        local globals globals
-        parse_globals `globals2'
-    }
     // get palette
     local ptype 0
     if `"`palette'"'=="" {
@@ -203,38 +210,6 @@ program _Palette_Get, rclass
     return local pname `"`palette'"'
     return local ptype "color"
     return scalar n = `i'
-    // return globals
-    local gnames
-    if "`globals'"!="" {
-        if "`globals_prefix1'"=="" local globals_prefix1 "p"
-        local globals_prefix1 = substr("`globals_prefix1'",1,32-floor(log10(`i')))
-        forv i = 1/`i' {
-            local p `"`return(p`i')'"'
-            if `: list sizeof p'>1 {
-                local p `""`p'""'
-            }
-            local pinfo `"`return(p`i'info)'"'
-            gettoken gname globals_names : globals_names
-            if "`gname'`globals_nonames'"=="" {
-                capt confirm name `p'
-                if _rc==0 local gname `globals_prefix'`p'
-                else {
-                    if `: list sizeof pinfo'==1 {
-                        capt confirm name `pinfo'
-                        if _rc==0 local gname `globals_prefix'`pinfo'
-                    }
-                }
-                local gname = substr("`gname'",1,32)
-            }
-            if "`gname'"=="" local gname `globals_prefix1'`i'
-            local gnames `gnames' `gname'
-            global `gname' `"`p'"'
-        }
-        di _n as txt "globals:"
-        foreach gname of local gnames {
-            di as txt %22s "`gname'" " : " as res `"${`gname'}"'
-        }
-    }
 end
 
 program remove_repeatedopts
@@ -339,15 +314,20 @@ program parse_class
     c_local class `class'
 end
 
-program parse_globals
-    capt n syntax [anything] [, NONames Prefix(name) ]
+/*----------------------------------------------------------------------------*/
+/* return globals                                                             */
+/*----------------------------------------------------------------------------*/
+
+program Globals
+    // syntax
+    capt n syntax [anything] [, NONames Prefix(name) Suffix(str) ]
     if _rc==1 exit _rc
     if _rc {
         di as err "(error in option {bf:globals()})"
         exit _rc
     }
     while (`"`anything'"'!="") {
-        gettoken name anything : anything
+        gettoken name anything : anything, quotes
         if `"`anything'"'=="" { // last element
             if substr(`"`name'"',-1,1)=="*" {
                 local name = substr(`"`name'"',1,strlen(`"`name'"')-1)
@@ -374,10 +354,52 @@ program parse_globals
         local names `names' `name'
     }
     if `"`prefix1'"'=="" local prefix1 `prefix'
-    c_local globals_names   `names'
-    c_local globals_prefix  `prefix'
-    c_local globals_prefix1 `prefix1'
-    c_local globals_nonames `nonames'
+    if `"`prefix1'"'=="" local prefix1 "p"
+    if `"`suffix'"'!="" {
+        local 0 `", suffix(_`suffix')"'
+        capt n syntax [, suffix(name) ]
+        if _rc==1 exit _rc
+        if _rc {
+            di as err "(error in option {bf:globals()})"
+            exit _rc
+        }
+        local suffix = substr(`"`suffix'"',2,.)
+    }
+    
+    // return globals
+    local n = r(n)
+    local ls = strlen(`"`suffix'"')
+    local prefix1 = substr("`prefix1'",1,32-floor(log10(`n')))
+    forv i = 1/`n' {
+        local p `"`r(p`i')'"'
+        if `: list sizeof p'>1 {
+            local p `""`p'""'
+        }
+        local pinfo `"`r(p`i'info)'"'
+        gettoken name names : names
+        if "`name'`nonames'"=="" {
+            capt confirm name `p'
+            if _rc==0 local name `prefix'`p'
+            else {
+                if `: list sizeof pinfo'==1 {
+                    capt confirm name `pinfo'
+                    if _rc==0 local name `prefix'`pinfo'
+                }
+            }
+            local name = substr("`name'",1,32)
+        }
+        if "`name'"=="" local name `prefix1'`i'
+        if `ls' {
+            local name = substr("`name'",1,32-`ls')
+            local name `name'`suffix'
+        }
+        local gnames `gnames' `name'
+        global `name' `"`p'"'
+    }
+    di _n as txt "globals:"
+    foreach name of local gnames {
+        di as txt %22s "`name'" " : " as res `"${`name'}"'
+    }
 end
 
 /*----------------------------------------------------------------------------*/
@@ -1495,7 +1517,7 @@ program colorpalette_sfso
     else if "`pal'"=="languages" {
         local class "qualitative"
         c_local P 0 .9 .9 0,.9 .5 0 0,.9 0 .8 0,0 .25 .9 0,.6 .7 0 0
-        c_local I German,French,Italian,Rhaeto-Romanic,English
+        c_local I German,French,Italian,RhaetoRomanic,English
     }
     else if "`pal'"=="votes" {
         local class "diverging"

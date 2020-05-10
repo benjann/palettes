@@ -29,6 +29,14 @@ Installation from GitHub:
 
 Main changes:
 
+    10may2020
+    - globals() has been applied to each palette individually when multiple palettes
+      were appended in a single call to -colorpalette-; this is changed; globals() 
+      is now applied at the end, after collecting the colors from all palettes
+    - globals() now also has a suffix() option
+    - color names have been updated for some palettes so that they comply with
+      Stata's naming conventions
+    
     09may2020
     - option -globals- added to store colors as globals
     - -webcolors- added as a palette
