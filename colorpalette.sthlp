@@ -1,5 +1,5 @@
 {smcl}
-{* 10may2020}{...}
+{* 14may2020}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {hline}
@@ -18,7 +18,7 @@
 {p 8 15 2}
     {cmd:colorpalette} [{it:argument}]
         [{cmd:,} {help colorpalette##opts:{it:palette_options}}
-        {help colorpalette##globopts:{it:globals_option}}
+        {help colorpalette##macroopts:{it:macro_options}}
         {help colorpalette##gopts:{it:graph_options}} ]
 
 {pstd}
@@ -61,7 +61,7 @@ or {cmd:.} to insert a gap.
 {synopt:{helpb colorpalette##mono:mono}}15 gray scales as in Stata's monochrome schemes{p_end}
 
 {syntab:Other palettes ({stata "colorpalette, lc(black): cblind / plottig / 538 / mrc / tfl / burd / lean / tableau":{it:view}})}
-{synopt:{helpb colorpalette##cblind:cblind}}9 colorblind-friendly by Okabe and Ito (2002){p_end}
+{synopt:{helpb colorpalette##cblind:cblind}}9 colorblind-friendly colors by Okabe and Ito (2002){p_end}
 {synopt:{helpb colorpalette##plottig:plottig}}15 colors as in {cmd:plottig} by Bischof (2017b){p_end}
 {synopt:{helpb colorpalette##538:538}}6 + 7 colors as in {cmd:538} by Bischof (2017a){p_end}
 {synopt:{helpb colorpalette##mrc:mrc}}7 colors as in {cmd:mrc} by Morris (2013){p_end}
@@ -78,19 +78,22 @@ or {cmd:.} to insert a gap.
 {syntab:Collections}
 {synopt:{it:{help colorpalette##cbrew:colorbrewer}}}ColorBrewer palettes from {browse "http://colorbrewer2.org":colorbrewer2.org}{p_end}
 {synopt:{it:{help colorpalette##viridis:viridis}}}perceptually uniform colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
-{synopt:{helpb colorpalette##matplotlib:{ul:matplot}lib}}other colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
+{synopt:{helpb colorpalette##matplotlib:matplotlib}}other colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
 {synopt:{helpb colorpalette##ptol:ptol}}color schemes from Tol (2012){p_end}
 {synopt:{helpb colorpalette##d3:d3}}categorical color schemes from {browse "http://d3js.org/":D3.js}{p_end}
 {synopt:{helpb colorpalette##lin:lin}}semantic colors schemes by Lin et al. (2013){p_end}
 {synopt:{helpb colorpalette##spmap:spmap}}color schemes from {cmd:spmap} by Pisati (2007){p_end}
 {synopt:{helpb colorpalette##sfso:sfso}}color schemes used by the Swiss Federal
     Statistical Office{p_end}
-{synopt:{helpb colorpalette##webc:{ul:web}colors}}categorical web colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
+{synopt:{helpb colorpalette##webc:webcolors}}categorical web colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
 
 {syntab:Custom}
 {synopt:{it:{help colorpalette##myname:myname}}}custom palette provided by program {cmd:colorpalette_}{it:myname}{p_end}
 {synopt:{help colorpalette##mata:{bf:{ul:m}ata(}{it:name}{bf:)}}}custom palette provided by {helpb colrspace:ColrSpace} object {it:name}{p_end}
 {synoptline}
+{pstd}
+Palette names can be abbreviated; if abbreviation is ambiguous, the first
+matching palette will be used.
 
 
 {synoptset 20 tabbed}{...}
@@ -131,13 +134,19 @@ or {cmd:.} to insert a gap.
     {p_end}
 {synopt:{helpb colorpalette##class:class({it:class})}}set palette class
     {p_end}
+{synopt:{helpb colorpalette##pname:pname({it:str})}}assign a palette name
+    {p_end}
 {synoptline}
 
 
 {synoptset 20 tabbed}{...}
-{marker globopts}{synopthdr:globals_option}
+{marker macroopts}{synopthdr:macro_options}
 {synoptline}
-{synopt:{helpb colorpalette##globals:{ul:gl}obals{sf:[}({it:spec}){sf:]}}}store color codes in global macros
+{synopt:{helpb colorpalette##macrooptions:{ul:gl}obals{sf:[}({it:spec}){sf:]}}}store color codes in global macros
+    {p_end}
+{synopt:{helpb colorpalette##macrooptions:{ul:loc}als{sf:[}({it:spec}){sf:]}}}store color codes in local macros
+    {p_end}
+{synopt:{helpb colorpalette##stylefiles:{ul:stylef}iles{sf:[}({it:spec}){sf:]}}}store color codes in style files
     {p_end}
 {synoptline}
 
@@ -266,7 +275,7 @@ or {cmd:.} to insert a gap.
     {cmd:order()}, and {cmd:reverse} have been applied.
 
 {pmore}
-    Example: {stata `"colorpalette "189 30 36", intensity(0.1(.05)1)"'}
+    Example: {stata `"colorpalette "189 30 36", intensity(0.1(.05)1) pname(Reds)"'}
 
 {marker ipolate}{...}
 {phang}
@@ -277,20 +286,20 @@ or {cmd:.} to insert a gap.
     and opacity levels, if defined, will also be interpolated).
 
 {pmore}
-    Example: {stata colorpalette cranberry dkorange, ipolate(5)}
+    Example: {stata colorpalette cranberry dkorange, ipolate(5) pname(red to orange)}
 
 {pmore}
     Suboptions are as follows.
 
 {phang2}
-    {it:space} selects the color space in which the colors are
+    {it:cspace} selects the color space in which the colors are
     interpolated. The default space is {cmd:Jab} (perceptually uniform
     CIECAM02-based J'a'b'). Other possibilities are, for example, {cmd:RGB}, {cmd:lRGB},
     {cmd:Lab}, {cmd:LCh}, {cmd:Luv}, {cmd:HCL}, {cmd:JMh}, or {cmd:HSV}; see
     help {helpb colrspace##ipolate:colrspace} for details.
 
 {pmore2}
-    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(10) / #fafa6e #2a4858, ipolate(10, JMh)"}
+    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(10) pname(Jab) / #fafa6e #2a4858, ipolate(10, JMh) pname(JMh)"}
 
 {phang2}
     {opt ra:nge(lb [ub])} sets the interpolation range, where {it:lb} and
@@ -299,7 +308,7 @@ or {cmd:.} to insert a gap.
     order. Extrapolation will be applied if the specified range exceeds [0,1].
 
 {pmore2}
-    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(11, HCL) / #fafa6e #2a4858, ipolate(6, HCL range(0 .5))"}
+    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(11, HCL) pname([0,1]) / #fafa6e #2a4858, ipolate(6, HCL range(0 .5)) pname([0,.5])"}
 
 {phang2}
     {opt pow:er(#)}, with # > 0, determines how the destination colors are
@@ -314,7 +323,7 @@ or {cmd:.} to insert a gap.
     it moves the center of the color gradient up (if # > 1) or down (if 0 < # < 1).
 
 {pmore2}
-    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(30, HCL power(1.5)) / #fafa6e #2a4858, ipolate(30, HCL power(0.7))"}
+    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(30, HCL power(1.5)) pname(slow) / #fafa6e #2a4858, ipolate(30, HCL power(0.7)) pname(fast)"}
 
 {phang2}
     {opth pos:itions(numlist)} specifies the positions of the origin colors
@@ -325,7 +334,7 @@ or {cmd:.} to insert a gap.
     colors, these colors will be averaged before applying interpolation.
 
 {pmore2}
-    Example: {stata "colorpalette: Black Crimson Gold, ipolate(30, position(0 .3 1)) / Black Crimson Gold, ipolate(30, position(0 .7 1))"}
+    Example: {stata "colorpalette: Black Crimson Gold, ipolate(30, position(0 .3 1)) pname(left) / Black Crimson Gold, ipolate(30, position(0 .7 1)) pname(right)"}
 
 {phang2}
     {opt pad:ded} requests padded interpolation. By
@@ -342,7 +351,7 @@ or {cmd:.} to insert a gap.
     than the unpadded variant):
 
 {p 16 18 2}
-    . {stata "colorpalette, span vertical: BrBG / BrBG, ipolate(30) / BrBG, ipolate(30, padded)"}
+    . {stata "colorpalette, span vertical: BrBG / BrBG, ipolate(30) pname(ipolate) / BrBG, ipolate(30, padded) pname(padded ipolate)"}
 
 {marker intensify}{...}
 {phang}
@@ -369,11 +378,11 @@ or {cmd:.} to insert a gap.
     interpolation, whereas {cmd:intensify()} is applied after interpolation.
 
 {pmore}
-    Example: {stata `"colorpalette "189 30 36", intensify(0.1(.05)1)"'}
+    Example: {stata `"colorpalette "189 30 36", intensify(0.1(.05)1) pname(Reds)"'}
 
 {marker saturate}{...}
 {phang}
-    {cmd:saturate(}{it:{help numlist}}[{cmd:,} {it:space} {cmd:level}]{cmd:)}
+    {cmd:saturate(}{it:{help numlist}}[{cmd:,} {it:cspace} {cmd:level}]{cmd:)}
     modifies the saturation (colorfulness) of the colors. Positive numbers will
     increase the chroma channel of the colors by the specified amount, negative
     numbers will reduce chroma. Specify multiple values to apply different
@@ -386,7 +395,7 @@ or {cmd:.} to insert a gap.
     follows.
 
 {phang2}
-    {it:space} specifies the color space in which the colors are manipulated.
+    {it:cspace} specifies the color space in which the colors are manipulated.
     Possible spaces are {cmd:LCh} (cylindrical representation of CIE L*a*b*),
     {cmd:HCL} (cylindrical representation of CIE L*u*v*), {cmd:JCh} (CIECAM02
     JCh), and {cmd:JMh} (CIECAM02-based J'M'h). The default is {cmd:LCh}.
@@ -399,11 +408,11 @@ or {cmd:.} to insert a gap.
     levels. Chroma values of typical colors lie between 0 and 100 or maybe 150.
 
 {pmore}
-    Example: {stata "colorpalette: RdYlGn, saturate(25) / RdYlGn / RdYlGn, saturate(-25)"}
+    Example: {stata "colorpalette: RdYlGn, saturate(25) pname(+25) / RdYlGn / RdYlGn, saturate(-25) pname(-25)"}
 
 {marker luminate}{...}
 {phang}
-    {cmd: luminate(}{it:{help numlist}}[{cmd:,} {it:space} {cmd:level}]{cmd:)}
+    {cmd: luminate(}{it:{help numlist}}[{cmd:,} {it:cspace} {cmd:level}]{cmd:)}
     modifies the luminance (brightness) of the colors. Positive numbers will
     increase the luminance of the colors by the specified amount, negative
     numbers will reduce luminance. Specify multiple values to apply different
@@ -416,7 +425,7 @@ or {cmd:.} to insert a gap.
     follows.
 
 {phang2}
-    {it:space} specifies the color space in which the colors are manipulated.
+    {it:cspace} specifies the color space in which the colors are manipulated.
     Possible spaces are {cmd:Lab} (CIE L*a*b*), {cmd:Luv} (CIE L*u*v*),
     {cmd:JCh} (CIECAM02 JCh), and {cmd:JMh} (CIECAM02-based J'M'h) ({cmd:LCh},
     {cmd:HCL}, and {cmd:Jab} are also allowed, but result in the same colors as
@@ -434,23 +443,23 @@ or {cmd:.} to insert a gap.
     Examples:
 
 {p 12 16 2}
-    . {stata "colorpalette: ptol, luminate(15) / ptol / ptol, luminate(-15)"}
+    . {stata "colorpalette: ptol, luminate(15) pname(+15) / ptol / ptol, luminate(-15) pname(-25)"}
     {p_end}
 {p 12 16 2}
     . {stata "colorpalette: blue red green, select(1 1 2 2 3 3) luminate(. 40)"}
 
 {marker gscale}{...}
 {phang}
-    {cmd:gscale}[{cmd:(}{it:p} [{cmd:,} {it:space} ]{cmd:)}] converts the
+    {cmd:gscale}[{cmd:(}{it:p} [{cmd:,} {it:cspace} ]{cmd:)}] converts the
     colors to gray, where {it:p} in [0,1] specifies the proportion of gray. The
-    default is {cmd:1} (full conversion). Suboption {it:space} specifies the
+    default is {cmd:1} (full conversion). Suboption {it:cspace} specifies the
     color space in which the conversion is performed; it may be {cmd:LCh}
     (cylindrical representation of CIE L*a*b*), {cmd:HCL} (cylindrical
     representation of CIE L*u*v*), {cmd:JCh} (CIECAM02 JCh), and {cmd:JMh}
     (CIECAM02-based J'M'h). The default is {cmd:LCh}. Example:
 
 {p 12 16 2}
-    . {stata "colorpalette: s2 / s2, gscale(.5) / s2, gscale"}
+    . {stata "colorpalette: s2 / s2, gscale(.5) pname(50% gray) / s2, gscale pname(100% gray)"}
 
 {marker cblnd}{...}
 {phang}
@@ -464,7 +473,7 @@ or {cmd:.} to insert a gap.
     information on color blindness. Example:
 
 {p 12 16 2}
-    . {stata "colorpalette: Set1 / Set1, cblind(.5, deut) / Set1, cblind(.5, prot) / Set1, cblind(1, trit)"}
+    . {stata "colorpalette: Set1 / Set1, cblind(.5, deut) pname(50% deut) / Set1, cblind(.5, prot) pname(50% prot) / Set1, cblind(1, trit) pname(tritanopia)"}
 
 {marker other}{...}
 {phang}
@@ -480,9 +489,8 @@ or {cmd:.} to insert a gap.
 {marker forcergb}{...}
 {phang}
     {opt forcergb} enforces translation of all colors to RGB. By default,
-    {cmd:colorpalette} does not translate colors specified as Stata color names
-    or CMYK codes, because these specifications are understood by
-    Stata graphics. Specify {opt forcergb} to return these colors as RGB values.
+    {cmd:colorpalette} does not translate colors specified as Stata color 
+    names. Specify {opt forcergb} to return these colors as RGB values.
 
 {marker noexpand}{...}
 {phang}
@@ -498,30 +506,108 @@ or {cmd:.} to insert a gap.
     necessary). Specifying {cmd:class()} only affects palettes that do not set
     the class as part of their definition.
 
-{marker globals}{...}
-{dlgtab:Globals option}
+{marker pname}{...}
+    {opt pname(str)} assigns a custom name to the palette.
+
+{marker macrooptions}{...}
+{dlgtab:Macro options (syntax 1 only)}
 
 {phang}
-    {cmd:globals}[{cmd:(}{it:spec}{cmd:)}] stores the color codes as {helpb global} macros
-    so that they can be used in subsequent graph commands. Use this option
-    as an alternative to obtaining the color codes from {helpb colorpalette##returns:r()}; see
-    the {help colorpalette##examples:example} below. The
-    syntax of {it:spec} is
+    {cmd:globals}[{cmd:(}{it:spec}{cmd:)}] stores the color codes as
+    {helpb global} macros (syntax 1 only). Use this option as an alternative to
+    obtaining the color codes from {helpb colorpalette##returns:r()}; see the
+    {help colorpalette##exglobals:example} below. The syntax of {it:spec} is
 
-            [{it:namelist}] [{it:stub}{cmd:*}] [{cmd:,} {opt p:refix(prefix)} {opt s:uffix(suffix)} {opt non:ames} ]
-
-{pmore}
-    where {it:namelist} provides custom names for the globals,
-    {it:stub}{cmd:*} provides a stub for automatic names,
-    {cmd:prefix()} specifies a prefix to be added to the names, {cmd:suffix()} specifies a suffix, 
-    and {cmd:nonames} prevents {cmd:colorpalette} from using the names found in the
-    palette definition. The default {it:stub} is {cmd:p} or as set by {cmd:prefix()}. The
-    globals for colors for which no name is available will be named as
-    {it:stub}{it:#}{it:suffix}, where {it:#} is the number of the color.
+{p 12 16 2}
+    [{it:namelist}] [{it:stub}{cmd:*}] [{cmd:,}
+    {opt p:refix(prefix)}
+    {opt s:uffix(suffix)}
+    {opt non:ames} ]
 
 {pmore}
-    Note that graph display is disabled if the {cmd:globals()} option is
-    specified. Specify option {cmd:graph} to enforce graph display.
+    where {it:namelist} provides custom names for the colors and
+    {it:stub}{cmd:*} provides a stub for automatic names. If no name is found
+    for a color in the palette definition and no custom name is provided, an
+    automatic name defined as {it:stub}{it:#}{it:suffix} will be used, where {it:#}
+    is the number of the color in the palette. The default {it:stub} is {cmd:p}
+    or as set by {cmd:prefix()}. Options are as follows:
+
+{phang2}
+    {cmd:prefix()} specifies a common prefix to be added to the names.
+
+{phang2}
+    {cmd:suffix()} specifies a common suffix to be added to the names.
+
+{phang2}
+    {cmd:nonames} prevents {cmd:colorpalette} from using the names found in the
+    palette definition.
+
+{pmore}
+    Graph display will be disabled unless option {cmd:graph} is specified.
+
+{phang}
+    {cmd:locals}[{cmd:(}{it:spec}{cmd:)}] stores the color codes as
+    {helpb local} macros (syntax 1 only). Syntax and functionality is
+    as described for option {cmd:globals()}, with the exception that
+    {it:stub} defaults to empty string. Graph display will be disabled unless
+    option {cmd:graph} is specified.
+
+{marker stylefiles}{...}
+{phang}
+    {cmd:stylefiles}[{cmd:(}{it:spec}{cmd:)}] stores the color codes in style
+    files on disk (syntax 1 only). This makes the colors permanently available
+    by their name, just like official Stata's color names; see the
+    {help colorpalette##exstylefiles:example} below (you may need to
+    flush graph's working memory using {helpb discard} or {helpb clear all}
+    before the new colors become available). Style files will only be
+    created for colors that are represented by a simple RGB code; codes that
+    include an intensity-adjustment or opacity operator, CMYK codes, and colors
+    that are referred to by their Stata name will be skipped. The syntax of
+    {it:spec} is
+
+{p 12 16 2}
+    [{it:namelist}] [{it:stub}{cmd:*}] [{cmd:,}
+    {opt p:refix(prefix)}
+    {opt s:uffix(suffix)}
+    {opt non:ames}
+    {opt pers:onal}
+    {opt path(path)}
+    {opt replace} ]
+
+{pmore}
+    where {it:namelist} provides custom names for the colors and
+    {it:stub}{cmd:*} provides a stub for automatic names. If no name is found
+    for a color in the palette definition and no custom name is provided, an
+    automatic name defined as {it:stub}{it:#}{it:suffix} will be used, where {it:#}
+    is the number of the color in the palette. The default {it:stub} is empty string
+    or as set by {cmd:prefix()}. Options are as follows:
+
+{phang2}
+    {cmd:prefix()} specifies a common prefix to be added to the names.
+
+{phang2}
+    {cmd:suffix()} specifies a common suffix to be added to the names.
+
+{phang2}
+    {cmd:nonames} prevents {cmd:colorpalette} from using the names found in the
+    palette definition.
+
+{phang2}
+    {cmd:personal} causes the style files to be stored in folder 'style' within
+    the {cmd:PERSONAL} ado-file directory; see help {helpb sysdir}. The default
+    is to store the style files in folder 'style' within the
+    current working directory; see help {helpb pwd}.
+
+{phang2}
+    {opt path(path)} provides a custom path for the style files. The default is to
+    store the style files in folder 'style' within the current working
+    directory. {cmd:path()} and {cmd:personal} are not both allowed.
+
+{phang2}
+    {opt replace} permits {cmd:colorpalette} to overwrite existing files.
+
+{pmore}
+    Graph display will be disabled unless option {cmd:graph} is specified.
 
 {dlgtab:Graph options}
 
@@ -554,9 +640,9 @@ or {cmd:.} to insert a gap.
 
 {marker graph}{...}
 {phang}
-    {opt graph} enforces creating a graph even though option {helpb colorpalette##globals:globals()}
-    has been specified (syntax 1 only). By default, no graph is shown if {helpb colorpalette##globals:globals()}
-    has been specified.
+    {opt graph} enforces drawing a graph even though
+    {help colorpalette##macrooptions:{it:macro_options}} have been specified
+    (syntax 1 only).
 
 {marker horizontal}{...}
 {phang}
@@ -588,6 +674,7 @@ or {cmd:.} to insert a gap.
     {opth lwidth(linewidthstyle)} specifies a custom outline thickness (syntax 2
     only). The default is {cmd:lwidth(vthin)}.
 
+
 {marker palettes}{...}
 {title:Palettes}
 
@@ -595,17 +682,24 @@ or {cmd:.} to insert a gap.
 {dlgtab:colorlist}
 
 {pstd}
-    Instead of selecting a named color palette you can specify
-    a space-separated list of colors using syntax
+    Instead of selecting a named color palette you can specify a 
+    custom list of color specifications using syntax
+
+        [{cmd:(}]{it:colorspec} [{it:colorspec} {it:...}][{cmd:)}]
+
+    where {it:colorspec} is
 
 {p 8 15 2}
-    [{cmd:"}]{it:color}[{cmd:%}{it:#}][*{it:#}][{cmd:"}] ...
+    [{cmd:"}]{it:color}[{cmd:%}{it:#}][*{it:#}][{cmd:"}]
 
 {pstd}
-    where {cmd:%}{it:#} sets the opacity (in percent; 0 = fully transparent,
-    100 = fully opaque; Stata 15 required), {cmd:*}{it:#} adjusts the intensity
-    (values between 0 and 1 make the color lighter; values larger than one
-    make the color darker), and {it:color} is one of the following:
+    Parentheses around the list may be used to prevent name conflict with palette 
+    specifications. Color specifications containing spaces must be included in 
+    double quotes. Argument {cmd:%}{it:#} in {it:colorspec} sets the opacity 
+    (in percent; 0 = fully transparent, 100 = fully opaque; Stata 15 required), 
+    {cmd:*}{it:#} adjusts the intensity (values between 0 and 1 make the color 
+    lighter; values larger than one make the color darker), and {it:color} is 
+    one of the following:
 
 {p2colset 9 28 30 2}{...}
 {p2col:{help colorstyle##colorstyle:{it:name}}}official Stata color name as listed in {help colorstyle##colorstyle:{it:colorstyle}}{p_end}
@@ -614,7 +708,7 @@ or {cmd:.} to insert a gap.
 {p2col:{cmd:#}{it:rgb}}3-digit abbreviated hex RGB value; white = {cmd:#FFF} or {cmd:#fff}{p_end}
 {p2col:{it:# # #}}RGB value in 0-255 scaling; navy = {cmd:"26 71 111"}{p_end}
 {p2col:{it:# # # #}}CMYK value in 0-255 or 0-1 scaling; navy = {cmd:"85 40 0 144"} or {cmd:".333 .157 0 .565"}{p_end}
-{p2col:{it:space ...}}color value in one of the color spaces supported by {helpb colrspace##strinput:colrspace}; e.g., navy =
+{p2col:{it:cspace ...}}color value in one of the color spaces supported by {helpb colrspace##strinput:colrspace}; e.g., navy =
     {cmd:"XYZ 5.55 5.87 15.9"} or {cmd:"Lab 29 -.4 -27.5"} or {cmd:"Jab 30.1 -8.9 -19"} (see help
     {helpb colrspace##strinput:colrspace} for more examples)
 
@@ -907,7 +1001,7 @@ or {cmd:.} to insert a gap.
 {pstd}
     Examples:
 
-        . {stata "colorpalette, span: hue, n(3) / hue, n(5) / hue, n(7) / hue, n(9)"}
+        . {stata "colorpalette, span: hue, n(3) pname(3) / hue, n(5) pname(5) / hue, n(7) pname(7) / hue, n(9) pname(9)"}
         . {stata colorpalette hue, n(5) hue(90 -30) chroma(50) luminance(70)}
 
 {marker hcl}{...}
@@ -951,67 +1045,67 @@ or {cmd:.} to insert a gap.
     Syntax:
 
 {p 8 15 2}
-    {c -(}{cmd:hcl}|{cmd:lhc}|{cmd:jmh}{c )-} [{cmd:,} {it:scheme} {opt h:ue(h1 [h2])} {opt c:hroma(c1 [c2])} {opt l:uminance(l1 [l2])}
+    {c -(}{cmd:hcl}|{cmd:lhc}|{cmd:jmh}{c )-} [{it:scheme}] [{cmd:,} {opt h:ue(h1 [h2])} {opt c:hroma(c1 [c2])} {opt l:uminance(l1 [l2])}
         {opt pow:er(p1 [p2])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    Options:
-
-{phang}
-    {it:scheme} picks the type of color formula (qualitative, sequential,
+    where {it:scheme} picks the type of color formula (qualitative, sequential,
     or diverging) and sets the default parameter values. {it:scheme} can be one of
     following ({cmd:qualitative} is the default; abbreviations are allowed).
 
         Qualitative {...}
-(view: {stata "colorpalette, lc(white) n(9): hcl, qual / hcl, intense / hcl, dark / hcl, light / hcl, pastel":{it:hcl}}, {...}
-{stata "colorpalette, lc(white) n(9): lch, qual / lch, intense / lch, dark / lch, light / lch, pastel":{it:lch}}, {...}
-{stata "colorpalette, lc(white) n(9): jmh, qual / jmh, intense / jmh, dark / jmh, light / jmh, pastel":{it:jmh}})
+(view: {...}
+{stata "colorpalette, lc(white) n(9): hcl qual / hcl intense / hcl dark / hcl light / hcl pastel":{it:hcl}}, {...}
+{stata "colorpalette, lc(white) n(9): lch qual / lch intense / lch dark / lch light / lch pastel":{it:lch}}, {...}
+{stata "colorpalette, lc(white) n(9): jmh qual / jmh intense / jmh dark / jmh light / jmh pastel":{it:jmh}})
 {col 28} h1              h2   c1   l1
-        {stata colorpalette hcl, qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   60   70
-        {stata colorpalette hcl, intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n  100   65
-        {stata colorpalette hcl, dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   80   60
-        {stata colorpalette hcl, light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   50   80
-        {stata colorpalette hcl, pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   35   85
+        {stata colorpalette hcl qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   60   70
+        {stata colorpalette hcl intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n  100   65
+        {stata colorpalette hcl dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   80   60
+        {stata colorpalette hcl light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   50   80
+        {stata colorpalette hcl pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   35   85
 
         Sequential {...}
-(view: {stata "colorpalette, n(9): hcl, blues / hcl, greens / hcl, grays / hcl, oranges / hcl, purples / hcl, reds / hcl, heat / hcl, heat2 / hcl, terrain / hcl, terrain2 / hcl, viridis / hcl, plasma / hcl, redblue":{it:hcl}}, {...}
-{stata "colorpalette, n(9): lch, blues / lch, greens / lch, grays / lch, oranges / lch, purples / lch, reds / lch, heat / lch, heat2 / lch, terrain / lch, terrain2 / lch, viridis / lch, plasma / lch, redblue":{it:lch}}, {...}
-{stata "colorpalette, n(9): jmh, blues / jmh, greens / jmh, grays / jmh, oranges / jmh, purples / jmh, reds / jmh, heat / jmh, heat2 / jmh, terrain / jmh, terrain2 / jmh, viridis / jmh, plasma / jmh, redblue":{it:jmh}})
+(view: {...}
+{stata "colorpalette, n(9): hcl blues / hcl greens / hcl grays / hcl oranges / hcl purples / hcl reds / hcl heat / hcl heat2 / hcl terrain / hcl terrain2 / hcl viridis / hcl plasma / hcl redblue":{it:hcl}}, {...}
+{stata "colorpalette, n(9): lch blues / lch greens / lch grays / lch oranges / lch purples / lch reds / lch heat / lch heat2 / lch terrain / lch terrain2 / lch viridis / lch plasma / lch redblue":{it:lch}}, {...}
+{stata "colorpalette, n(9): jmh blues / jmh greens / jmh grays / jmh oranges / jmh purples / jmh reds / jmh heat / jmh heat2 / jmh terrain / jmh terrain2 / jmh viridis / jmh plasma / jmh redblue":{it:jmh}})
 {col 28} h1   h2   c1   c2   l1   l2   p1   p2
-        {stata colorpalette hcl, sequential:{bf:sequential}}{col 28}260   h1   80   10   25   95    1   p1
-        {stata colorpalette hcl, blues:{bf:blues}}          {col 28}260   h1   80   10   25   95    1   p1
-        {stata colorpalette hcl, greens:{bf:greens}}        {col 28}145  125   80   10   25   95    1   p1
-        {stata colorpalette hcl, grays:{bf:grays}}          {col 28}  0   h1    0    0   15   95    1   p1
-        {stata colorpalette hcl, oranges:{bf:oranges}}      {col 28} 40   h1  100   10   50   95    1   p1
-        {stata colorpalette hcl, purples:{bf:purples}}      {col 28}280   h1   70   10   20   95    1   p1
-        {stata colorpalette hcl, reds:{bf:reds}}            {col 28} 10   20   80   10   25   95    1   p1
-        {stata colorpalette hcl, heat:{bf:heat}}            {col 28}  0   90  100   30   50   90  0.2  1.0
-        {stata colorpalette hcl, heat2:{bf:heat2}}          {col 28}  0   90   80   30   30   90  0.2  2.0
-        {stata colorpalette hcl, terrain:{bf:terrain}}      {col 28}130    0   80    0   60   95  0.1  1.0
-        {stata colorpalette hcl, terrain2:{bf:terrain2}}    {col 28}130   30   65    0   45   90  0.5  1.5
-        {stata colorpalette hcl, viridis:{bf:viridis}}      {col 28}300   75   35   95   15   90  0.8  1.2
-        {stata colorpalette hcl, plasma:{bf:plasma}}        {col 28}100   h1   60  100   15   95  2.0  0.9
-        {stata colorpalette hcl, redblue:{bf:redblue}}      {col 28}  0 -100   80   40   40   75  1.0  1.0
+        {stata colorpalette hcl sequential:{bf:sequential}}{col 28}260   h1   80   10   25   95    1   p1
+        {stata colorpalette hcl blues:{bf:blues}}          {col 28}260   h1   80   10   25   95    1   p1
+        {stata colorpalette hcl greens:{bf:greens}}        {col 28}145  125   80   10   25   95    1   p1
+        {stata colorpalette hcl grays:{bf:grays}}          {col 28}  0   h1    0    0   15   95    1   p1
+        {stata colorpalette hcl oranges:{bf:oranges}}      {col 28} 40   h1  100   10   50   95    1   p1
+        {stata colorpalette hcl purples:{bf:purples}}      {col 28}280   h1   70   10   20   95    1   p1
+        {stata colorpalette hcl reds:{bf:reds}}            {col 28} 10   20   80   10   25   95    1   p1
+        {stata colorpalette hcl heat:{bf:heat}}            {col 28}  0   90  100   30   50   90  0.2  1.0
+        {stata colorpalette hcl heat2:{bf:heat2}}          {col 28}  0   90   80   30   30   90  0.2  2.0
+        {stata colorpalette hcl terrain:{bf:terrain}}      {col 28}130    0   80    0   60   95  0.1  1.0
+        {stata colorpalette hcl terrain2:{bf:terrain2}}    {col 28}130   30   65    0   45   90  0.5  1.5
+        {stata colorpalette hcl viridis:{bf:viridis}}      {col 28}300   75   35   95   15   90  0.8  1.2
+        {stata colorpalette hcl plasma:{bf:plasma}}        {col 28}100   h1   60  100   15   95  2.0  0.9
+        {stata colorpalette hcl redblue:{bf:redblue}}      {col 28}  0 -100   80   40   40   75  1.0  1.0
 
         Diverging {...}
-(view: {stata "colorpalette, n(9): hcl, bluered / hcl, bluered2 / hcl, bluered3 / hcl, greenorange / hcl, browngreen / hcl, pinkgreen / hcl, purplegreen":{it:hcl}}, {...}
-{stata "colorpalette, n(9): lch, bluered / lch, bluered2 / lch, bluered3 / lch, greenorange / lch, browngreen / lch, pinkgreen / lch, purplegreen":{it:lch}}, {...}
-{stata "colorpalette, n(9): jmh, bluered / jmh, bluered2 / jmh, bluered3 / jmh, greenorange / jmh, browngreen / jmh, pinkgreen / jmh, purplegreen":{it:jmh}})
+(view: {...}
+{stata "colorpalette, n(9): hcl bluered / hcl bluered2 / hcl bluered3 / hcl greenorange / hcl browngreen / hcl pinkgreen / hcl purplegreen":{it:hcl}}, {...}
+{stata "colorpalette, n(9): lch bluered / lch bluered2 / lch bluered3 / lch greenorange / lch browngreen / lch pinkgreen / lch purplegreen":{it:lch}}, {...}
+{stata "colorpalette, n(9): jmh bluered / jmh bluered2 / jmh bluered3 / jmh greenorange / jmh browngreen / jmh pinkgreen / jmh purplegreen":{it:jmh}})
 {col 28} h1   h2   c1   l1   l2   p1   p2
-        {stata colorpalette hcl, diverging:{bf:diverging}}    {col 28}260    0   80   30   95    1   p1
-        {stata colorpalette hcl, bluered:{bf:bluered}}        {col 28}260    0   80   30   95    1   p1
-        {stata colorpalette hcl, bluered2:{bf:bluered2}}      {col 28}260    0  100   50   95    1   p1
-        {stata colorpalette hcl, bluered3:{bf:bluered3}}      {col 28}180  330   60   75   95    1   p1
-        {stata colorpalette hcl, greenorange:{bf:greenorange}}{col 28}130   45  100   70   95    1   p1
-        {stata colorpalette hcl, browngreen:{bf:browngreen}}  {col 28} 55  160   60   35   95    1   p1
-        {stata colorpalette hcl, pinkgreen:{bf:pinkgreen}}    {col 28}340  128   90   35   95    1   p1
-        {stata colorpalette hcl, purplegreen:{bf:purplegreen}}{col 28}300  128   60   30   95    1   p1
+        {stata colorpalette hcl diverging:{bf:diverging}}    {col 28}260    0   80   30   95    1   p1
+        {stata colorpalette hcl bluered:{bf:bluered}}        {col 28}260    0   80   30   95    1   p1
+        {stata colorpalette hcl bluered2:{bf:bluered2}}      {col 28}260    0  100   50   95    1   p1
+        {stata colorpalette hcl bluered3:{bf:bluered3}}      {col 28}180  330   60   75   95    1   p1
+        {stata colorpalette hcl greenorange:{bf:greenorange}}{col 28}130   45  100   70   95    1   p1
+        {stata colorpalette hcl browngreen:{bf:browngreen}}  {col 28} 55  160   60   35   95    1   p1
+        {stata colorpalette hcl pinkgreen:{bf:pinkgreen}}    {col 28}340  128   90   35   95    1   p1
+        {stata colorpalette hcl purplegreen:{bf:purplegreen}}{col 28}300  128   60   30   95    1   p1
 
-{pmore}
+{pstd}
     The shown parameter values are for
    {cmd:hcl}; {cmd:lch} and {cmd:jmh} use adjusted values such that the end points
    of the generated colors are similar to the ones generated by {cmd:hcl} (see the source code of
-   {stata viewsource colorpalette.ado:colorpalette.ado}).
+   {stata viewsource colorpalette.ado:colorpalette.ado}). Options are:
 
 {phang}
     {opt hue(h1 [h2])} overwrites the default values for h1 and h2. h1 and h2 are hues on
@@ -1068,51 +1162,51 @@ or {cmd:.} to insert a gap.
     Syntax:
 
 {p 8 15 2}
-    {cmd:hsv} [{cmd:,} {it:scheme} {opt h:ue(h1 [h2])} {opt sat:uration(s1 [s2])} {opt val:ue(v1 [v2])}
+    {cmd:hsv} [{it:scheme}] [{cmd:,} {opt h:ue(h1 [h2])} {opt sat:uration(s1 [s2])} {opt val:ue(v1 [v2])}
         {opt pow:er(p1 [p2])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    Options:
-
-{phang}
-    {it:scheme} picks the type of color formula (qualitative, sequential,
+    where {it:scheme} picks the type of color formula (qualitative, sequential,
     or diverging) and sets the default parameter values. {it:scheme} can be one of
     following ({cmd:qualitative} is the default; abbreviations are allowed).
 
         Qualitative {...}
-({stata "colorpalette, lc(white) n(9): hsv, qual / hsv, intense / hsv, dark / hsv, light / hsv, pastel / hsv, rainbow":{it:view}}){...}
+({stata "colorpalette, lc(white) n(9): hsv qual / hsv intense / hsv dark / hsv light / hsv pastel / hsv rainbow":{it:view}}){...}
 {col 28} h1              h2   s1   v1
-        {stata colorpalette hsv, qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   .4  .85
-        {stata colorpalette hsv, intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n   .6  .9
-        {stata colorpalette hsv, dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   .6  .7
-        {stata colorpalette hsv, light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   .3  .9
-        {stata colorpalette hsv, pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   .2  .9
-        {stata colorpalette hsv, rainbow:{bf:rainbow}}        {col 28} 15  h1+360*(n-1)/n    1   1
+        {stata colorpalette hsv qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   .4  .85
+        {stata colorpalette hsv intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n   .6  .9
+        {stata colorpalette hsv dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   .6  .7
+        {stata colorpalette hsv light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   .3  .9
+        {stata colorpalette hsv pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   .2  .9
+        {stata colorpalette hsv rainbow:{bf:rainbow}}        {col 28} 15  h1+360*(n-1)/n    1   1
 
         Sequential {...}
-({stata "colorpalette, n(9): hsv, blues / hsv, greens / hsv, grays / hsv, oranges / hsv, purples / hsv, reds / hsv, heat / hsv, terrain":{it:view}}){...}
+({stata "colorpalette, n(9): hsv blues / hsv greens / hsv grays / hsv oranges / hsv purples / hsv reds / hsv heat / hsv terrain":{it:view}}){...}
 {col 28} h1   h2   s1   s2   v1   v2   p1   p2
-        {stata colorpalette hsv, sequential:{bf:sequential}}{col 28}240   h1   .8  .05   .6   1   1.2   p1
-        {stata colorpalette hsv, blues:{bf:blues}}          {col 28}240   h1   .8  .05   .6   1   1.2   p1
-        {stata colorpalette hsv, greens:{bf:greens}}        {col 28}140  120   1   .1    .3   1   1.2   p1
-        {stata colorpalette hsv, grays:{bf:grays}}          {col 28}  0   h1   0    0    .1  .95  1.0   p1
-        {stata colorpalette hsv, oranges:{bf:oranges}}      {col 28} 30   h1   1   .1    .9   1   1.2   p1
-        {stata colorpalette hsv, purples:{bf:purples}}      {col 28}270   h1   1   .1    .6   1   1.2   p1
-        {stata colorpalette hsv, reds:{bf:reds}}            {col 28}  0   20   1   .1    .6   1   1.2   p1
-        {stata colorpalette hsv, heat:{bf:heat}}            {col 28}  0   60   1   .2     1   1   0.3   p1
-        {stata colorpalette hsv, terrain:{bf:terrain}}      {col 28}120    0   1    0    .65 .95  0.7  1.5
+        {stata colorpalette hsv sequential:{bf:sequential}}{col 28}240   h1   .8  .05   .6   1   1.2   p1
+        {stata colorpalette hsv blues:{bf:blues}}          {col 28}240   h1   .8  .05   .6   1   1.2   p1
+        {stata colorpalette hsv greens:{bf:greens}}        {col 28}140  120   1   .1    .3   1   1.2   p1
+        {stata colorpalette hsv grays:{bf:grays}}          {col 28}  0   h1   0    0    .1  .95  1.0   p1
+        {stata colorpalette hsv oranges:{bf:oranges}}      {col 28} 30   h1   1   .1    .9   1   1.2   p1
+        {stata colorpalette hsv purples:{bf:purples}}      {col 28}270   h1   1   .1    .6   1   1.2   p1
+        {stata colorpalette hsv reds:{bf:reds}}            {col 28}  0   20   1   .1    .6   1   1.2   p1
+        {stata colorpalette hsv heat:{bf:heat}}            {col 28}  0   60   1   .2     1   1   0.3   p1
+        {stata colorpalette hsv terrain:{bf:terrain}}      {col 28}120    0   1    0    .65 .95  0.7  1.5
 
         Diverging {...}
-({stata "colorpalette, n(9): hsv, bluered / hsv, bluered2 / hsv, bluered3 / hsv, greenorange / hsv, browngreen / hsv, pinkgreen / hsv, purplegreen":{it:view}}){...}
+({stata "colorpalette, n(9): hsv bluered / hsv bluered2 / hsv bluered3 / hsv greenorange / hsv browngreen / hsv pinkgreen / hsv purplegreen":{it:view}}){...}
 {col 28} h1   h2   s1   v1   v2   p1   p2
-        {stata colorpalette hsv, diverging:{bf:diverging}}    {col 28}240    0   .8   .6  .95  1.2   p1
-        {stata colorpalette hsv, bluered:{bf:bluered}}        {col 28}240    0   .8   .6  .95  1.2   p1
-        {stata colorpalette hsv, bluered2:{bf:bluered2}}      {col 28}240    0   .6   .8  .95  1.2   p1
-        {stata colorpalette hsv, bluered3:{bf:bluered3}}      {col 28}175  320   .6   .8  .95  1.2   p1
-        {stata colorpalette hsv, greenorange:{bf:greenorange}}{col 28}130   40   1    .8  .95  1.2   p1
-        {stata colorpalette hsv, browngreen:{bf:browngreen}}  {col 28} 40  150   .8   .6  .95  1.2   p1
-        {stata colorpalette hsv, pinkgreen:{bf:pinkgreen}}    {col 28}330  120   .9   .6  .95  1.2   p1
-        {stata colorpalette hsv, purplegreen:{bf:purplegreen}}{col 28}290  120   .7   .5  .95  1.2   p1
+        {stata colorpalette hsv diverging:{bf:diverging}}    {col 28}240    0   .8   .6  .95  1.2   p1
+        {stata colorpalette hsv bluered:{bf:bluered}}        {col 28}240    0   .8   .6  .95  1.2   p1
+        {stata colorpalette hsv bluered2:{bf:bluered2}}      {col 28}240    0   .6   .8  .95  1.2   p1
+        {stata colorpalette hsv bluered3:{bf:bluered3}}      {col 28}175  320   .6   .8  .95  1.2   p1
+        {stata colorpalette hsv greenorange:{bf:greenorange}}{col 28}130   40   1    .8  .95  1.2   p1
+        {stata colorpalette hsv browngreen:{bf:browngreen}}  {col 28} 40  150   .8   .6  .95  1.2   p1
+        {stata colorpalette hsv pinkgreen:{bf:pinkgreen}}    {col 28}330  120   .9   .6  .95  1.2   p1
+        {stata colorpalette hsv purplegreen:{bf:purplegreen}}{col 28}290  120   .7   .5  .95  1.2   p1
+
+{pstd}
+    Options are:
 
 {phang}
     {opt h:ue(h1 [h2])} overwrites the default values for h1 and h2. h1 and h2
@@ -1156,7 +1250,8 @@ or {cmd:.} to insert a gap.
     {it:scheme} [{cmd:,} {cmd:cmyk} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:scheme} is one of the following
+    where {it:scheme} is one of the following (abbreviations and lower case
+    spelling allowed as long as {cmd:cmyk} is not specified)
 
 {p2colset 9 22 24 2}{...}
 {p2col:Qualitative ({stata "colorpalette, lc(black): Accent / Dark2 / Paired / Pastel1 / Pastel2 / Set1 / Set2 / Set3":{it:view}})}{p_end}
@@ -1191,11 +1286,11 @@ or {cmd:.} to insert a gap.
 {p2col:{stata colorpalette YlOrBr:{bf:YlOrBr}}}light yellow over orange to brown (3-9 colors){p_end}
 {p2col:{stata colorpalette YlOrRd:{bf:YlOrRd}}}light yellow over orange to red (3-9 colors){p_end}
 
-{p2col:Diverging ({stata "colorpalette: BrBG / PRGn / PiYG / PuOr / RdBu / RdGy / RdYlBu / RdYlGn / Spectral":{it:view}})}{p_end}
+{p2col:Diverging ({stata "colorpalette: BrBG / PiYG / PRGn / PuOr / RdBu / RdGy / RdYlBu / RdYlGn / Spectral":{it:view}})}{p_end}
 {p2col:{stata colorpalette BrBG:{bf:BrBG}}}brown to green, light gray mid (3-11 colors){p_end}
 {p2col:{stata colorpalette PiYG:{bf:PiYG}}}pink to green, light gray mid (3-11 colors){p_end}
 {p2col:{stata colorpalette PRGn:{bf:PRGn}}}purple to green, light gray mid (3-11 colors){p_end}
-{p2col:{stata colorpalette PuOr:{bf:PuOr}}}purple to orange, light gray mid (3-11 colors){p_end}
+{p2col:{stata colorpalette PuOr:{bf:PuOr}}}orange to purple, light gray mid (3-11 colors){p_end}
 {p2col:{stata colorpalette RdBu:{bf:RdBu}}}red to blue, light gray mid (3-11 colors){p_end}
 {p2col:{stata colorpalette RdGy:{bf:RdGy}}}red to gray, white mid (3-11 colors){p_end}
 {p2col:{stata colorpalette RdYlBu:{bf:RdYlBu}}}red to blue, yellow mid (3-11 colors){p_end}
@@ -1219,32 +1314,25 @@ or {cmd:.} to insert a gap.
 {pstd}The syntax for the viridis palettes is
 
 {p 8 15 2}
-    {it:colormap} [{cmd:,} {opt ra:nge(lb [ub])} {opt shift:ed} {help colorpalette##opts:{it:palette_options}} ]
+    {it:scheme} [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:colormap} is one of the following
-    ({stata "colorpalette: viridis / plasma / inferno / magma / cividis / twilight / twilight, shifted":{it:view}}).
+    where {it:scheme} is one of the following (abbreviations allowed)
+    ({stata "colorpalette: viridis / plasma / inferno / magma / cividis / twilight / twilight shifted":{it:view}})
 
-{p2colset 9 22 24 2}{...}
+{p2colset 9 27 29 2}{...}
 {p2col:{stata colorpalette viridis:{bf:viridis}}}blue - green - yellow (sequential){p_end}
 {p2col:{stata colorpalette plasma:{bf:plasma}}}blue - red - yellow (sequential){p_end}
 {p2col:{stata colorpalette inferno:{bf:inferno}}}black - blue - orange - yellow (sequential){p_end}
 {p2col:{stata colorpalette magma:{bf:magma}}}black - blue - red - yellow (sequential){p_end}
 {p2col:{stata colorpalette cividis:{bf:cividis}}}blue - olive - yellow (sequential){p_end}
 {p2col:{stata colorpalette twilight:{bf:twilight}}}blue - russet (diverging){p_end}
+{p2col:{stata colorpalette twilight shifted:{bf:twilight shifted}}}blue - russet (diverging; shifted variant){p_end}
 
 {pstd}
-    Options:
-
-{phang}
-    {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
+    and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
     must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
     {it:ub}, the colors are returned in reverse order.
-
-{phang}
-    {opt shifted} only has an effect on {cmd:twilight} and shifts
-    the color pattern from light extremes and dark in the middle to dark extremes and
-    light in the middle.
 
 {marker matplotlib}{...}
 {dlgtab:matplotlib}
@@ -1259,26 +1347,26 @@ or {cmd:.} to insert a gap.
 {pstd}The syntax for the {cmd:matplotlib} palette is
 
 {p 8 15 2}
-    {cmdab:matplot:lib} [{cmd:,} {it:colormap} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
+    {cmdab:matplotlib} [{it:scheme}] [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:colormap} is one of the following (abbreviations allowed)
-    ({stata "colorpalette: matplotlib, jet / matplotlib, autumn / matplotlib, spring / matplotlib, summer / matplotlib, winter / matplotlib, bone / matplotlib, cool / matplotlib, copper / matplotlib, coolwarm / matplotlib, hot":{it:view}})
+    where {it:scheme} is one of the following (abbreviations allowed)
+    ({stata "colorpalette: matplotlib jet / matplotlib autumn / matplotlib spring / matplotlib summer / matplotlib winter / matplotlib bone / matplotlib cool / matplotlib copper / matplotlib coolwarm / matplotlib hot":{it:view}})
 
 {p2colset 9 22 24 2}{...}
-{p2col:{stata colorpalette matplotlib, jet:{bf:jet}}}blue - green - yellow - red; the default{p_end}
-{p2col:{stata colorpalette matplotlib, autumn:{bf:autumn}}}red - yellow{p_end}
-{p2col:{stata colorpalette matplotlib, spring:{bf:spring}}}magenta - yellow{p_end}
-{p2col:{stata colorpalette matplotlib, summer:{bf:summer}}}green - yellow{p_end}
-{p2col:{stata colorpalette matplotlib, winter:{bf:winter}}}blue - lime{p_end}
-{p2col:{stata colorpalette matplotlib, bone:{bf:bone}}}black - bluish gray - white{p_end}
-{p2col:{stata colorpalette matplotlib, cool:{bf:cool}}}cyan - magenta{p_end}
-{p2col:{stata colorpalette matplotlib, copper:{bf:copper}}}black - orange/brown{p_end}
-{p2col:{stata colorpalette matplotlib, coolwarm:{bf:coolwarm}}}blue - red (diverging){p_end}
-{p2col:{stata colorpalette matplotlib, hot:{bf:hot}}}heat colors{p_end}
+{p2col:{stata colorpalette matplotlib jet:{bf:jet}}}blue - green - yellow - red; the default{p_end}
+{p2col:{stata colorpalette matplotlib autumn:{bf:autumn}}}red - yellow{p_end}
+{p2col:{stata colorpalette matplotlib spring:{bf:spring}}}magenta - yellow{p_end}
+{p2col:{stata colorpalette matplotlib summer:{bf:summer}}}green - yellow{p_end}
+{p2col:{stata colorpalette matplotlib winter:{bf:winter}}}blue - lime{p_end}
+{p2col:{stata colorpalette matplotlib bone:{bf:bone}}}black - bluish gray - white{p_end}
+{p2col:{stata colorpalette matplotlib cool:{bf:cool}}}cyan - magenta{p_end}
+{p2col:{stata colorpalette matplotlib copper:{bf:copper}}}black - orange/brown{p_end}
+{p2col:{stata colorpalette matplotlib coolwarm:{bf:coolwarm}}}blue - red (diverging){p_end}
+{p2col:{stata colorpalette matplotlib hot:{bf:hot}}}heat colors{p_end}
 
 {pstd}
-    and {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
+    and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
     must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
     {it:ub}, the colors are returned in reverse order.
 
@@ -1291,16 +1379,16 @@ or {cmd:.} to insert a gap.
     syntax is
 
 {p 8 15 2}
-    {cmd:ptol} [{cmd:,} {it:scheme} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:ptol} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following (abbreviations allowed)
-    ({stata "colorpalette: ptol, n(3) / ptol, n(5) / ptol, n(9) / ptol, div n(3) / ptol, div n(5) / ptol, div n(9) / ptol, rain n(4) / ptol, rain n(6) / ptol, rain n(8)":{it:view}}).
+    ({stata "colorpalette: ptol, n(3) / ptol, n(5) / ptol, n(9) / ptol rain, n(4) / ptol rain, n(6) / ptol rain, n(8) / ptol div, n(3) / ptol div, n(5) / ptol div, n(9)":{it:view}}).
 
 {p2colset 9 24 26 2}{...}
-{p2col:{stata colorpalette ptol, qualitative:{bf:qualitative}}}1-12 qualitative colors; the default{p_end}
-{p2col:{stata colorpalette ptol, diverging:{bf:diverging}}}3-11 diverging colors; very similar to reverse {helpb colorpalette##cbrew:RdYlBu}{p_end}
-{p2col:{stata colorpalette ptol, rainbow:{bf:rainbow}}}4-12 rainbow colors{p_end}
+{p2col:{stata colorpalette ptol qualitative:{bf:qualitative}}}1-12 qualitative colors; the default{p_end}
+{p2col:{stata colorpalette ptol rainbow:{bf:rainbow}}}4-12 rainbow colors{p_end}
+{p2col:{stata colorpalette ptol diverging:{bf:diverging}}}3-11 diverging colors; very similar to reverse {helpb colorpalette##cbrew:RdYlBu}{p_end}
 
 {marker d3}{...}
 {dlgtab:d3}
@@ -1312,17 +1400,17 @@ or {cmd:.} to insert a gap.
     syntax is
 
 {p 8 15 2}
-    {cmd:d3} [{cmd:,} {it:scheme} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:d3} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following
-    ({stata "colorpalette: d3, 10 / d3, 20 / d3, 20b / d3, 20c":{it:view}}).
+    ({stata "colorpalette: d3 10 / d3 20 / d3 20b / d3 20c":{it:view}}).
 
 {p2colset 9 16 18 2}{...}
-{p2col:{stata colorpalette d3, 10:{bf:10}}}10 categorical colors; the default; same as first 10 colors in {helpb colorpalette##tableau:tableau}{p_end}
-{p2col:{stata colorpalette d3, 20:{bf:20}}}20 categorical colors in pairs; same colors as in {helpb colorpalette##tableau:tableau}, but ordered differently{p_end}
-{p2col:{stata colorpalette d3, 20b:{bf:20b}}}20 categorical colors in groups of four{p_end}
-{p2col:{stata colorpalette d3, 20c:{bf:20c}}}20 categorical colors in groups of four{p_end}
+{p2col:{stata colorpalette d3 10:{bf:10}}}10 categorical colors; the default; same as first 10 colors in {helpb colorpalette##tableau:tableau}{p_end}
+{p2col:{stata colorpalette d3 20:{bf:20}}}20 categorical colors in pairs; same colors as in {helpb colorpalette##tableau:tableau}, but ordered differently{p_end}
+{p2col:{stata colorpalette d3 20b:{bf:20b}}}20 categorical colors in groups of four{p_end}
+{p2col:{stata colorpalette d3 20c:{bf:20c}}}20 categorical colors in groups of four{p_end}
 
 {marker lin}{...}
 {dlgtab:lin}
@@ -1338,28 +1426,28 @@ or {cmd:.} to insert a gap.
 {pstd}The syntax is
 
 {p 8 15 2}
-    {cmd:lin} [{cmd:,} {it:scheme} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:lin} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following (abbreviations allowed):
 
 {p2colset 9 31 33 2}{...}
-{p2col:{stata colorpalette lin, carcolor:{bf:carcolor}}}6 car colors (selected by Turkers){p_end}
-{p2col:{stata colorpalette lin, carcolor algorithm:{bf:carcolor algorithm}}}6 car colors (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, food:{bf:food}}}7 food colors (selected by Turkers){p_end}
-{p2col:{stata colorpalette lin, food algorithm:{bf:food algorithm}}}7 food colors (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, features:{bf:features}}}5 feature colors (selected by Turkers){p_end}
-{p2col:{stata colorpalette lin, features algorithm:{bf:features algorithm}}}5 feature colors (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, activities:{bf:activities}}}5 activity colors (selected by Turkers){p_end}
-{p2col:{stata colorpalette lin, activities algorithm:{bf:activities algorithm}}}5 activity colors (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, fruits:{bf:fruits}}}7 fruit colors; the default (selected by expert){p_end}
-{p2col:{stata colorpalette lin, fruits algorithm:{bf:fruits algorithm}}}7 fruit colors; the default (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, vegetables:{bf:vegetables}}}7 vegetable colors (selected by expert){p_end}
-{p2col:{stata colorpalette lin, vegetables algorithm:{bf:vegetables algorithm}}}7 vegetable colors (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, drinks:{bf:drinks}}}7 drinks colors (selected by expert){p_end}
-{p2col:{stata colorpalette lin, drinks algorithm:{bf:drinks algorithm}}}7 drinks colors (algorithm selected){p_end}
-{p2col:{stata colorpalette lin, brands:{bf:brands}}}7 brands colors (selected by expert){p_end}
-{p2col:{stata colorpalette lin, brands algorithm:{bf:brands algorithm}}}7 brands colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin carcolor:{bf:carcolor}}}6 car colors (selected by Turkers){p_end}
+{p2col:{stata colorpalette lin carcolor algorithm:{bf:carcolor algorithm}}}6 car colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin food:{bf:food}}}7 food colors (selected by Turkers){p_end}
+{p2col:{stata colorpalette lin food algorithm:{bf:food algorithm}}}7 food colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin features:{bf:features}}}5 feature colors (selected by Turkers){p_end}
+{p2col:{stata colorpalette lin features algorithm:{bf:features algorithm}}}5 feature colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin activities:{bf:activities}}}5 activity colors (selected by Turkers){p_end}
+{p2col:{stata colorpalette lin activities algorithm:{bf:activities algorithm}}}5 activity colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin fruits:{bf:fruits}}}7 fruit colors; the default (selected by expert){p_end}
+{p2col:{stata colorpalette lin fruits algorithm:{bf:fruits algorithm}}}7 fruit colors; the default (algorithm selected){p_end}
+{p2col:{stata colorpalette lin vegetables:{bf:vegetables}}}7 vegetable colors (selected by expert){p_end}
+{p2col:{stata colorpalette lin vegetables algorithm:{bf:vegetables algorithm}}}7 vegetable colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin drinks:{bf:drinks}}}7 drinks colors (selected by expert){p_end}
+{p2col:{stata colorpalette lin drinks algorithm:{bf:drinks algorithm}}}7 drinks colors (algorithm selected){p_end}
+{p2col:{stata colorpalette lin brands:{bf:brands}}}7 brands colors (selected by expert){p_end}
+{p2col:{stata colorpalette lin brands algorithm:{bf:brands algorithm}}}7 brands colors (algorithm selected){p_end}
 
 {marker spmap}{...}
 {dlgtab:spmap}
@@ -1373,21 +1461,21 @@ or {cmd:.} to insert a gap.
     The syntax is
 
 {p 8 15 2}
-    {cmd:spmap} [{cmd:,} {it:scheme} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:spmap} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following (abbreviations allowed)
-    ({stata "colorpalette, n(16) lc(white): spmap, bl / spmap, green / spmap, grey / spmap, red / spmap, rain / spmap, heat / spmap, ter / spmap, top":{it:view}}):
+    ({stata "colorpalette, n(16) lc(white): spmap bl / spmap green / spmap grey / spmap red / spmap rain / spmap heat / spmap ter / spmap top":{it:view}}):
 
 {p2colset 9 24 26 2}{...}
-{p2col:{stata colorpalette spmap, blues:{bf:blues}}}light blue to blue (2-99 colors); the default{p_end}
-{p2col:{stata colorpalette spmap, greens:{bf:greens}}}light green to green (2-99 colors){p_end}
-{p2col:{stata colorpalette spmap, greys:{bf:greys}}}light gray to black (2-99 colors){p_end}
-{p2col:{stata colorpalette spmap, reds:{bf:reds}}}light red to red (2-99 colors){p_end}
-{p2col:{stata colorpalette spmap, rainbow:{bf:rainbow}}}2-99 rainbow colors{p_end}
-{p2col:{stata colorpalette spmap, heat:{bf:heat}}}2-16 heat colors{p_end}
-{p2col:{stata colorpalette spmap, terrain:{bf:terrain}}}2-16 terrain colors{p_end}
-{p2col:{stata colorpalette spmap, topological:{bf:topological}}}2-16 topological colors{p_end}
+{p2col:{stata colorpalette spmap blues:{bf:blues}}}light blue to blue (2-99 colors); the default{p_end}
+{p2col:{stata colorpalette spmap greens:{bf:greens}}}light green to green (2-99 colors){p_end}
+{p2col:{stata colorpalette spmap greys:{bf:greys}}}light gray to black (2-99 colors){p_end}
+{p2col:{stata colorpalette spmap reds:{bf:reds}}}light red to red (2-99 colors){p_end}
+{p2col:{stata colorpalette spmap rainbow:{bf:rainbow}}}2-99 rainbow colors{p_end}
+{p2col:{stata colorpalette spmap heat:{bf:heat}}}2-16 heat colors{p_end}
+{p2col:{stata colorpalette spmap terrain:{bf:terrain}}}2-16 terrain colors{p_end}
+{p2col:{stata colorpalette spmap topological:{bf:topological}}}2-16 topological colors{p_end}
 
 {marker sfso}{...}
 {dlgtab:sfso}
@@ -1398,30 +1486,30 @@ or {cmd:.} to insert a gap.
     syntax is
 
 {p 8 15 2}
-    {cmd:sfso} [{cmd:,} {it:scheme} {cmd:cmyk} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:sfso} [{it:scheme}] [{cmd:,} {cmd:cmyk} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:scheme} is one of the following
+    where {it:scheme} is one of the following (abbreviations allowed as long as {cmd:cmyk} is not specified)
 
 {p2colset 9 24 26 2}{...}
-{p2col:Sequential ({stata "colorpalette: sfso, br / sfso, or / sfso, red / sfso, pi / sfso, pu / sfso, vi / sfso, bl / sfso, ltbl / sfso, tu / sfso, green / sfso, ol / sfso, black":{it:view}})}{p_end}
-{p2col:{stata colorpalette sfso, brown:{bf:brown}}}dark brown to light brown (6 colors){p_end}
-{p2col:{stata colorpalette sfso, orange:{bf:orange}}}dark orange to light orange (6 colors){p_end}
-{p2col:{stata colorpalette sfso, red:{bf:red}}}dark red to light red (6 colors){p_end}
-{p2col:{stata colorpalette sfso, pink:{bf:pink}}}dark pink to light pink (6 colors){p_end}
-{p2col:{stata colorpalette sfso, purple:{bf:purple}}}dark purple to light purple (6 colors){p_end}
-{p2col:{stata colorpalette sfso, violet:{bf:violet}}}dark violet to light violet (6 colors){p_end}
-{p2col:{stata colorpalette sfso, blue:{bf:blue}}}dark blue to light blue (7 colors); the default{p_end}
-{p2col:{stata colorpalette sfso, ltblue:{bf:ltblue}}}lighter version of {cmd:blue} (6 colors){p_end}
-{p2col:{stata colorpalette sfso, turquoise:{bf:turquoise}}}dark turquoise to light turquoise (6 colors){p_end}
-{p2col:{stata colorpalette sfso, green:{bf:green}}}dark green to light green (6 colors){p_end}
-{p2col:{stata colorpalette sfso, olive:{bf:olive}}}dark olive to light olive (6 colors){p_end}
-{p2col:{stata colorpalette sfso, black:{bf:black}}}dark gray to light gray (6 colors){p_end}
+{p2col:Sequential ({stata "colorpalette: sfso br / sfso or / sfso red / sfso pi / sfso pu / sfso vi / sfso bl / sfso ltbl / sfso tu / sfso green / sfso ol / sfso black":{it:view}})}{p_end}
+{p2col:{stata colorpalette sfso brown:{bf:brown}}}dark brown to light brown (6 colors){p_end}
+{p2col:{stata colorpalette sfso orange:{bf:orange}}}dark orange to light orange (6 colors){p_end}
+{p2col:{stata colorpalette sfso red:{bf:red}}}dark red to light red (6 colors){p_end}
+{p2col:{stata colorpalette sfso pink:{bf:pink}}}dark pink to light pink (6 colors){p_end}
+{p2col:{stata colorpalette sfso purple:{bf:purple}}}dark purple to light purple (6 colors){p_end}
+{p2col:{stata colorpalette sfso violet:{bf:violet}}}dark violet to light violet (6 colors){p_end}
+{p2col:{stata colorpalette sfso blue:{bf:blue}}}dark blue to light blue (7 colors); the default{p_end}
+{p2col:{stata colorpalette sfso ltblue:{bf:ltblue}}}lighter version of {cmd:blue} (6 colors){p_end}
+{p2col:{stata colorpalette sfso turquoise:{bf:turquoise}}}dark turquoise to light turquoise (6 colors){p_end}
+{p2col:{stata colorpalette sfso green:{bf:green}}}dark green to light green (6 colors){p_end}
+{p2col:{stata colorpalette sfso olive:{bf:olive}}}dark olive to light olive (6 colors){p_end}
+{p2col:{stata colorpalette sfso black:{bf:black}}}dark gray to light gray (6 colors){p_end}
 
-{p2col:Semantic ({stata "colorpalette: sfso, parties / sfso, languages / sfso, votes":{it:view}})}{p_end}
-{p2col:{stata colorpalette sfso, parties:{bf:parties}}}colors used by the SFSO for Swiss parties (11 colors){p_end}
-{p2col:{stata colorpalette sfso, languages:{bf:languages}}}colors used by the SFSO for languages (5 colors){p_end}
-{p2col:{stata colorpalette sfso, votes:{bf:votes}}}colors used by the SFSO for results from votes (10 colors){p_end}
+{p2col:Semantic ({stata "colorpalette: sfso parties / sfso languages / sfso votes":{it:view}})}{p_end}
+{p2col:{stata colorpalette sfso parties:{bf:parties}}}colors used by the SFSO for Swiss parties (11 colors){p_end}
+{p2col:{stata colorpalette sfso languages:{bf:languages}}}colors used by the SFSO for languages (5 colors){p_end}
+{p2col:{stata colorpalette sfso votes:{bf:votes}}}colors used by the SFSO for results from votes (10 colors){p_end}
 
 {phang}
     and option {cmd:cmyk} requests the CMYK variant of the scheme. The default is to use
@@ -1436,24 +1524,24 @@ or {cmd:.} to insert a gap.
     syntax is
 
 {p 8 15 2}
-    {cmdab:web:colors} [{cmd:,} {it:scheme} {help colorpalette##opts:{it:palette_options}} ]
+    {cmdab:web:colors} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following (abbreviations allowed; see {help colorpalette##webcolors:here} for
     color names).
 
 {p2colset 9 24 26 2}{...}
-{p2col:{stata colorpalette webcolors, pink:{bf:pink}}}6 pink colors{p_end}
-{p2col:{stata colorpalette webcolors, purple:{bf:purple}}}19 purple colors{p_end}
-{p2col:{stata colorpalette webcolors, redorange:{bf:redorange}}}14 red and orange colors{p_end}
-{p2col:{stata colorpalette webcolors, yellow:{bf:yellow}}}11 yellow colors{p_end}
-{p2col:{stata colorpalette webcolors, green:{bf:green}}}22 green colors{p_end}
-{p2col:{stata colorpalette webcolors, cyan:{bf:cyan}}}8 cyan colors{p_end}
-{p2col:{stata colorpalette webcolors, blue:{bf:blue}}}16 blue colors{p_end}
-{p2col:{stata colorpalette webcolors, brown:{bf:brown}}}18 brown colors{p_end}
-{p2col:{stata colorpalette webcolors, white:{bf:white}}}17 white colors{p_end}
-{p2col:{stata colorpalette webcolors, gray:{bf:gray}}}10 gray colors{p_end}
-{p2col:{stata colorpalette webcolors, grey:{bf:grey}}}10 grey colors (same color codes as {cmd:gray}){p_end}
+{p2col:{stata colorpalette webcolors pink:{bf:pink}}}6 pink colors{p_end}
+{p2col:{stata colorpalette webcolors purple:{bf:purple}}}19 purple colors{p_end}
+{p2col:{stata colorpalette webcolors redorange:{bf:redorange}}}14 red and orange colors{p_end}
+{p2col:{stata colorpalette webcolors yellow:{bf:yellow}}}11 yellow colors{p_end}
+{p2col:{stata colorpalette webcolors green:{bf:green}}}22 green colors{p_end}
+{p2col:{stata colorpalette webcolors cyan:{bf:cyan}}}8 cyan colors{p_end}
+{p2col:{stata colorpalette webcolors blue:{bf:blue}}}16 blue colors{p_end}
+{p2col:{stata colorpalette webcolors brown:{bf:brown}}}18 brown colors{p_end}
+{p2col:{stata colorpalette webcolors white:{bf:white}}}17 white colors{p_end}
+{p2col:{stata colorpalette webcolors gray:{bf:gray}}}10 gray colors{p_end}
+{p2col:{stata colorpalette webcolors grey:{bf:grey}}}10 grey colors (same color codes as {cmd:gray}){p_end}
 
 {pstd}
     All 148 web colors (alphabetically sorted) will be returned if {it:scheme}
@@ -1468,7 +1556,7 @@ or {cmd:.} to insert a gap.
     palette. Palette {it:myname} will then be available to {cmd:colorpalette}
     like any other palette. Your program should return the color definitions as
     a comma-separated list in local macro {cmd:P}. In addition you may provide
-    a comma-separated list of descriptions in local macro {cmd:I}. For example,
+    a comma-separated list of names in local macro {cmd:N}. For example,
     the following program provides a palette called {cmd:bootstrap3} containing
     the semantic colors used for buttons in
     {browse "http://getbootstrap.com/docs/3.3":Bootstrap v3.3}:
@@ -1476,7 +1564,7 @@ or {cmd:.} to insert a gap.
         {com}program colorpalette_bootstrap3
             c_local P #ffffff,#337ab7,#5cb85c,#5bc0de,#f0ad4e,#d9534f, ///
                       #e6e6e6,#286090,#449d44,#31b0d5,#ec971f,#c9302c
-            c_local I default,primary,success,info,warning,danger, ///
+            c_local N default,primary,success,info,warning,danger, ///
                 default_focus,primary_focus,success_focus,info_focus, ///
                 warning_focus,danger_focus
             c_local class qualitative
@@ -1516,9 +1604,12 @@ or {cmd:.} to insert a gap.
 {marker examples}{...}
 {title:Example}
 
+{dlgtab:Retrieving colors from r()}
+
 {pstd}
     Apart from viewing color palettes, {cmd:colorpalette} is useful for
-    retrieving colors that can then be passed through to a graph command. Here is
+    retrieving colors that can then be passed through to a graph command. The
+    color codes are stored in {helpb colorpalette##returns:r()}. Here is
     an example of a contour plot using the {cmd:terrain} scheme from
     the {helpb colorpalette##hcl:hcl} color generator:
 
@@ -1527,8 +1618,12 @@ or {cmd:.} to insert a gap.
 {p 8 12 2}
         . {stata twoway contour depth northing easting, levels(`r(n)') ccolors(`r(p)')}
 
+{marker exglobals}{...}
+{dlgtab:Making colors available as global macros}
+
 {pstd}
-    To make colors available as {helpb global} macros, use the {helpb colorpalette##globals:globals()} option. For example, to
+    To make colors available as {helpb global} macros, use the
+    {helpb colorpalette##macrooptions:globals()} option. For example, to
     make all {help colorpalette##webcolors:web colors} available, type:
 
         {com}. colorpalette webcolors, globals{txt}
@@ -1542,6 +1637,52 @@ or {cmd:.} to insert a gap.
 
 {pstd}
     The globals will disappear once you restart Stata.
+
+{marker exlocals}{...}
+{dlgtab:Making colors available as local macros}
+
+{pstd}
+    Depending on context (e.g., within a do-file or program), it may be
+    convenient to make colors available as
+    {helpb local} macros; see the {helpb colorpalette##macrooptions:locals()}
+    option. Example:
+
+        {com}. colorpalette Accent, locals
+        . sysuse auto, clear
+        . scatter trunk turn mpg weight, mc(`1' `2' `3'){txt}
+
+{pstd}
+    The locals will disappear once the do-file or program concludes.
+
+{marker exstylefiles}{...}
+{dlgtab:Making colors permanently available using style files}
+
+{pstd}
+    To make new colors available permanently, use the
+    {helpb colorpalette##stylefiles:stylefiles()} option. This will cause
+    RGB color definitions to be stored in style files on disk (one file for each
+    color), from where Stata will read the color definitions (if the graph system
+    has already been loaded, that is, if you already produced a graph in the current
+    session, you will need to clear the graph memory before the stored colors
+    become available; use {helpb discard} or {helpb clear all} to flush the
+    working memory). The color names can then be used just like Stata's
+    official color names. Example:
+
+        {com}. colorpalette Fuchsia Tomato SteelBlue SeaShell, stylefiles
+        . sysuse auto, clear{txt}
+{p 8 12 2}
+        {com}. scatter trunk turn mpg weight, mc(Fuchsia Tomato SteelBlue) graphr(color(SeaShell)){txt}
+
+{pstd}
+    {cmd:colorpalette} will store the style files in folder 'style' in the current
+    working directory. That is, the colors definitions will be found by Stata
+    as long as you do not change the working directory.
+
+{pstd}
+    To make the colors permanently available irrespective
+    of the working directory, type {cmd:sylefiles(, personal)}. In this case the
+    style files will be stored in folder 'style' within the {cmd:PERSONAL} ado-file
+    directory; see help {helpb sysdir}.
 
 
 {marker returns}{...}
@@ -1559,9 +1700,12 @@ or {cmd:.} to insert a gap.
 {synopt:{cmd:r(ptype)}}{cmd:color}{p_end}
 {synopt:{cmd:r(pname)}}name of palette or {cmd:custom}{p_end}
 {synopt:{cmd:r(pclass)}}palette class (if provided){p_end}
-{synopt:{cmd:r(pnote)}}additional information on palette (if provided){p_end}
+{synopt:{cmd:r(pinfo)}}palette description (if provided){p_end}
+{synopt:{cmd:r(psource)}}palette source (if provided){p_end}
+{synopt:{cmd:r(pnote)}}modification note{p_end}
 {synopt:{cmd:r(p)}}space separated list of colors{p_end}
 {synopt:{cmd:r(p#)}}#th color{p_end}
+{synopt:{cmd:r(p#name)}}name of #th color (if provided){p_end}
 {synopt:{cmd:r(p#info)}}info of #th color (if provided){p_end}
 
 

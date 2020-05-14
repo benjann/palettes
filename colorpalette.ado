@@ -1,4 +1,4 @@
-*! version 1.1.3  10may2020  Ben Jann
+*! version 1.1.4  14may2020  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -19,65 +19,55 @@ program colorpalette
     version 14.2
     capt _on_colon_parse `0'
     if _rc==0 {
-        local 0 `"`s(before)'"'
-        local rhs `"`s(after)'"'
-        _parse comma lhs 0 : 0
+        local 0 `"`s(after)'"'
+        local opts `"`s(before)'"'
+        _parse comma lhs opts : opts
         if `"`lhs'"'!="" error 198
-        if `"`rhs'"'=="" local rhs s2
-        local palettes
-        local palette
-        local space
-        while (`"`rhs'"'!="") {
-            gettoken p rhs : rhs, parse("/") quotes bind
-            if `"`p'"'=="/" {
-                local palettes `"`palettes'`"`palette'"' "'
-                local palette
-                local space
-                continue
-            }
-            local palette `"`palette'`space'`p'"'
-            local space " "
+        Parse_palettes `0'
+        forv i = 1/`r(n)' {
+            local palettes `"`palettes'`"`r(p`i')'"' "'
         }
-        if `"`palette'"'!="" {
-            local palettes `"`palettes'`"`palette'"'"'
-        }
-        Graph2 `palettes' `0'
+        Graph2 `palettes' `opts'
         exit
     }
-    gettoken p rhs : 0, parse("/") quotes bind
-    if `"`rhs'"'!="" {
-        local rhs: copy local 0
-        local 0
-        local palettes
-        local palette
-        local space
-        while (`"`rhs'"'!="") {
-            gettoken p rhs : rhs, parse("/") quotes bind
-            if `"`p'"'=="/" {
-                local palettes `"`palettes'`"`palette'"' "'
-                local palette
-                local space
-                continue
-            }
-            local palette `"`palette'`space'`p'"'
-            local space " "
+    Parse_palettes `0'
+    if r(n)==1 {
+        Get_Global_Opts `0'
+        Palette_Get `0'
+    }
+    else {
+        local n = r(n) - 1
+        forv i = 1/`n' {
+            Global_Opts_Not_Allowed `r(p`i')'
+            local palettes `"`palettes'`"`r(p`i')'"' "'
         }
-        if `"`palette'"'!="" { // handle syntax after last slash
-            _parse comma p rhs : palette
-            if `"`p'"'!="" {
-                Parse_Global_Opts `rhs'  // returns rhs and 0
-                local palettes `"`palettes'`"`p'`rhs'"'"'
-            }
-            else local 0: copy local palette
+        Get_Global_Opts `r(p`r(n)')'
+        _parse comma p 0 : 0
+        if `"`p'"'!="" { // last element has palette
+            local palettes `"`palettes'`"`p'`0'"'"'
+            local 0
         }
         Palette_Get2 `palettes' `0'
     }
-    else {
-        Palette_Get `0'
-    }
     if `"`GLOBALS'`GLOBALS2'"'!="" {
         if "`GRAPH'"=="" local NOGRAPH nograph
-        Globals `GLOBALS2'
+        Macros global, `GLOBALS2'
+    }
+    if `"`LOCALS'`LOCALS2'"'!="" {
+        if "`GRAPH'"=="" local NOGRAPH nograph
+        Macros local, `LOCALS2'
+        di _n as txt "locals:"
+        foreach name of local mnames {
+            gettoken p mvalues : mvalues
+            c_local `name' `"`p'"'
+            di as txt %22s "`name'" " : " as res `"`p'"'
+        }
+    }
+    if `"`STYLEFILES'`STYLEFILES2'"'!="" {
+        if "`GRAPH'"=="" local NOGRAPH nograph
+        Parse_Stylefiles, `STYLEFILES2'
+        Macros local, `LOCALS2'
+        Stylefiles `"`mnames'"' `"`mvalues'"' `"`STYLEFILES2'"'
     }
     if "`NOGRAPH'"=="" {
         tempname hcurrent
@@ -92,26 +82,56 @@ end
 /* retrieve palette(s)                                                        */
 /*----------------------------------------------------------------------------*/
 
-program Parse_Global_Opts
-    syntax [, NOGRaph GRAPH GRopts(passthru) TItle(passthru) rows(passthru) ///
-        names NONUMbers GLobals GLobals2(passthru) * ]
-    local 0 `nograph' `graph' `gropts' `title' `rows' `names' `nonumbers' `globals' `globals2'
-    if `"`0'"'!="" {
-        c_local 0 `", `0'"'
+program Parse_palettes, rclass
+    local i 0
+    while (`"`0'"'!="") {
+        gettoken p 0 : 0, parse("/") quotes bind // "..." is separate token
+        if `"`p'"'=="/" {
+            return local p`++i' `"`palette'"'
+            local palette
+            local space
+            continue
+        }
+        local palette `"`palette'`space'`p'"'
+        local space " "
     }
-    if `"`options'"'!="" c_local rhs `", `options'"'
-    else                 c_local rhs
+    if `"`palette'"'!="" {
+        return local p`++i' `"`palette'"'
+    }
+    return scalar n = max(1,`i')
+end
+
+program Get_Global_Opts
+    _parse comma lhs 0 : 0
+    syntax [, ///
+        GLobals GLobals2(passthru) ///
+        LOCals LOCals2(passthru) ///
+        STYLEFiles STYLEFiles2(passthru) ///
+        NOGRaph GRAPH ///
+        GRopts(str asis) TItle(passthru) rows(passthru) names NONUMbers * ]
+    c_local GLOBALS     `globals'
+    c_local GLOBALS2    `globals2'
+    c_local LOCALS      `locals'
+    c_local LOCALS2     `locals2'
+    c_local STYLEFILES  `stylefiles'
+    c_local STYLEFILES2 `stylefiles2'
+    c_local NOGRAPH     `nograph'
+    c_local GRAPH       `graph'
+    c_local GROPTS      `gropts' `title' `rows' `names'  `nonumbers'
+    if `"`options'"'!="" local options `", `options'"'
+    c_local 0 `"`lhs'`options'"'
+end
+
+program Global_Opts_Not_Allowed
+    Get_Global_Opts `0'
+    local 0 , `GLOBALS' `GLOBALS2' `LOCALS' `LOCALS2' /*
+        */`STYLEFILES' `STYLEFILES2' `NOGRAPH' `GRAPH' `GROPTS'
+    syntax [, _somew3irednamedopt ]
 end
 
 program Palette_Get2, rclass
     _parse comma palettes 0 : 0
-    syntax [, NOGRaph GRAPH GRopts(str asis) TItle(passthru) rows(passthru) ///
-        names NONUMbers GLobals GLobals2(str asis) * ]
-    c_local GLOBALS "`globals'"
-    c_local GLOBALS2 `"`globals2'"'
-    c_local NOGRAPH "`nograph'"
-    c_local GRAPH "`graph'"
-    c_local GROPTS `"`rows' `title' `names' `gropts' `nonumbers'"'
+    syntax [, PNAME2(str) * ]
     local space
     local i 0
     foreach p of local palettes {
@@ -123,35 +143,29 @@ program Palette_Get2, rclass
         forv j = 1/`r(n)' {
             local ++i
             return local p`i' `"`r(p`j')'"'
-            return local p`i'info  `"`r(p`j'info )'"'
+            return local p`i'name  `"`r(p`j'name)'"'
+            return local p`i'info  `"`r(p`j'info)'"'
         }
     }
     return scalar n = `i'
     return local p `"`plist'"'
-    return local pname "custom"
+    if `"`pname2'"'!="" {
+        return local pname `"`pname2'"'
+    }
+    else {
+        return local pname "custom"
+    }
     return local ptype "color"
 end
 
-program Palette_Get
-    _parse comma palette 0 : 0
-    syntax [, NOGRaph GRAPH GRopts(str asis) TItle(passthru) rows(passthru) ///
-        names NONUMbers GLobals GLobals2(str asis) * ]
-    c_local GLOBALS "`globals'"
-    c_local GLOBALS2 `"`globals2'"'
-    c_local NOGRAPH "`nograph'"
-    c_local GRAPH "`graph'"
-    c_local GROPTS `"`rows' `title' `names' `gropts' `nonumbers'"'
-    _Palette_Get `palette', `options'
-end
-
-program _Palette_Get, rclass
+program Palette_Get, rclass
     local opts [, N(numlist max=1 integer >=1) Select(numlist integer) ///
         order(numlist integer) REVerse ///
         INtensity(numlist >=0 missingokay) ///
         OPacity(numlist int >=0 missingokay) ///
         IPolate(str) intensify(numlist >=0 missingokay) ///
         SATurate(str) LUMinate(str) GScale GScale2(str) CBlind CBlind2(str) ///
-        NOEXPAND class(str) FORCErgb cmyk  * ]
+        NOEXPAND class(str) PNAME2(str) FORCErgb cmyk * ]
     syntax [anything(name=palette id="palette" everything equalok)] `opts'
     remove_repeatedopts `"`opts'"' `", `options'"'
     if `"`opacity'"'!="" {
@@ -174,42 +188,149 @@ program _Palette_Get, rclass
     if "`cblind'"!=""       parse_cblind `cblind2'
     if `"`class'"'!=""      capture parse_class, `class'
     // get palette
+    //    ptype 0 = <not defined>
+    //          1 = color list
+    //          2 = ColrSpace palette
+    //          3 = mata() object
+    //          4 = color generator
+    //          5 = colorpalette_<palette>.ado
     local ptype 0
+    gettoken pfirst prest : palette
+    local prest = strtrim(`"`prest'"')
     if `"`palette'"'=="" {
+        // no palette specified; use s2
         local palette s2
         local ptype 2
     }
+    else if `"`palette'"'=="hue" {
+        // hue color generator
+        local 0 `", `options'"'
+        syntax [, Hue(numlist max=2) Chroma(numlist max=1 >=0) ///
+            Luminance(numlist max=1 >=0 <=100) DIRection(int 1) ]
+        if !inlist(`direction',1,-1) {
+            di as err "{bf:direction()} must be 1 or -1"
+            exit 198
+        }
+        local options
+        local ptype 4
+    }
+    else if inlist(`"`pfirst'"', "hcl", "lch", "jmh") {
+        // hcl/lch/jmh color generator
+        local 0 `", `options'"'
+        if `"`prest'"'=="" local schemeopts "*" // backward compatibility
+        syntax [, Hue(numlist max=2) Chroma(numlist max=2 >=0) ///
+            Luminance(numlist max=2 >=0 <=100) POWer(numlist max=2 >0) ///
+            `schemeopts' ]
+        if `"`prest'"'=="" local prest `"`options'"'
+        local options
+        local ptype 4
+    }
+    else if `"`pfirst'"'=="hsv" {
+        // hsv generator
+        local 0 `", `options'"'
+        if `"`prest'"'=="" local schemeopts "*" // backward compatibility
+        syntax [, Hue(numlist max=2) SATuration(numlist max=2 >=0 <=1) ///
+            VALue(numlist max=2 >=0 <=1) POWer(numlist max=2 >0) ///
+            `schemeopts' ]
+        if `"`prest'"'=="" local prest `"`options'"'
+        local options
+        local ptype 4
+    }
     else {
+        // check whether palette is mata(name)
         capt parse_mata, `palette' // returns local mataname
         if _rc==0 local ptype 3
     }
     if `ptype'==0 {
+        // check whether palette is list of colors specified as (...)
+        gettoken pal rest : palette, match(paren)
+        if "`paren'"=="(" {
+            if `"`rest'"'!="" local palette `"`pal' `rest'"'
+            else              local palette `"`pal'"'
+            local ptype 1
+        }
+    }
+    if `ptype'==0 {
+        // check whether palette exists in ColrSpace
+        mata: checkpalette() // if found: sets ptype = 2, pfirst, and palette
+    }
+    if `ptype'==2 & "`cmyk'"!="" {
+        // cmyk variants of the palettes are in ado, not in ColrSpace
+        _Palette_Get `pfirst', `prest' n(`n') `cmyk' `options'
+        local options
+        local ptype 5
+    }
+    if `ptype'==2 {
+        // parse additional options for ColrSpace palettes
+        if `"`prest'"'=="" {    // backward compatibility
+            if inlist("`pfirst'", "ptol", "d3", "lin", "spmap", "sfso",/*
+                */ "matplotlib", "webcolors") local schemeopts "*"
+        }
+        if inlist("`pfirst'", "viridis", "plasma", "inferno", "magma",/*
+            */ "cividis", "twilight", "matplotlib") {
+            local range "RAnge(numlist max=2 >=0 <=1)"
+            if `"`prest'"'=="" & "`pfirst'"=="twilight" {
+                local range "`range' SHIFTed"
+            }
+        }
+        if `"`range'`schemeopts'"'!="" {
+            local 0 `", `options'"'
+            syntax [, `range' `schemeopts' ]
+            if `"`prest'"'=="" {    // backward compatibility
+                local palette `palette' `options' `shifted'
+            }
+            local options
+        }
+        if "`pfirst'"=="matplotlib" {
+            // set default for matplotlib
+            if `: list sizeof palette'==1 {
+                local palette `palette' jet
+            }
+        }
+    }
+    if `ptype'==0 {
+        // by now, if palette has multiple words, it must be a color list
         local ptype = (`: list sizeof palette'!=1)
     }
     if `ptype'==0 {
-        capt confirm name _`palette'
+        // if only one word: check whether resulting program name is valid
+        capt confirm name colorpalette_`palette' 
         if _rc local ptype 1
     }
-    if `ptype'==0 mata: checkpalette() // sets ptype = 2 if found
     if `ptype'==0 {
-        capt __Palette_Get `palette', n(`n') `cmyk' `options'
+        // check whether palette program exists; if yes: run it
+        capt local junk: properties colorpalette_`palette'
         if _rc local ptype 1
+        else {
+            _Palette_Get `palette', n(`n') `cmyk' `options'
+            local options
+            local ptype 5
+        }
     }
+    local 0 `", `options'"'
+    syntax [, _somew3irednamedopt ]   // make sure no extra options are left
     mata: getpalette(`ptype', strtoreal("`n'"))
     // return palette
     local i 0
     foreach p of local plist {
         local ++i
+        gettoken pnm pnames : pnames
         gettoken pi pinfo : pinfo
         return local p`i' `"`p'"'
+        return local p`i'name `"`pnm'"'
         return local p`i'info `"`pi'"'
     }
-    return local p `"`plist'"'
-    return local pnote `"`note'"'
-    return local pclass `"`class'"'
-    return local pname `"`palette'"'
-    return local ptype "color"
-    return scalar n = `i'
+    return local p       `"`plist'"'
+    //return local pnote   `"`note'"'
+    return local pclass  `"`class'"'
+    return local psource `"`source'"'
+    return local pinfo   `"`info'"'
+    if `"`pname2'"'!="" {
+        local palette `"`pname2'"'
+    }
+    return local pname   `"`palette'"'
+    return local ptype   "color"
+    return scalar n      = `i'
 end
 
 program remove_repeatedopts
@@ -223,7 +344,7 @@ program parse_mata
     c_local mataname `"`mata'"'
 end
 
-program __Palette_Get
+program _Palette_Get
     gettoken palette 0 : 0, parse(" ,")
     syntax [, n(numlist max=1 integer >0) * ]
     colorpalette_`palette', n(`n') `options'
@@ -246,10 +367,12 @@ program __Palette_Get
         local P `"`P`n''"'
     }
     c_local plist  `"`P'"'
+    c_local pnames `"`N'"'
     c_local pinfo  `"`I'"'
-    c_local note  `"`note'"'
-    c_local class `"`class'"'
+    c_local class  `"`class'"'
     if `"`name'"'!="" c_local palette `"`name'"'
+    c_local info   `"`info'"'
+    c_local source `"`source'"'
 end
 
 program parse_ipolate
@@ -315,90 +438,231 @@ program parse_class
 end
 
 /*----------------------------------------------------------------------------*/
-/* return globals                                                             */
+/* return macros                                                              */
 /*----------------------------------------------------------------------------*/
 
-program Globals
+program Macros
     // syntax
-    capt n syntax [anything] [, NONames Prefix(name) Suffix(str) ]
+    _parse comma macro 0 : 0
+    if "`macro'"=="local" {
+        local lmax 31
+        local uscore "_"
+    }
+    else {
+        local lmax 32
+        local uscore
+    }
+    syntax [, `macro's2(str) ]   // get contents of option
+    local 0 `"``macro's2'"'
+    capt n syntax [anything] [, NONames Prefix(str) Suffix(str) ]
     if _rc==1 exit _rc
     if _rc {
-        di as err "(error in option {bf:globals()})"
+        di as err "(error in option {bf:`macro's()})"
         exit _rc
+    }
+    if `"`prefix'"'!="" {
+        local 0 `", prefix(`uscore'`prefix')"'
+        capt n syntax [, prefix(name) ]
+        if _rc==1 exit _rc
+        if _rc {
+            di as err "(error in option {bf:`macro's()})"
+            exit _rc
+        }
+        if "`macro'"=="local" {
+            local prefix = substr("`prefix'",2,.) // remove "_"
+        }
+        else if substr("`prefix'",1,1)=="_" {
+            di as err "global macro name may not start with '_'"
+            di as err "(error in option {bf:`macro's()})"
+            exit 198
+        }
     }
     while (`"`anything'"'!="") {
         gettoken name anything : anything, quotes
         if `"`anything'"'=="" { // last element
             if substr(`"`name'"',-1,1)=="*" {
                 local name = substr(`"`name'"',1,strlen(`"`name'"')-1)
-                capt confirm name `name'
+                capt confirm name `uscore'`name'
                 if _rc==1 exit _rc
                 if _rc {
-                    di as err "'" `"`name'"' "' not allowed in {bf:globals()}"
+                    di as err "'" `"`name'*"' "' not allowed in {bf:`macro's()}"
                     exit _rc
                 }
                 local prefix1 `name'
+                if "`macro'"!="local" {
+                    if substr("`prefix1'",1,1)=="_" {
+                        di as err "global macro name may not start with '_'"
+                        di as err "(error in option {bf:`macro's()})"
+                        exit 198
+                    }
+                }
                 continue, break
             }
         }
-        capt n confirm name `name'
-        if _rc==1 exit _rc
-        if _rc {
-            di as err "(error in option {bf:globals()})"
-            exit _rc
-        }
         if "`prefix'"!="" {
             local name `prefix'`name'
-            local name = substr("`name'",1,32)
+            local name = substr("`name'",1,`lmax')
+        }
+        capt n confirm name `uscore'`name'
+        if _rc==1 exit _rc
+        if _rc {
+            di as err "(error in option {bf:`macro's()})"
+            exit _rc
+        }
+        if "`macro'"!="local" {
+            if substr("`name'",1,1)=="_" {
+                di as err "global macro name may not start with '_'"
+                di as err "(error in option {bf:`macro's()})"
+                exit 198
+            }
         }
         local names `names' `name'
     }
     if `"`prefix1'"'=="" local prefix1 `prefix'
-    if `"`prefix1'"'=="" local prefix1 "p"
+    if "`macro'"!="local" & `"`prefix1'"'=="" local prefix1 "p"
     if `"`suffix'"'!="" {
         local 0 `", suffix(_`suffix')"'
         capt n syntax [, suffix(name) ]
         if _rc==1 exit _rc
         if _rc {
-            di as err "(error in option {bf:globals()})"
+            di as err "(error in option {bf:`macro's()})"
             exit _rc
         }
         local suffix = substr(`"`suffix'"',2,.)
     }
     
-    // return globals
+    // return macros
     local n = r(n)
     local ls = strlen(`"`suffix'"')
-    local prefix1 = substr("`prefix1'",1,32-floor(log10(`n')))
+    local prefix1 = substr("`prefix1'",1,`lmax'-floor(log10(`n')))
     forv i = 1/`n' {
         local p `"`r(p`i')'"'
         if `: list sizeof p'>1 {
             local p `""`p'""'
         }
-        local pinfo `"`r(p`i'info)'"'
         gettoken name names : names
         if "`name'`nonames'"=="" {
-            capt confirm name `p'
-            if _rc==0 local name `prefix'`p'
-            else {
-                if `: list sizeof pinfo'==1 {
-                    capt confirm name `pinfo'
-                    if _rc==0 local name `prefix'`pinfo'
+            local pname `"`r(p`i'name)'"'   // name available in palette
+            if `"`pname'"'!="" {
+                local name = ustrtoname(`"`uscore'`pname'"', 0)
+                if "`macro'"=="local" {
+                    local name = substr(`"`name'"',2,.)
                 }
             }
-            local name = substr("`name'",1,32)
+            else {
+                capt confirm name `p' // color code is a name
+                if _rc==0 {
+                    local name `prefix'`p'
+                    local name = substr("`name'",1,`lmax')
+                }
+            }
         }
         if "`name'"=="" local name `prefix1'`i'
         if `ls' {
-            local name = substr("`name'",1,32-`ls')
+            local name = substr("`name'",1,`lmax'-`ls')
             local name `name'`suffix'
         }
-        local gnames `gnames' `name'
-        global `name' `"`p'"'
+        local mnames `mnames' `name'
+        local mvalues `"`mvalues' `"`p'"'"'
+    }
+    if "`macro'"=="local" {
+        c_local mnames `mnames'
+        c_local mvalues `"`mvalues'"'
+        exit
     }
     di _n as txt "globals:"
-    foreach name of local gnames {
+    foreach name of local mnames {
+        gettoken p mvalues : mvalues
+        global `name' `"`p'"'
         di as txt %22s "`name'" " : " as res `"${`name'}"'
+    }
+end
+
+/*----------------------------------------------------------------------------*/
+/* write style files                                                          */
+/*----------------------------------------------------------------------------*/
+
+program Parse_Stylefiles
+    syntax [, stylefiles2(str) ]   // get contents of option
+    local 0 `"`stylefiles2'"'
+    capt n syntax [anything] [, PERsonal path(passthru) replace * ]
+    if _rc==1 exit _rc
+    if _rc {
+        di as err "(error in option {bf:stylefiles()})"
+        exit _rc
+    }
+    if "`personal'"!="" {
+        if `"`path'"'!="" {
+            di as err "{bf:personal} and {bf:path()} not both allowed"
+            di as err "(error in option {bf:stylefiles()})"
+            exit 198
+        }
+        local path "personal"
+    }
+    if `"`options'"'!="" {
+        local options `", `options'"'
+    }
+    local locals2 `"`anything'`options'"'
+    if `"`locals2'"'!="" {
+        local locals2 locals2(`locals2')
+    }
+    c_local LOCALS2 `"`locals2'"'
+    c_local STYLEFILES2 `"`path' `replace'"'
+end
+
+program Stylefiles
+    // syntax
+    args names values opts
+    local 0 `", `opts'"'
+    syntax [, PERsonal path(str) replace ]
+    
+    // determine path 
+    if "`personal'"!="" {
+        mata: st_local("path", pathjoin(pathsubsysdir("PERSONAL"),"style"))
+    }
+    else if `"`path'"'=="" {
+        local path "style"
+    }
+    mata: colorpalette_mkdir(st_local("path"))
+    
+    // check existing files
+    if "`replace'"=="" {
+        foreach name of local names {
+            local fn `"color-`name'.style"'
+            mata: st_local("fn", pathjoin(st_local("path"), st_local("fn")))
+            capt n confirm new file `"`fn'"'
+            if _rc==1 exit _rc
+            if _rc {
+                di as err "specify {bf:stylefiles(, replace)} to overwrite existing files"
+                exit _rc
+            }
+        }
+    }
+    
+    // write style files
+    local i 0
+    tempname fh
+    di _n as txt "color styles:"
+    foreach name of local names {
+        gettoken p values : values
+        capt numlist `p', int min(3) max(3) range(>=0 <=255)
+        if _rc {
+            di as txt %22s "`name'" " : (color definition not RGB; skipped)"
+            continue
+        }
+        local ++i
+        local fn `"color-`name'.style"'
+        mata: st_local("fn", pathjoin(st_local("path"), st_local("fn")))
+        quietly file open `fh' using `"`fn'"', write replace
+        file write `fh' `"set rgb `p'"'
+        file close `fh'
+        di as txt %22s "`name'" " : " as res `"`p'"'
+    }
+    if `i' {
+        di _n as txt `"(style files written to directory `path')"'
+    }
+    else {
+        di _n as txt `"(no style files written)"'
     }
 end
 
@@ -425,24 +689,26 @@ program Graph
             local r 0
         }
         local ++r
-        if `"`r(p`i')'"'=="" continue
+        local pi `"`r(p`i')'"'
+        if `"`pi'"'=="" continue
         local jlab `j'
         local plots `plots' (scatteri `r' `j', mlw(vthin) mlc(black) ///
-            msymbol(square) msize(`size') mfcolor(`"`r(p`i')'"'))
+            msymbol(square) msize(`size') mfcolor(`"`pi'"'))
         local pnum `pnum' `r' `j' "`i'"
-        if "`names'"=="" {
-            local lbl `lbl' `r' `jlab' `"`r(p`i')'"'
-            if `"`r(p`i'info)'"'!="" {
-                local info `info' `r' `jlab' `"`r(p`i'info)'"'
+        local pinfo `"`r(p`i'name)'"'
+        local plbl
+        if "`names'"!="" {
+            if `"`pinfo'"'!="" {
+                local plbl `"`pinfo'"'
+                local pinfo
             }
         }
-        else {
-            if `"`r(p`i'info)'"'!="" {
-                local lbl `lbl' `r' `jlab' `"`r(p`i'info)'"'
-            }
-            else {
-                local lbl `lbl' `r' `jlab' `"`r(p`i')'"'
-            }
+        if `"`plbl'"'=="" local plbl `"`pi'"'
+        local lbl `lbl' `r' `jlab' `"`plbl'"'
+        if `"`pinfo'"'==`"`pi'"' local pinfo    // do not repeat names
+        if `"`pinfo'"'=="" local pinfo `"`r(p`i'info)'"' // use info if no name
+        if `"`pinfo'"'!="" {
+            local info `info' `r' `jlab' `"`pinfo'"'
         }
     }
     if `"`plots'"'=="" {
@@ -485,15 +751,16 @@ program Graph
     local b = `size'/2 + 5
     local t = `size'/2 + 4
     if `"`title'"'=="" {
-        if `"`r(pnote)'"'=="" local title title(`"`r(pname)'"')
-        else                  local title title(`"`r(pname)' (`r(pnote)')"')
+        /*if `"`r(pnote)'"'==""*/ local title title(`"`r(pname)'"')
+        //else                  local title title(`"`r(pname)' (`r(pnote)')"')
     }
     if "`nonumbers'"!="" local pnum
     two `plots' `pnum' `lbl' `info' , `title' scheme(s2color) ///
         legend(off) ylabel(none) graphr(color(white)) ///
         xlabel(none) xscale(range(1 3) off) ///
         yscale(range(1 `rows') off reverse) ///
-        plotr(margin(`l' `r' `b' `t')) graphr(margin(0 0 0 3)) `options'
+        plotr(margin(`l' `r' `b' `t')) graphr(margin(0 0 0 3)) ///
+        `source' `options'
 end
 
 /*----------------------------------------------------------------------------*/
@@ -545,8 +812,8 @@ program Graph2
         local n = r(n)
         gettoken plab plabels : plabels
         if `"`plab'"'=="" {
-            if `"`r(pnote)'"'=="" local plab `"`r(pname)'"'
-            else                  local plab `"`r(pname)' (`r(pnote)')"'
+            /*if `"`r(pnote)'"'==""*/ local plab `"`r(pname)'"'
+            //else                  local plab `"`r(pname)' (`r(pnote)')"'
         }
         local ylab `ylab' `i' `"`plab'"'
         while (`nxvars'<`n') {
@@ -632,147 +899,92 @@ version 14
 mata:
 mata set matastrict on
 
+void colorpalette_mkdir(path)
+{
+    real scalar      i
+    string scalar    d
+    string rowvector dlist
+    pragma unset     d
+    pragma unset     dlist
+    
+    if (direxists(path)) return
+    if (path=="") return
+    printf("{txt}directory %s does not exist\n", path)
+    printf("{txt}press any key to create the directory, or Break to abort\n")
+    more()
+    while (1) {
+        pathsplit(path, path, d)
+        dlist = dlist, d
+        if (path=="") break
+        if (direxists(path)) break
+    }
+    for (i=cols(dlist); i>=1; i--) {
+        path = pathjoin(path, dlist[i])
+        mkdir(path)
+    }
+}
+
 void checkpalette()
 {
-    string scalar pal
-    string scalar palettes
+    string scalar pal, pfirst, prest
+    class ColrSpace scalar S
     
     pal = st_local("palette")
-    palettes = ("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1",
-    "Set2", "Set3", "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "OrRd",
-    "Oranges", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn",
-    "YlGnBu", "YlOrBr", "YlOrRd", "BrBG", "PRGn", "PiYG", "PuOr", "RdBu",
-    "RdGy", "RdYlBu", "RdYlGn", "Spectral", "sfso")
-    if (anyof(palettes, pal)) {
-        if (st_local("cmyk")!="") return
+    // characters % * # " may occur in color specifications, but are currently
+    // not used in ColrSpace palette names; exit if such characters are found
+    if (any(strpos(pal, ("%", "*", "#",`"""')))) return
+    // check whether first word matches a palette
+    pfirst = st_local("pfirst")
+    prest  = st_local("prest")
+    if (S.pexists(pfirst)) {
+        // get expanded first word of palette
+        pal = tokens(S.pname())[1]
+        // check whether the first word also matches a color
+        if (pal!=pfirst) {
+            if (S.cvalid(pfirst)) {
+                if (S.names()==pfirst) return
+                // => exit if exact color match but inexact palette match
+            }
+        }
+        // set pfirst to expanded first word of palette
+        st_local("pfirst", pal)
+        // modify palette such that first word is expanded
+        if (prest!="") pal = pal + " " + prest
+        st_local("palette", pal)
+        // set ptype
         st_local("ptype", "2")
-        return
     }
-    palettes = ("s1", "s1r", "s2", "economist", "mono", "cblind", "plottig",
-    "538", "tfl", "mrc", "burd", "lean", "webcolors", "d3", "ptol", "tableau",
-    "lin", "spmap", "matplotlib", "magma", "inferno", "plasma", "viridis",
-    "cividis", "twilight", "hue", "hcl", "lch", "jmh", "hsv")
-    if (anyof(palettes, pal)) st_local("ptype", "2")
-    // allow some abbreviations
-    else if (substr("webcolors",1,max((3,strlen(pal))))==pal)  st_local("ptype","2")
-    else if (substr("matplotlib",1,max((7,strlen(pal))))==pal) st_local("ptype","2")
 }
 
 void getpalette(real scalar ptype, real scalar n)
 {
-    real scalar     rc, noip, ip_n
-    string scalar   pal, note, schemes
+    real scalar     ip_n
+    /*real scalar     isintensify, issaturate, isluminate, isgscale, iscblind*/
+    string scalar   pal
     class ColrSpace scalar S
     pointer scalar  p
 
     // setup
-    noip = st_local("noexpand")!=""
+    /*isintensify = issaturate = isluminate = isgscale = iscblind = 0*/
     S.pclass(st_local("class"))
-
     // get colors
-    if (ptype==0) {
-        // colorpalette_<palette>.ado: plist/pinfo contain comma-separated list
-        S.colors(st_local("plist"), ",")
-        if (st_local("pinfo")!="") S.info(st_local("pinfo"), ",")
-        if (n<.) {
-            if (n<S.N() & S.pclass()=="qualitative") S.recycle(n)
-            if (noip==0) {
-                if (S.pclass()=="qualitative") S.recycle(n)
-                else                           S.ipolate(n)
-            }
-        }
-        note = st_local("note")
-    }
-    else if (ptype==1) {
-        // custom colors; palette contains space separated list of colors
+    if (ptype==1) { // custom list if color specifications
+                         // list is space separated
         S.colors(st_local("palette"))
-        if (st_local("options")!="") { // options not allowed
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, SOMEW3IRDNAME ]")
-            if (rc) exit(rc)
-        }
-        if (n<.) {
-            if (n<S.N() & S.pclass()=="qualitative") S.recycle(n)
-            if (noip==0) {
-                if (S.pclass()=="qualitative") S.recycle(n)
-                else                           S.ipolate(n)
-            }
-        }
-        st_local("palette", "custom")
+        st_local("palette", "custom") // assign default palette name
     }
-    else if (ptype==2) {
-        // mata palette
+    else if (ptype==2) { // ColrSpace palette
+                         // palette: full palette name
+                         // pfirst:  first word of palette name
         pal = st_local("palette")
-        if (anyof(("magma", "inferno", "plasma", "viridis", "cividis"), pal)) {
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, RAnge(numlist max=2 >=0 <=1) SHIFTed ]")
-            if (rc) exit(rc)
-            S.matplotlib(pal, n, strtoreal(tokens(st_local("range"))))
-        }
-        else if (pal=="twilight") {
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, RAnge(numlist max=2 >=0 <=1) SHIFTed ]")
-            if (rc) exit(rc)
-            S.matplotlib(pal + " " + st_local("shifted"), n, strtoreal(tokens(st_local("range"))))
-            st_local("palette", S.pname())
-        }
-        else if (pal=="matplotlib") {
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, RAnge(numlist max=2 >=0 <=1) * ]")
-            if (rc) exit(rc)
-            if (strtrim(st_local("options"))=="") st_local("options", "jet")
-            S.matplotlib(st_local("options"), n, strtoreal(tokens(st_local("range"))))
-            st_local("palette", pal + " " + S.pname())
-        }
-        else if (pal=="hue") {
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, Hue(numlist max=2) Chroma(numlist max=1 >=0) " 
-                + "Luminance(numlist max=1 >=0 <=100) DIRection(int 1) ]")
-            if (rc) exit(rc)
-            if (st_local("direction")!="1" & st_local("direction")!="-1") {
-                display("{err}direction must be 1 or -1")
-                exit(198)
-            }
-            S.generate(pal, n, strtoreal(tokens(st_local("hue"))), 
-                      strtoreal(st_local("chroma")), 
-                      strtoreal(st_local("luminance")),
-                      st_local("direction")!="1")
-        }
-        else if (pal=="hcl" | pal=="lch" | pal=="jmh") {
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, Hue(numlist max=2) Chroma(numlist max=2 >=0) " 
-                    + "Luminance(numlist max=2 >=0 <=100) POWer(numlist max=2 >0) "
-                    + " * ]")
-            if (rc) exit(rc)
-            hclgenerate(S, pal, st_local("options"), n,
-                strtoreal(tokens(st_local("hue"))), 
-                strtoreal(tokens(st_local("chroma"))), 
-                strtoreal(tokens(st_local("luminance"))),
-                strtoreal(tokens(st_local("power"))))
-        }
-        else if (pal=="hsv") {
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, Hue(numlist max=2) SATuration(numlist max=2 >=0 <=1) " 
-                    + "VALue(numlist max=2 >=0 <=1) " + "POWer(numlist max=2 >0) "
-                    + " * ]")
-            if (rc) exit(rc)
-            hsvgenerate(S, st_local("options"), n,
-                strtoreal(tokens(st_local("hue"))), 
-                strtoreal(tokens(st_local("saturation"))), 
-                strtoreal(tokens(st_local("value"))),
-                strtoreal(tokens(st_local("power"))))
-        }
-        else {
-            S.palette(pal + " " + st_local("options"), n, noip)
-            st_local("palette", S.pname())
-        }
+        if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
+            "twilight", "matplotlib"), st_local("pfirst")))
+             S.palette(pal, n, strtoreal(tokens(st_local("range"))))
+        else S.palette(pal, n, st_local("noexpand")!="")
+        st_local("palette", S.pname())
     }
-    else if (ptype==3) {
-        if (st_local("options")!="") { // options not allowed
-            st_local("0", "," + st_local("options"))
-            rc = _stata("syntax [, SOMEW3IRDNAME ]")
-            if (rc) exit(rc)
-        }
+    else if (ptype==3) {    // palette is Mata objest
+                            // mataname: name of object 
         p = findexternal(st_local("mataname"))
         if (p==NULL) {
             display("{err}mata object '" + st_local("mataname") + "' not found")
@@ -782,29 +994,70 @@ void getpalette(real scalar ptype, real scalar n)
             display("{err}'" + st_local("mataname") + "' is not a ColrSpace() object")
             exit(498)
         }
-        S = *p 
+        S = *p
         if (S.pclass()=="") S.pclass(st_local("class"))
+        if (S.pname()!="") st_local("palette", S.pname())
+        else               st_local("palette", st_local("mataname"))
+    }
+    else if (ptype==4) { // ColrSpace color generator
+                         // pfirst: generator name
+                         // prest:  scheme
+        pal = st_local("pfirst")
+        if (anyof(("hcl","lch","jmh"), pal)) {
+            hclgenerate(S, pal, st_local("prest"), n,
+                strtoreal(tokens(st_local("hue"))), 
+                strtoreal(tokens(st_local("chroma"))), 
+                strtoreal(tokens(st_local("luminance"))),
+                strtoreal(tokens(st_local("power"))))
+        }
+        else if (pal=="hsv") {
+            hsvgenerate(S, st_local("prest"), n,
+                strtoreal(tokens(st_local("hue"))), 
+                strtoreal(tokens(st_local("saturation"))), 
+                strtoreal(tokens(st_local("value"))),
+                strtoreal(tokens(st_local("power"))))
+        }
+        else { // pal=="hue"
+            S.generate(pal, n, strtoreal(tokens(st_local("hue"))), 
+                strtoreal(st_local("chroma")), 
+                strtoreal(st_local("luminance")),
+                st_local("direction")!="1")
+        }
+    }
+    else if (ptype==5) { // colorpalette_<palette>.ado
+                         // plist:   comma-separated list of colors
+                         // pnames:  comma-separated list of color names
+                         // pinfo:   comma-separated list of descriptions
+                         // class:   palette class (already covered above)
+                         // info:    palette info
+                         // source:  palette source
+        S.colors(st_local("plist"), ",")
+        if (st_local("pnames")!="") S.names(st_local("pnames"), ",")
+        if (st_local("pinfo")!="")  S.info(st_local("pinfo"), ",")
+        S.pinfo(st_local("info"))
+        S.psource(st_local("source"))
+    }
+    // option n()
+    if (anyof((1,3,5), ptype)) {
         if (n<.) {
             if (n<S.N() & S.pclass()=="qualitative") S.recycle(n)
-            if (noip==0) {
+            if (st_local("noexpand")=="") {
                 if (S.pclass()=="qualitative") S.recycle(n)
                 else                           S.ipolate(n)
             }
         }
-        if (S.pname()!="") st_local("palette", S.pname())
-        else               st_local("palette", st_local("mataname"))
     }
-    // select
+    // option select()
     if (st_local("select")!="") S.select(strtoreal(tokens(st_local("select"))))
-    // order
+    // option order()
     if (st_local("order")!="") S.order(strtoreal(tokens(st_local("order"))))
-    // reverse
+    // option reverse
     if (st_local("reverse")!="") S.reverse()
-    // opacity
+    // option opacity()
     if (st_local("opacity")!="") S.opacity(strtoreal(tokens(st_local("opacity"))), 1)
-    // intensity
+    // option intensity()
     if (st_local("intensity")!="") S.intensity(strtoreal(tokens(st_local("intensity"))), 1)
-    // interpolation
+    // option ipolate()
     if ((ip_n  = strtoreal(st_local("ipolate_n")))<.) {
         S.ipolate(ip_n, 
                   st_local("ipolate_space"), 
@@ -813,38 +1066,51 @@ void getpalette(real scalar ptype, real scalar n)
                   strtoreal(tokens(st_local("ipolate_positions"))),
                   st_local("ipolate_pad")!="")
     }
-    if (S.isipolate()) {
-        note = note + (note!=""? " " : "") + "interpolated"
-    }
-    // intensify
+    // option intensify()
     if (st_local("intensify")!="") {
         S.intensify(strtoreal(tokens(st_local("intensify"))))
+        /*isintensify = 1*/
     }
-    // saturate
+    // option saturate()
     if (st_local("saturate_p")!="") {
         S.saturate(strtoreal(tokens(st_local("saturate_p"))), 
                    st_local("saturate_method"),
                    st_local("saturate_level")!="")
+        /*issaturate = 1*/
     }
-    // luminate
+    // option luminate()
     if (st_local("luminate_p")!="") {
         S.luminate(strtoreal(tokens(st_local("luminate_p"))), 
                    st_local("luminate_method"),
                    st_local("luminate_level")!="")
+        /*isluminate = 1*/
     }
-    // grayscale
+    // option gscale()
     if (st_local("gscale")!="") {
         S.gray(strtoreal(st_local("gscale_p")), st_local("gscale_method"))
+        /*isgscale = 1*/
     }
-    // CVD
+    // option cblind()
     if (st_local("cblind")!="") {
         S.cvd(strtoreal(st_local("cblind_p")), st_local("cblind_method"))
-        note = note + (note!=""? " " : "") + "CVD"
+        /*iscblind = 1*/
     }
+    // // set note if any of the above options have been applied
+    // if ((S.isipolate()+isintensify+issaturate+isluminate+isgscale+iscblind)>1) {
+    //                         st_local("note", "modified")
+    // }
+    // else if (S.isipolate()) st_local("note", "interpolated")
+    // else if (isintensify)   st_local("note", "modified")
+    // else if (issaturate)    st_local("note", "modified")
+    // else if (isluminate)    st_local("note", "modified")
+    // else if (isgscale)      st_local("note", "grayed")
+    // else if (iscblind)      st_local("note", "CVD")
     // return colors
     st_local("plist", S.colors(st_local("forcergb")!=""))
-    st_local("pinfo", S.info(st_local("forcergb")!=""))
-    st_local("note", note)
+    st_local("pnames", S.names())
+    st_local("pinfo", S.info())
+    st_local("info", S.pinfo())
+    st_local("source", S.psource())
     st_local("class", S.pclass())
 }
 
@@ -854,7 +1120,6 @@ void hclgenerate(class ColrSpace scalar S, string scalar space, string scalar pa
     real scalar    h1, h2, c1, c2, l1, l2, p1, p2
     real rowvector d
     string scalar  pal, pclass
-    real matrix    T
     
     pal = strlower(strtrim(pal0))
     if (n>=.)        n = 15
@@ -987,7 +1252,6 @@ void hsvgenerate(class ColrSpace scalar S, string scalar pal0,
     real scalar    h1, h2, s1, s2, v1, v2, p1, p2
     real rowvector d
     string scalar  pal, pclass
-    real matrix    T
     
     pal = strlower(strtrim(pal0))
     if (n>=.)        n = 15
@@ -1060,49 +1324,49 @@ end
 
 program colorpalette_Accent
 c_local P .5 0 .5 0,.25 .25 0 0,0 .25 .4 0,0 0 .4 0,.8 .4 0 0,0 1 0 0,.25 .6 .9 0,0 0 0 .6
-c_local note CMYK
+c_local name Accent cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Dark2
 c_local P .9 0 .55 0,.15 .6 1 0,.55 .45 0 0,.05 .85 .05 0,.6 .1 1 0,.1 .3 1 0,.35 .45 .9 0,0 0 0 .6
-c_local note CMYK
+c_local name Dark2 cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Paired
 c_local P .35 .07 0 0,.9 .3 0 0,.3 0 .45 0,.8 0 1 0,0 .4 .25 0,.1 .9 .8 0,0 .25 .5 0,0 .5 1 0,.2 .25 0 0,.6 .7 0 0,0 0 .4 0,.23 .73 .98 .12
-c_local note CMYK
+c_local name Paired cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Pastel1
 c_local P 0 .3 .2 0,.3 .1 0 0,.2 0 .2 0,.12 .17 0 0,0 .15 .3 0,0 0 .2 0,.1 .12 .2 0,0 .15 0 0,0 0 0 .05
-c_local note CMYK
+c_local name Pastel1 cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Pastel2
 c_local P .3 0 .15 0,0 .2 .25 0,.2 .1 0 0,.03 .2 0 0,.1 0 .2 0,0 .05 .3 0,.05 .1 .15 0,0 0 0 .2
-c_local note CMYK
+c_local name Pastel2 cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Set1
 c_local P .1 .9 .8 0,.8 .3 0 0,.7 0 .8 0,.4 .65 0 0,0 .5 1 0,0 0 .8 0,.35 .6 .8 0,0 .5 0 0,0 0 0 .4
-c_local note CMYK
+c_local name Set1 cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Set2
 c_local P .6 0 .3 0,0 .45 .5 0,.45 .25 0 0,.07 .45 0 0,.35 0 .7 0,0 .15 .8 0,.1 .2 .35 0,0 0 0 .3
-c_local note CMYK
+c_local name Set2 cmyk
 c_local class "qualitative"
 end
 
 program colorpalette_Set3
 c_local P .45 0 .15 0,0 0 .3 0,.25 .2 0 0,0 .5 .4 0,.5 .15 0 0,0 .3 .55 0,.3 0 .6 0,0 .2 0 0,0 0 0 .15,.25 .45 0 0,.2 0 .2 0,0 .07 .55 0
-c_local note CMYK
+c_local name Set3 cmyk
 c_local class "qualitative"
 end
 
@@ -1114,7 +1378,7 @@ c_local P6 .08 .02 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.82 .27 0 0,1 .45 0 .
 c_local P7 .08 .02 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.75 .22 0 0,.9 .34 0 0,1 .55 0 .05
 c_local P8 .03 .01 0 0,.13 .03 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.75 .22 0 0,.9 .34 0 0,1 .55 0 .05
 c_local P9 .03 .01 0 0,.13 .03 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.75 .22 0 0,.9 .34 0 0,1 .45 0 .07,1 .55 0 .3
-c_local note CMYK
+c_local name Blues cmyk
 c_local class "sequential"
 end
 
@@ -1126,7 +1390,7 @@ c_local P6 .07 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.83 0 .7 0,1 .2 1 0
 c_local P7 .07 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.75 0 .55 0,.87 .1 .83 0,1 .35 1 0
 c_local P8 .03 0 0 0,.1 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.75 0 .55 0,.87 .1 .83 0,1 .35 1 0
 c_local P9 .03 0 0 0,.1 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.75 0 .55 0,.87 .1 .83 0,1 .2 1 0,1 .5 1 0
-c_local note CMYK
+c_local name BuGn cmyk
 c_local class "sequential"
 end
 
@@ -1138,7 +1402,7 @@ c_local P6 .07 0 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.47 .6 0 0,.47 .95 0 .05
 c_local P7 .07 0 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.45 .5 0 0,.47 .7 0 0,.5 1 0 .15
 c_local P8 .03 0 0 0,.12 .03 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.45 .5 0 0,.47 .7 0 0,.5 1 0 .15
 c_local P9 .03 0 0 0,.12 .03 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.45 .5 0 0,.47 .7 0 0,.47 .95 0 .05,.5 1 0 .4
-c_local note CMYK
+c_local name BuPu cmyk
 c_local class "sequential"
 end
 
@@ -1150,7 +1414,7 @@ c_local P6 .06 0 .08 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.75 .12 0 0,1 .35 0 0
 c_local P7 .06 0 .08 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.7 .05 0 0,.85 .2 0 0,1 .42 0 .05
 c_local P8 .03 0 .05 0,.12 0 .12 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.7 .05 0 0,.85 .2 0 0,1 .42 0 .05
 c_local P9 .03 0 .05 0,.12 0 .12 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.7 .05 0 0,.85 .2 0 0,1 .35 0 0,1 .5 0 .2
-c_local note CMYK
+c_local name GnBu cmyk
 c_local class "sequential"
 end
 
@@ -1162,7 +1426,7 @@ c_local P6 .07 0 .07 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.81 0 .76 0,1 .2 1 0
 c_local P7 .07 0 .07 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.75 0 .7 0,.87 .1 .83 0,1 .35 .9 0
 c_local P8 .03 0 .03 0,.1 0 .1 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.75 0 .7 0,.87 .1 .83 0,1 .35 .9 0
 c_local P9 .03 0 .03 0,.1 0 .1 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.75 0 .7 0,.87 .1 .83 0,1 .2 1 0,1 .5 1 0
-c_local note CMYK
+c_local name Greens cmyk
 c_local class "sequential"
 end
 
@@ -1174,7 +1438,7 @@ c_local P6 0 0 0 .03,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .61,0 0 0 .85
 c_local P7 0 0 0 .03,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .55,0 0 0 .68,0 0 0 .85
 c_local P8 0 0 0 0,0 0 0 .06,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .55,0 0 0 .68,0 0 0 .85
 c_local P9 0 0 0 0,0 0 0 .06,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .55,0 0 0 .68,0 0 0 .85,0 0 0 1
-c_local note CMYK
+c_local name Greys cmyk
 c_local class "sequential"
 end
 
@@ -1186,7 +1450,7 @@ c_local P6 0 .06 .12 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.1 .7 .7 0,.3 1 1 0
 c_local P7 0 .06 .12 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.05 .6 .6 0,.15 .8 .8 0,.4 1 1 0
 c_local P8 0 .03 .06 0,0 .09 .18 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.05 .6 .6 0,.15 .8 .8 0,.4 1 1 0
 c_local P9 0 .03 .06 0,0 .09 .18 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.05 .6 .6 0,.15 .8 .8 0,.3 1 1 0,.5 1 1 0
-c_local note CMYK
+c_local name OrRd cmyk
 c_local class "sequential"
 end
 
@@ -1198,7 +1462,7 @@ c_local P6 0 .07 .1 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.1 .65 .95 0,.35 .75 1 0
 c_local P7 0 .07 .1 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.05 .58 .9 0,.15 .7 1 0,.45 .78 1 0
 c_local P8 0 .04 .06 0,0 .1 .15 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.05 .58 .9 0,.15 .7 1 0,.45 .78 1 0
 c_local P9 0 .04 .06 0,0 .1 .15 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.05 .58 .9 0,.15 .7 1 0,.35 .75 1 0,.5 .8 1 0
-c_local note CMYK
+c_local name Oranges cmyk
 c_local class "sequential"
 end
 
@@ -1210,7 +1474,7 @@ c_local P6 .05 .05 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.85 .2 0 0,1 .3 0 .2
 c_local P7 .05 .05 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.8 .2 0 0,1 .3 0 0,1 .3 0 .3
 c_local P8 0 .03 0 0,.07 .07 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.8 .2 0 0,1 .3 0 0,1 .3 0 .3
 c_local P9 0 .03 0 0,.07 .07 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.8 .2 0 0,1 .3 0 0,1 .3 0 .2,1 .3 0 .5
-c_local note CMYK
+c_local name PuBu cmyk
 c_local class "sequential"
 end
 
@@ -1222,7 +1486,7 @@ c_local P6 .03 .05 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.9 .12 .27 0,1 .25 .65
 c_local P7 .03 .05 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.8 .2 0 0,1 .15 .35 0,1 .3 .7 0
 c_local P8 0 .03 0 0,.07 .09 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.8 .2 0 0,1 .15 .35 0,1 .3 .7 0
 c_local P9 0 .03 0 0,.07 .09 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.8 .2 0 0,1 .15 .35 0,1 .25 .65 0,1 .5 .8 0
-c_local note CMYK
+c_local name PuBuGn cmyk
 c_local class "sequential"
 end
 
@@ -1234,7 +1498,7 @@ c_local P6 .05 .05 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.1 .9 .15 0,.4 1 .47 0
 c_local P7 .05 .05 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.05 .85 .05 0,.17 .95 .35 0,.43 1 .5 0
 c_local P8 .03 .03 0 0,.09 .09 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.05 .85 .05 0,.17 .95 .35 0,.43 1 .5 0
 c_local P9 .03 .03 0 0,.09 .09 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.05 .85 .05 0,.17 .95 .35 0,.4 1 .47 0,.6 1 .75 0
-c_local note CMYK
+c_local name PuRd cmyk
 c_local class "sequential"
 end
 
@@ -1246,7 +1510,7 @@ c_local P6 .05 .04 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.55 .48 0 0,.7 .8 0 0
 c_local P7 .05 .04 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.5 .4 0 0,.6 .6 0 0,.75 .9 0 0
 c_local P8 .01 .01 0 0,.06 .05 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.5 .4 0 0,.6 .6 0 0,.75 .9 0 0
 c_local P9 .01 .01 0 0,.06 .05 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.5 .4 0 0,.6 .6 0 0,.7 .8 0 0,.8 1 0 0
-c_local note CMYK
+c_local name Purples cmyk
 c_local class "sequential"
 end
 
@@ -1258,7 +1522,7 @@ c_local P6 0 .08 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.2 .9 0 0,.5 1 0 .05
 c_local P7 0 .08 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.1 .8 0 0,.3 1 0 0,.5 1 0 .05
 c_local P8 0 .03 .03 0,0 .12 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.1 .8 0 0,.3 1 0 0,.5 1 0 .05
 c_local P9 0 .03 .03 0,0 .12 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.1 .8 0 0,.3 1 0 0,.5 1 0 .05,.7 1 0 .15
-c_local note CMYK
+c_local name RdPu cmyk
 c_local class "sequential"
 end
 
@@ -1270,7 +1534,7 @@ c_local P6 0 .1 .1 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.12 .82 .75 0,.35 .95 .
 c_local P7 0 .1 .1 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.05 .77 .72 0,.2 .9 .8 0,.4 1 .9 0
 c_local P8 0 .04 .04 0,0 .12 .12 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.05 .77 .72 0,.2 .9 .8 0,.4 1 .9 0
 c_local P9 0 .04 .04 0,0 .12 .12 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.05 .77 .72 0,.2 .9 .8 0,.35 .95 .85 0,.6 1 .9 0
-c_local note CMYK
+c_local name Reds cmyk
 c_local class "sequential"
 end
 
@@ -1282,7 +1546,7 @@ c_local P6 0 0 .2 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.81 0 .76 0,1 .25 .9 0
 c_local P7 0 0 .2 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.75 0 .7 0,.87 .15 .83 0,1 .35 .9 0
 c_local P8 0 0 .1 0,.03 0 .27 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.75 0 .7 0,.87 .15 .83 0,1 .35 .9 0
 c_local P9 0 0 .1 0,.03 0 .27 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.75 0 .7 0,.87 .15 .83 0,1 .25 .9 0,1 .5 .9 0
-c_local note CMYK
+c_local name YlGn cmyk
 c_local class "sequential"
 end
 
@@ -1294,7 +1558,7 @@ c_local P6 0 0 .2 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.85 .27 0 0,.9 .7 0 0
 c_local P7 0 0 .2 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.9 .15 0 0,.9 .45 0 0,1 .7 0 .1
 c_local P8 0 0 .15 0,.07 0 .3 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.9 .15 0 0,.9 .45 0 0,1 .7 0 .1
 c_local P9 0 0 .15 0,.07 0 .3 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.9 .15 0 0,.9 .45 0 0,.9 .7 0 0,1 .7 0 .4
-c_local note CMYK
+c_local name YlGnBu cmyk
 c_local class "sequential"
 end
 
@@ -1306,7 +1570,7 @@ c_local P6 0 0 .17 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.15 .6 .95 0,.4 .75 1 0
 c_local P7 0 0 .17 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.07 .55 .9 0,.2 .67 1 0,.45 .78 1 0
 c_local P8 0 0 .1 0,0 .03 .25 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.07 .55 .9 0,.2 .67 1 0,.45 .78 1 0
 c_local P9 0 0 .1 0,0 .03 .25 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.07 .55 .9 0,.2 .67 1 0,.4 .75 1 0,.6 .8 1 0
-c_local note CMYK
+c_local name YlOrBr cmyk
 c_local class "sequential"
 end
 
@@ -1318,7 +1582,7 @@ c_local P6 0 0 .3 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,.05 .77 .8 0,.25 1 .7 0
 c_local P7 0 0 .3 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,0 .7 .75 0,.1 .9 .8 0,.3 1 .7 0
 c_local P8 0 0 .2 0,0 .07 .35 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,0 .7 .75 0,.1 .9 .8 0,.3 1 .7 0
 c_local P9 0 0 .2 0,0 .07 .35 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,0 .7 .75 0,.1 .9 .8 0,.25 1 .7 0,.5 1 .7 0
-c_local note CMYK
+c_local name YlOrRd cmyk
 c_local class "sequential"
 end
 
@@ -1332,7 +1596,7 @@ c_local P8 .45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,.22 0 .06 0,.5 0 .1
 c_local P9 .45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,0 0 0 .05,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0
 c_local P10 .45 .6 1 .4,.45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0,1 .3 .7 .4
 c_local P11 .45 .6 1 .4,.45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,0 0 0 .05,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0,1 .3 .7 .4
-c_local note CMYK
+c_local name BrBG cmyk
 c_local class "diverging"
 end
 
@@ -1346,7 +1610,7 @@ c_local P8 .55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,.15 0 .15 0,.35 0 .35
 c_local P9 .55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,0 0 0 .03,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0
 c_local P10 .6 1 0 .4,.55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0,1 .5 1 0
 c_local P11 .6 1 0 .4,.55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,0 0 0 .03,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0,1 .5 1 0
-c_local note CMYK
+c_local name PRGn cmyk
 c_local class "diverging"
 end
 
@@ -1360,7 +1624,7 @@ c_local P8 .2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,.1 0 .17 0,.28 0 .47 0
 c_local P9 .2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,0 0 0 .03,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0
 c_local P10 .1 1 0 .35,.2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0,.75 0 1 .4
 c_local P11 .1 1 0 .35,.2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,0 0 0 .03,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0,.75 0 1 .4
-c_local note CMYK
+c_local name PiYG cmyk
 c_local class "diverging"
 end
 
@@ -1374,7 +1638,7 @@ c_local P8 .3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,.15 .1 0 0,.3 .25 0 0
 c_local P9 .3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,0 0 0 .03,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0
 c_local P10 .5 .7 1 0,.3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0,.75 1 0 .4
 c_local P11 .5 .7 1 0,.3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,0 0 0 .03,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0,.75 1 0 .4
-c_local note CMYK
+c_local name PuOr cmyk
 c_local class "diverging"
 end
 
@@ -1388,7 +1652,7 @@ c_local P8 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,.18 .04 0 0,.43 .08
 c_local P9 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .03,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0
 c_local P10 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0,1 .5 0 .4
 c_local P11 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .03,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0,1 .5 0 .4
-c_local note CMYK
+c_local name RdBu cmyk
 c_local class "diverging"
 end
 
@@ -1402,7 +1666,7 @@ c_local P8 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .12,0 0 0 .27
 c_local P9 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7
 c_local P10 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7,0 0 0 .9
 c_local P11 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7,0 0 0 .9
-c_local note CMYK
+c_local name RdGy cmyk
 c_local class "diverging"
 end
 
@@ -1416,7 +1680,7 @@ c_local P8 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .4 0,.12 0 0 0,.33 .03 0
 c_local P9 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .4 0,0 0 .25 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0
 c_local P10 .35 1 .7 0,.15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .4 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0,.85 .7 0 0
 c_local P11 .35 1 .7 0,.15 .8 .75 0,.03 .57 .63 0,0 .35 .55 0,0 .12 .4 0,0 0 .25 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0,.85 .7 0 0
-c_local note CMYK
+c_local name RdYlBu cmyk
 c_local class "diverging"
 end
 
@@ -1430,7 +1694,7 @@ c_local P8 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,.15 0 .45 0,.35 0 
 c_local P9 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0
 c_local P10 .35 1 .7 0,.15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0,1 .25 .9 0
 c_local P11 .35 1 .75 0,.15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0,1 .25 .9 0
-c_local note CMYK
+c_local name RdYlGn cmyk
 c_local class "diverging"
 end
 
@@ -1444,7 +1708,7 @@ c_local P8 .15 .75 .5 0,.03 .57 .53 0,0 .32 .55 0,0 .12 .42 0,.1 0 .4 0,.33 0 .3
 c_local P9 .15 .75 .5 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0
 c_local P10 0 1 .2 .35,.15 .75 .5 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0,.65 .6 0 0
 c_local P11 0 1 .2 .35,.15 .75 .5 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0,.65 .6 0 0
-c_local note CMYK
+c_local name Spectral cmyk
 c_local class "diverging"
 end
 
@@ -1487,7 +1751,7 @@ program colorpalette_sfso
     else if "`pal'"=="blue" {
         c_local P .83 .45 0 .7,.85 .55 0 .4,.7 .45 0 .2,.63 .36 0 0,.43 .22 0 0,.22 .1 0 0,.13 .07 0 0
         //sRGB: c_local P #1c3258,#374a83,#6473aa,#8497cf,#afbce2,#d8def2,#e8eaf7
-        c_local I ,,,BFS-Blau,,,BFS-Blau 20%
+        c_local N ,,,BFS-Blau,,,BFS-Blau 20%
     }
     else if "`pal'"=="ltblue" {
         c_local P .98 0 .14 .45,.98 0 .14 .05,.72 0 .1 .03,.49 0 .07 .02,.35 0 .04 0,.12 0 0 0
@@ -1512,12 +1776,12 @@ program colorpalette_sfso
     else if "`pal'"=="parties" {
         local class "qualitative"
         c_local P .76 .6 .02 0,0 .57 .78 0,0 .85 .58 0,.8 .3 1 .2,.28 .01 .96 0,.01 0 .96 0,.72 0 1 0,.6 .92 0 0,.5 .29 0 0,0 .2 .5 0,0 0 0 .35
-        c_local I FDP,CVP,SP,SVP,GLP,BDP,Grüne, "small leftwing parties (PdA, Sol.)","small middle parties (EVP, CSP)","small rightwing parties (EDu, Lega)",other parties
+        c_local N FDP,CVP,SP,SVP,GLP,BDP,Grüne,small leftwing parties,small middle parties,small rightwing parties,other parties
     }
     else if "`pal'"=="languages" {
         local class "qualitative"
         c_local P 0 .9 .9 0,.9 .5 0 0,.9 0 .8 0,0 .25 .9 0,.6 .7 0 0
-        c_local I German,French,Italian,RhaetoRomanic,English
+        c_local N German,French,Italian,Rhaeto-Romanic,English
     }
     else if "`pal'"=="votes" {
         local class "diverging"
@@ -1527,7 +1791,7 @@ program colorpalette_sfso
     else if "`pal'"=="themes" {
         local class "qualitative"
         c_local P .63 .36 0 0,0 .38 1 0,0 .59 1 0,0 .76 .88 0,0 .95 .64 0,0 1 .09 .04,.32 .9 0 0,.51 .57 0 0,.62 .6 0 0,.63 .22 0 .03,.8 .29 0 0,.98 0 .14 .05,.94 0 .5 0,.6 0 .85 0,.42 0 .76 0,0 0 1 .3,0 .19 .98 .35,.13 0 .6 .32,0 .36 .5 .24,0 .74 .57 .32,0 .5 .16 .14,.32 0 .18 .37
-        c_local I 00 Basics and overviews,01 Population,02 Territory and environment,03 Work and income,/*
+        c_local N 00 Basics and overviews,01 Population,02 Territory and environment,03 Work and income,/*
         */04 National economy,05 Prices,06 Industry and services,07 Agriculture and forestry,/*
         */08 Energy,09 Construction and housing,10 Tourism,11 Mobility and transport,/*
         */"12 Money, banks and insurance",13 Social security,14 Health,15 Education and science,/*
@@ -1536,8 +1800,7 @@ program colorpalette_sfso
         */21 Sustainable development
         local cmyk cmyk
     }
-    c_local name sfso `pal'
-    c_local note CMYK
+    c_local name sfso `pal' cmyk
     c_local class "`class'"
 end
 

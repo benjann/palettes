@@ -29,7 +29,19 @@ Installation from GitHub:
 
 Main changes:
 
-    10may2020
+    14may2020
+    - colorpalete has new syntax
+      o palettes are now specified as "palettename scheme ..."; old syntax 
+        (schemes as options) still works, but is undocumented
+      o colorlist can be included in parentheses to avoid name conflict with
+        palettes; automatic detection of color list specification vs. palette
+        specification has been improved
+    - further changes to colorpalette:
+      o option pname() added (set palette name)
+      o option stylefiles() added (write color style files)
+      o option locals() added (save colors as locals)
+    
+    10may2020 (colorpalette.ado)
     - globals() has been applied to each palette individually when multiple palettes
       were appended in a single call to -colorpalette-; this is changed; globals() 
       is now applied at the end, after collecting the colors from all palettes
@@ -37,10 +49,10 @@ Main changes:
     - color names have been updated for some palettes so that they comply with
       Stata's naming conventions
     
-    09may2020
+    09may2020 (colorpalette.ado)
     - option -globals- added to store colors as globals
     - -webcolors- added as a palette
-    - some fixed to help file
+    - some fixes to help file
     
     17apr2020
     - installation files added to GitHub distribution
