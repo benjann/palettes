@@ -1,5 +1,5 @@
 {smcl}
-{* 14may2020}{...}
+{* 15may2020}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {hline}
@@ -450,9 +450,14 @@ matching palette will be used.
 
 {marker gscale}{...}
 {phang}
-    {cmd:gscale}[{cmd:(}{it:p} [{cmd:,} {it:cspace} ]{cmd:)}] converts the
-    colors to gray, where {it:p} in [0,1] specifies the proportion of gray. The
-    default is {cmd:1} (full conversion). Suboption {it:cspace} specifies the
+    {cmd:gscale}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:cspace} ]{cmd:)}] converts the
+    colors to gray, where {it:numlist} in [0,1] specifies the proportion of gray. The
+    default is {cmd:1} (full conversion). Specify multiple values to apply different
+    adjustments across the colors. If the number of values is smaller than the
+    number of colors, the values will be recycled; if the number of values is
+    larger than the number of colors, the colors will be recycled. To skip
+    adjusting a particular color, you may set the
+    corresponding element to {cmd:.} (missing). Suboption {it:cspace} specifies the
     color space in which the conversion is performed; it may be {cmd:LCh}
     (cylindrical representation of CIE L*a*b*), {cmd:HCL} (cylindrical
     representation of CIE L*u*v*), {cmd:JCh} (CIECAM02 JCh), and {cmd:JMh}
@@ -463,12 +468,18 @@ matching palette will be used.
 
 {marker cblnd}{...}
 {phang}
-    {cmd:cblind}[{cmd:(}{it:severity} [{cmd:,} {it:type} ]{cmd:)}]
-    simulates color vision deficiency, where {it:severity} in [0,1] specifies the severity
-    of the deficiency and {it:type} specifies type of color vision deficiency, which
-    may be {cmdab:d:euteranomaly} (the default),
-    {cmdab:p:rotanomaly}, or {cmdab:t:ritanomaly}. The default {it:severity} is
-    {cmd:1} (i.e. deuteranopia, protanopia, or tritanopia, respectively). See
+    {cmd:cblind}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:type} ]{cmd:)}]
+    simulates color vision deficiency, where {it:numlist} in [0,1] specifies
+    the severity of the deficiency. The default is {cmd:1} (maximum severity,
+    i.e. deuteranopia, protanopia, or tritanopia, respectively). Specify
+    multiple values to apply different adjustments across the colors. If the
+    number of values is smaller than the number of colors, the values will be
+    recycled; if the number of values is larger than the number of colors, the
+    colors will be recycled. To skip adjusting a particular color, you may set
+    the corresponding element to {cmd:.} (missing). Suboption {it:type}
+    specifies type of color vision deficiency, which may be
+    {cmdab:d:euteranomaly} (the default), {cmdab:p:rotanomaly}, or
+    {cmdab:t:ritanomaly}. See
     {browse "https://en.wikipedia.org/wiki/Color_blindness":Wikipedia} for basic
     information on color blindness. Example:
 
@@ -1675,7 +1686,7 @@ matching palette will be used.
 
 {pstd}
     {cmd:colorpalette} will store the style files in folder 'style' in the current
-    working directory. That is, the colors definitions will be found by Stata
+    working directory. That is, the color definitions will be found by Stata
     as long as you do not change the working directory.
 
 {pstd}

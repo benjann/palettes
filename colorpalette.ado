@@ -1,4 +1,4 @@
-*! version 1.1.4  14may2020  Ben Jann
+*! version 1.1.5  15may2020  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -416,7 +416,8 @@ program parse_gscale
     _parse comma p opts : 0
     gettoken comma opts : opts, parse(",")
     local 0 `", gscale(`p') `opts'"'
-    syntax [, gscale(numlist max=1 >=0 <=1) * ]
+    syntax [, gscale(numlist >=0 <=1 missingokay) * ]
+    if "`gscale'"=="" local gscale 1
     c_local gscale_p `gscale'
     c_local gscale_method `"`options'"'
 end
@@ -425,7 +426,8 @@ program parse_cblind
     _parse comma p opts : 0
     gettoken comma opts : opts, parse(",")
     local 0 `", cblind(`p') `opts'"'
-    syntax [, cblind(numlist max=1 >=0 <=1) * ]
+    syntax [, cblind(numlist >=0 <=1 missingokay) * ]
+    if "`cblind'"=="" local cblind 1
     c_local cblind_p `cblind'
     c_local cblind_method `"`options'"'
 end
@@ -959,13 +961,11 @@ void checkpalette()
 void getpalette(real scalar ptype, real scalar n)
 {
     real scalar     ip_n
-    /*real scalar     isintensify, issaturate, isluminate, isgscale, iscblind*/
     string scalar   pal
     class ColrSpace scalar S
     pointer scalar  p
 
     // setup
-    /*isintensify = issaturate = isluminate = isgscale = iscblind = 0*/
     S.pclass(st_local("class"))
     // get colors
     if (ptype==1) { // custom list if color specifications
@@ -1069,42 +1069,29 @@ void getpalette(real scalar ptype, real scalar n)
     // option intensify()
     if (st_local("intensify")!="") {
         S.intensify(strtoreal(tokens(st_local("intensify"))))
-        /*isintensify = 1*/
     }
     // option saturate()
     if (st_local("saturate_p")!="") {
         S.saturate(strtoreal(tokens(st_local("saturate_p"))), 
                    st_local("saturate_method"),
                    st_local("saturate_level")!="")
-        /*issaturate = 1*/
     }
     // option luminate()
     if (st_local("luminate_p")!="") {
         S.luminate(strtoreal(tokens(st_local("luminate_p"))), 
                    st_local("luminate_method"),
                    st_local("luminate_level")!="")
-        /*isluminate = 1*/
     }
     // option gscale()
     if (st_local("gscale")!="") {
-        S.gray(strtoreal(st_local("gscale_p")), st_local("gscale_method"))
-        /*isgscale = 1*/
+        S.gray(strtoreal(tokens(st_local("gscale_p"))), 
+               st_local("gscale_method"))
     }
     // option cblind()
     if (st_local("cblind")!="") {
-        S.cvd(strtoreal(st_local("cblind_p")), st_local("cblind_method"))
-        /*iscblind = 1*/
+        S.cvd(strtoreal(tokens(st_local("cblind_p"))),
+              st_local("cblind_method"))
     }
-    // // set note if any of the above options have been applied
-    // if ((S.isipolate()+isintensify+issaturate+isluminate+isgscale+iscblind)>1) {
-    //                         st_local("note", "modified")
-    // }
-    // else if (S.isipolate()) st_local("note", "interpolated")
-    // else if (isintensify)   st_local("note", "modified")
-    // else if (issaturate)    st_local("note", "modified")
-    // else if (isluminate)    st_local("note", "modified")
-    // else if (isgscale)      st_local("note", "grayed")
-    // else if (iscblind)      st_local("note", "CVD")
     // return colors
     st_local("plist", S.colors(st_local("forcergb")!=""))
     st_local("pnames", S.names())

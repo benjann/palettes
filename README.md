@@ -29,6 +29,9 @@ Installation from GitHub:
 
 Main changes:
 
+    15may2020
+    - gscale() and cvd() now allow numlists
+    
     14may2020
     - colorpalete has new syntax
       o palettes are now specified as "palettename scheme ..."; old syntax 
