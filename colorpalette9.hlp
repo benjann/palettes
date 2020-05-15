@@ -2,6 +2,7 @@
 {* 28dec2018}{...}
 {hi:help colorpalette9}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
+{right:{browse "http://github.com/benjann/palettes/"}}
 {hline}
 
 {title:Title}

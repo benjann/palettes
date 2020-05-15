@@ -2,6 +2,7 @@
 {* 15may2020}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
+{right:{browse "http://github.com/benjann/palettes/"}}
 {hline}
 
 {title:Title}
