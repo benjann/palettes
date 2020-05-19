@@ -1,5 +1,5 @@
 {smcl}
-{* 15may2020}{...}
+{* 18may2020}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {right:{browse "http://github.com/benjann/palettes/"}}
@@ -52,7 +52,7 @@ or {cmd:.} to insert a gap.
 {marker palette}{synopthdr:palette}
 {synoptline}
 {syntab:Color list}
-{synopt:{it:{help colorpalette##colorlist:colorlist}}}custom list of colors (including 140 named {help colorpalette##webcolors:web colors}){p_end}
+{synopt:{it:{help colorpalette##colorlist:colorlist}}}custom list of colors (including 140 named {help colorpalette##webcolors:HTML colors}){p_end}
 
 {syntab:Stata palettes ({stata "colorpalette, lc(black): s2 / s1 / s1r / economist / mono":{it:view}})}
 {synopt:{helpb colorpalette##s2:s2}}15 colors as in Stata's {helpb scheme s2:s2color} scheme; the default{p_end}
@@ -86,7 +86,7 @@ or {cmd:.} to insert a gap.
 {synopt:{helpb colorpalette##spmap:spmap}}color schemes from {cmd:spmap} by Pisati (2007){p_end}
 {synopt:{helpb colorpalette##sfso:sfso}}color schemes used by the Swiss Federal
     Statistical Office{p_end}
-{synopt:{helpb colorpalette##webc:webcolors}}categorical web colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
+{synopt:{helpb colorpalette##webc:webcolors}}categorical HTML colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
 
 {syntab:Custom}
 {synopt:{it:{help colorpalette##myname:myname}}}custom palette provided by program {cmd:colorpalette_}{it:myname}{p_end}
@@ -197,7 +197,8 @@ matching palette will be used.
 {pstd}
     {cmd:colorpalette} is a utility command to retrieve or display color
     palettes. Palette entries are returned in
-    {helpb colorpalette##returns:r()}.
+    {helpb colorpalette##returns:r()} or, optionally, as global or local
+    {helpb colorpalette##macrooptions:macros}.
 
 {pstd}
     {cmd:colorpalette} is used by {helpb grstyle set}.
@@ -501,7 +502,7 @@ matching palette will be used.
 {marker forcergb}{...}
 {phang}
     {opt forcergb} enforces translation of all colors to RGB. By default,
-    {cmd:colorpalette} does not translate colors specified as Stata color 
+    {cmd:colorpalette} does not translate colors specified as Stata color
     names. Specify {opt forcergb} to return these colors as RGB values.
 
 {marker noexpand}{...}
@@ -694,7 +695,7 @@ matching palette will be used.
 {dlgtab:colorlist}
 
 {pstd}
-    Instead of selecting a named color palette you can specify a 
+    Instead of selecting a named color palette you can specify a
     custom list of color specifications using syntax
 
         [{cmd:(}]{it:colorspec} [{it:colorspec} {it:...}][{cmd:)}]
@@ -705,17 +706,19 @@ matching palette will be used.
     [{cmd:"}]{it:color}[{cmd:%}{it:#}][*{it:#}][{cmd:"}]
 
 {pstd}
-    Parentheses around the list may be used to prevent name conflict with palette 
-    specifications. Color specifications containing spaces must be included in 
-    double quotes. Argument {cmd:%}{it:#} in {it:colorspec} sets the opacity 
-    (in percent; 0 = fully transparent, 100 = fully opaque; Stata 15 required), 
-    {cmd:*}{it:#} adjusts the intensity (values between 0 and 1 make the color 
-    lighter; values larger than one make the color darker), and {it:color} is 
+    Parentheses around the list may be used to prevent name conflict with palette
+    specifications. Color specifications containing spaces must be included in
+    double quotes. Argument {cmd:%}{it:#} in {it:colorspec} sets the opacity
+    (in percent; 0 = fully transparent, 100 = fully opaque; Stata 15 required),
+    {cmd:*}{it:#} adjusts the intensity (values between 0 and 1 make the color
+    lighter; values larger than one make the color darker), and {it:color} is
     one of the following:
 
 {p2colset 9 28 30 2}{...}
-{p2col:{help colorstyle##colorstyle:{it:name}}}official Stata color name as listed in {help colorstyle##colorstyle:{it:colorstyle}}{p_end}
-{p2col:{help colorpalette##webcolors:{it:webname}}}web color name as listed {help colorpalette##webcolors:below}{p_end}
+{p2col:{help colorstyle##colorstyle:{it:name}}}Stata color name; this includes
+        official Stata's color names as listed in {help colorstyle##colorstyle:{it:colorstyle}},
+        as well as possible user additions provided through style files{p_end}
+{p2col:{help colorpalette##webcolors:{it:webname}}}HTML color name as listed {help colorpalette##webcolors:below}{p_end}
 {p2col:{cmd:#}{it:rrggbb}}6-digit hex RGB value; white = {cmd:#FFFFFF} or {cmd:#ffffff}, navy = {cmd:#1A476F} or {cmd:#1a476f} {p_end}
 {p2col:{cmd:#}{it:rgb}}3-digit abbreviated hex RGB value; white = {cmd:#FFF} or {cmd:#fff}{p_end}
 {p2col:{it:# # #}}RGB value in 0-255 scaling; navy = {cmd:"26 71 111"}{p_end}
@@ -751,12 +754,12 @@ matching palette will be used.
 
 {marker webcolors}{...}
 {pstd}
-    Example: web colors
+    Example: HTML colors
 
         . {stata colorpalette slate paleviolet lightsea sandy}
 
 {pstd}
-    Supported are the standard web colors listed at
+    Supported are the standard HTML colors listed at
     {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}. The 148 color
     names, sorted by color groups, are as follows.
 
@@ -842,11 +845,12 @@ matching palette will be used.
     {cmd:Black}
 
 {pstd}
-    The color names can be abbreviated and typed in lowercase letters. If abbreviation is
-    ambiguous, the first matching name in the alphabetically ordered list will be used. Furthermore,
-    in case of name conflict, official Stata colors will take precedence over web colors; use
-    the uppercase names as shown above to prevent such conflict (for example, {cmd:pink} will refer
-    to official Stata pink, {cmd:Pink} will refer to web color pink).
+    The color names can be abbreviated and typed in lowercase letters. If
+    abbreviation is ambiguous, the first matching name in the alphabetically
+    ordered list will be used. In case of name conflict with a Stata color, the
+    HTML color will take precedence only if the specified name is an exact
+    match including case. For example, {cmd:pink} will refer to official
+    Stata's pink, whereas {cmd:Pink} will refer to HTML color pink.
 
 {marker s2}{...}
 {dlgtab:s2}
@@ -1013,7 +1017,9 @@ matching palette will be used.
 {pstd}
     Examples:
 
+{p 8 12 2}
         . {stata "colorpalette, span: hue, n(3) pname(3) / hue, n(5) pname(5) / hue, n(7) pname(7) / hue, n(9) pname(9)"}
+        {p_end}
         . {stata colorpalette hue, n(5) hue(90 -30) chroma(50) luminance(70)}
 
 {marker hcl}{...}
@@ -1531,7 +1537,7 @@ matching palette will be used.
 {dlgtab:webcolors}
 
 {pstd}
-    The {cmd:webcolors} collection provides named colors from
+    The {cmd:webcolors} collection provides named HTML colors from
     {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}. The
     syntax is
 
@@ -1556,7 +1562,7 @@ matching palette will be used.
 {p2col:{stata colorpalette webcolors grey:{bf:grey}}}10 grey colors (same color codes as {cmd:gray}){p_end}
 
 {pstd}
-    All 148 web colors (alphabetically sorted) will be returned if {it:scheme}
+    All 148 HTML colors (alphabetically sorted) will be returned if {it:scheme}
     is omitted.
 
 {marker myname}{...}
@@ -1606,9 +1612,9 @@ matching palette will be used.
 
         . {stata `"mata: C1 = C2 = ColrSpace()"'}
         . {stata `"mata: C1.palette("s2", 5)"'}
-        . {stata `"mata: C1.pname("original colors")"'}
+        . {stata `"mata: C1.name("original colors")"'}
         . {stata `"mata: C2.set(C1.get("Lab") :* (1.2, 1, 1), "Lab")"'}
-        . {stata `"mata: C2.pname("luminance * 1.2")"'}
+        . {stata `"mata: C2.name("luminance * 1.2")"'}
         . {stata "colorpalette: mata(C1) / mata(C2)"}
         . {stata "colorpalette mata(C2), cblind(0.5) title(50% deuteranomaly)"}
 
@@ -1636,7 +1642,7 @@ matching palette will be used.
 {pstd}
     To make colors available as {helpb global} macros, use the
     {helpb colorpalette##macrooptions:globals()} option. For example, to
-    make all {help colorpalette##webcolors:web colors} available, type:
+    make all {help colorpalette##webcolors:HTML colors} available, type:
 
         {com}. colorpalette webcolors, globals{txt}
 
@@ -1681,6 +1687,7 @@ matching palette will be used.
     official color names. Example:
 
         {com}. colorpalette Fuchsia Tomato SteelBlue SeaShell, stylefiles
+        . discard
         . sysuse auto, clear{txt}
 {p 8 12 2}
         {com}. scatter trunk turn mpg weight, mc(Fuchsia Tomato SteelBlue) graphr(color(SeaShell)){txt}
@@ -1712,9 +1719,8 @@ matching palette will be used.
 {synopt:{cmd:r(ptype)}}{cmd:color}{p_end}
 {synopt:{cmd:r(pname)}}name of palette or {cmd:custom}{p_end}
 {synopt:{cmd:r(pclass)}}palette class (if provided){p_end}
-{synopt:{cmd:r(pinfo)}}palette description (if provided){p_end}
+{synopt:{cmd:r(pnote)}}palette description (if provided){p_end}
 {synopt:{cmd:r(psource)}}palette source (if provided){p_end}
-{synopt:{cmd:r(pnote)}}modification note{p_end}
 {synopt:{cmd:r(p)}}space separated list of colors{p_end}
 {synopt:{cmd:r(p#)}}#th color{p_end}
 {synopt:{cmd:r(p#name)}}name of #th color (if provided){p_end}

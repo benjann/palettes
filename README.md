@@ -29,6 +29,11 @@ Installation from GitHub:
 
 Main changes:
 
+    19may2020
+    - some adaptions due to changes in ColrSpace()
+    - some syntax parsting now done in Mata so that ColrSpace object only
+      has to be generated once
+    
     15may2020
     - gscale() and cvd() now allow numlists
     

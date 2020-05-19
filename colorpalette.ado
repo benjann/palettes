@@ -1,4 +1,4 @@
-*! version 1.1.5  15may2020  Ben Jann
+*! version 1.1.7  19may2020  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -187,129 +187,10 @@ program Palette_Get, rclass
     if `"`cblind2'"'!=""    local cblind cblind
     if "`cblind'"!=""       parse_cblind `cblind2'
     if `"`class'"'!=""      capture parse_class, `class'
-    // get palette
-    //    ptype 0 = <not defined>
-    //          1 = color list
-    //          2 = ColrSpace palette
-    //          3 = mata() object
-    //          4 = color generator
-    //          5 = colorpalette_<palette>.ado
-    local ptype 0
+    // get colors
     gettoken pfirst prest : palette
     local prest = strtrim(`"`prest'"')
-    if `"`palette'"'=="" {
-        // no palette specified; use s2
-        local palette s2
-        local ptype 2
-    }
-    else if `"`palette'"'=="hue" {
-        // hue color generator
-        local 0 `", `options'"'
-        syntax [, Hue(numlist max=2) Chroma(numlist max=1 >=0) ///
-            Luminance(numlist max=1 >=0 <=100) DIRection(int 1) ]
-        if !inlist(`direction',1,-1) {
-            di as err "{bf:direction()} must be 1 or -1"
-            exit 198
-        }
-        local options
-        local ptype 4
-    }
-    else if inlist(`"`pfirst'"', "hcl", "lch", "jmh") {
-        // hcl/lch/jmh color generator
-        local 0 `", `options'"'
-        if `"`prest'"'=="" local schemeopts "*" // backward compatibility
-        syntax [, Hue(numlist max=2) Chroma(numlist max=2 >=0) ///
-            Luminance(numlist max=2 >=0 <=100) POWer(numlist max=2 >0) ///
-            `schemeopts' ]
-        if `"`prest'"'=="" local prest `"`options'"'
-        local options
-        local ptype 4
-    }
-    else if `"`pfirst'"'=="hsv" {
-        // hsv generator
-        local 0 `", `options'"'
-        if `"`prest'"'=="" local schemeopts "*" // backward compatibility
-        syntax [, Hue(numlist max=2) SATuration(numlist max=2 >=0 <=1) ///
-            VALue(numlist max=2 >=0 <=1) POWer(numlist max=2 >0) ///
-            `schemeopts' ]
-        if `"`prest'"'=="" local prest `"`options'"'
-        local options
-        local ptype 4
-    }
-    else {
-        // check whether palette is mata(name)
-        capt parse_mata, `palette' // returns local mataname
-        if _rc==0 local ptype 3
-    }
-    if `ptype'==0 {
-        // check whether palette is list of colors specified as (...)
-        gettoken pal rest : palette, match(paren)
-        if "`paren'"=="(" {
-            if `"`rest'"'!="" local palette `"`pal' `rest'"'
-            else              local palette `"`pal'"'
-            local ptype 1
-        }
-    }
-    if `ptype'==0 {
-        // check whether palette exists in ColrSpace
-        mata: checkpalette() // if found: sets ptype = 2, pfirst, and palette
-    }
-    if `ptype'==2 & "`cmyk'"!="" {
-        // cmyk variants of the palettes are in ado, not in ColrSpace
-        _Palette_Get `pfirst', `prest' n(`n') `cmyk' `options'
-        local options
-        local ptype 5
-    }
-    if `ptype'==2 {
-        // parse additional options for ColrSpace palettes
-        if `"`prest'"'=="" {    // backward compatibility
-            if inlist("`pfirst'", "ptol", "d3", "lin", "spmap", "sfso",/*
-                */ "matplotlib", "webcolors") local schemeopts "*"
-        }
-        if inlist("`pfirst'", "viridis", "plasma", "inferno", "magma",/*
-            */ "cividis", "twilight", "matplotlib") {
-            local range "RAnge(numlist max=2 >=0 <=1)"
-            if `"`prest'"'=="" & "`pfirst'"=="twilight" {
-                local range "`range' SHIFTed"
-            }
-        }
-        if `"`range'`schemeopts'"'!="" {
-            local 0 `", `options'"'
-            syntax [, `range' `schemeopts' ]
-            if `"`prest'"'=="" {    // backward compatibility
-                local palette `palette' `options' `shifted'
-            }
-            local options
-        }
-        if "`pfirst'"=="matplotlib" {
-            // set default for matplotlib
-            if `: list sizeof palette'==1 {
-                local palette `palette' jet
-            }
-        }
-    }
-    if `ptype'==0 {
-        // by now, if palette has multiple words, it must be a color list
-        local ptype = (`: list sizeof palette'!=1)
-    }
-    if `ptype'==0 {
-        // if only one word: check whether resulting program name is valid
-        capt confirm name colorpalette_`palette' 
-        if _rc local ptype 1
-    }
-    if `ptype'==0 {
-        // check whether palette program exists; if yes: run it
-        capt local junk: properties colorpalette_`palette'
-        if _rc local ptype 1
-        else {
-            _Palette_Get `palette', n(`n') `cmyk' `options'
-            local options
-            local ptype 5
-        }
-    }
-    local 0 `", `options'"'
-    syntax [, _somew3irednamedopt ]   // make sure no extra options are left
-    mata: getpalette(`ptype', strtoreal("`n'"))
+    mata: getpalette(strtoreal("`n'"))
     // return palette
     local i 0
     foreach p of local plist {
@@ -321,10 +202,9 @@ program Palette_Get, rclass
         return local p`i'info `"`pi'"'
     }
     return local p       `"`plist'"'
-    //return local pnote   `"`note'"'
     return local pclass  `"`class'"'
     return local psource `"`source'"'
-    return local pinfo   `"`info'"'
+    return local pnote   `"`note'"'
     if `"`pname2'"'!="" {
         local palette `"`pname2'"'
     }
@@ -371,7 +251,7 @@ program _Palette_Get
     c_local pinfo  `"`I'"'
     c_local class  `"`class'"'
     if `"`name'"'!="" c_local palette `"`name'"'
-    c_local info   `"`info'"'
+    c_local note   `"`note'"'
     c_local source `"`source'"'
 end
 
@@ -753,8 +633,7 @@ program Graph
     local b = `size'/2 + 5
     local t = `size'/2 + 4
     if `"`title'"'=="" {
-        /*if `"`r(pnote)'"'==""*/ local title title(`"`r(pname)'"')
-        //else                  local title title(`"`r(pname)' (`r(pnote)')"')
+        local title title(`"`r(pname)'"')
     }
     if "`nonumbers'"!="" local pnum
     two `plots' `pnum' `lbl' `info' , `title' scheme(s2color) ///
@@ -814,8 +693,7 @@ program Graph2
         local n = r(n)
         gettoken plab plabels : plabels
         if `"`plab'"'=="" {
-            /*if `"`r(pnote)'"'==""*/ local plab `"`r(pname)'"'
-            //else                  local plab `"`r(pname)' (`r(pnote)')"'
+            local plab `"`r(pname)'"'
         }
         local ylab `ylab' `i' `"`plab'"'
         while (`nxvars'<`n') {
@@ -926,62 +804,149 @@ void colorpalette_mkdir(path)
     }
 }
 
-void checkpalette()
+void getpalette(real scalar n)
 {
-    string scalar pal, pfirst, prest
+    real scalar     ptype, ip_n
+    string scalar   pal, pfirst, prest, opts
     class ColrSpace scalar S
-    
-    pal = st_local("palette")
-    // characters % * # " may occur in color specifications, but are currently
-    // not used in ColrSpace palette names; exit if such characters are found
-    if (any(strpos(pal, ("%", "*", "#",`"""')))) return
-    // check whether first word matches a palette
-    pfirst = st_local("pfirst")
-    prest  = st_local("prest")
-    if (S.pexists(pfirst)) {
-        // get expanded first word of palette
-        pal = tokens(S.pname())[1]
-        // check whether the first word also matches a color
-        if (pal!=pfirst) {
-            if (S.cvalid(pfirst)) {
-                if (S.names()==pfirst) return
-                // => exit if exact color match but inexact palette match
-            }
-        }
-        // set pfirst to expanded first word of palette
-        st_local("pfirst", pal)
-        // modify palette such that first word is expanded
-        if (prest!="") pal = pal + " " + prest
-        st_local("palette", pal)
-        // set ptype
-        st_local("ptype", "2")
-    }
-}
-
-void getpalette(real scalar ptype, real scalar n)
-{
-    real scalar     ip_n
-    string scalar   pal
-    class ColrSpace scalar S
+    pragma unset    S
     pointer scalar  p
 
+    // Step 1: determine type of palette
+    pal     = st_local("palette")
+    pfirst  = st_local("pfirst")
+    prest   = st_local("prest")
+    ptype = 0
+    //    ptype 0 = <not defined>
+    //          1 = color list
+    //          2 = ColrSpace palette
+    //          3 = mata() object
+    //          4 = color generator
+    //          5 = colorpalette_<palette>.ado
+    if (pal=="") {
+        // no palette specified; use s2
+        pal  = "s2"
+        ptype = 2
+    }
+    else if (pal=="hue") {
+        // hue color generator
+        st_local("0", ", "+st_local("options"))
+        stata("syntax [, Hue(numlist max=2) Chroma(numlist max=1 >=0) " +
+            "Luminance(numlist max=1 >=0 <=100) DIRection(int 1) ]")
+        if (!anyof(("1","-1"), st_local("direction"))) {
+            display("{err}{bf:direction()} must be 1 or -1")
+            exit(198)
+        }
+        st_local("options", "")
+        ptype = 4
+    }
+    else if (anyof(("hcl", "lch", "jmh"), pfirst)) {
+        // hcl/lch/jmh color generator
+        st_local("0", ", "+st_local("options"))
+        stata("syntax [, Hue(numlist max=2) Chroma(numlist max=2 >=0) " + 
+            "Luminance(numlist max=2 >=0 <=100) POWer(numlist max=2 >0) " + 
+            (prest=="" ? "* " : "") + "]")
+        if (prest=="") prest = st_local("options") // backward compatibility
+        st_local("options", "")
+        ptype = 4
+    }
+    else if (pfirst=="hsv") {
+        // hsv generator
+        st_local("0", ", "+st_local("options"))
+        stata("syntax [, Hue(numlist max=2) SATuration(numlist max=2 >=0 <=1) " +
+            "VALue(numlist max=2 >=0 <=1) POWer(numlist max=2 >0) " +
+            (prest=="" ? "* " : "") + "]")
+        if (prest=="") prest = st_local("options") // backward compatibility
+        st_local("options", "")
+        ptype = 4
+    }
+    else {
+        // check whether palette is mata(name)
+        if (_stata("parse_mata, " + pal, 1)==0) ptype = 3 // returns local mataname
+    }
+    if (ptype==0) {
+        // check whether palette is list of colors specified as (...)
+        stata("gettoken pal rest : palette, match(paren)")
+        if (st_local("paren")=="(") {
+            pal = st_local("pal")
+            if (st_local("rest")!="") pal = pal + " " + st_local("rest")
+            ptype = 1
+        }
+    }
+    if (ptype==0) {
+        // check whether palette exists in ColrSpace
+        checkpalette(S, ptype, pal, pfirst, prest)
+    }
+    if (ptype==2 & st_local("cmyk")!="") {
+        // cmyk variants of the palettes are in ado, not in ColrSpace
+        stata("_Palette_Get " + pfirst + ", " + prest + 
+            " n(\`n') \`cmyk' \`options'")
+        st_local("options", "")
+        ptype = 5
+    }
+    if (ptype==2) {
+        // parse additional options for ColrSpace palettes
+        opts = ""
+        if (prest=="") {    // backward compatibility
+            if (anyof(("ptol", "d3", "lin", "spmap", "sfso", "matplotlib", 
+                "webcolors"), pfirst)) opts = " *"
+        }
+        if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
+            "twilight", "matplotlib"), pfirst)) {
+            opts = " RAnge(numlist max=2 >=0 <=1)" + opts
+            if (prest=="" & pfirst=="twilight") opts = " SHIFTed" + opts
+        }
+        if (strtrim(opts)!="") {
+            st_local("0", ", "+st_local("options"))
+            stata("syntax [, " + opts + " ]")
+            if (prest=="") {
+                // backward compatibility
+                pal = pal +" "+ st_local("options") +" "+ st_local("shifted")
+            }
+            st_local("options", "")
+        }
+        if (pfirst=="matplotlib") {
+            // set default for matplotlib
+            if (length(tokens(pal))==1) pal = pal + " jet"
+        }
+    }
+    if (ptype==0) {
+        // by now, if palette has multiple words, it must be a color list
+        ptype = (prest!="")
+    }
+    if (ptype==0) {
+        // if only one word: check whether resulting program name is valid
+        if (_stata("confirm name colorpalette_"+pal, 1)) ptype = 1
+    }
+    if (ptype==0) {
+        // check whether palette program exists; if yes: run it
+        if (_stata("local junk: properties colorpalette_"+pal, 1)) ptype = 1
+        else {
+            stata("_Palette_Get "+pal+", n(\`n') \`cmyk' \`options'")
+            st_local("options", "")
+            ptype = 5
+        }
+    }
+    // make sure no extra options are left
+    st_local("0", ", "+st_local("options"))
+    stata("syntax [, _somew3irednamedopt ]")
+    
+    // Step 2: collect palette/colors and apply options
     // setup
     S.pclass(st_local("class"))
     // get colors
-    if (ptype==1) { // custom list if color specifications
-                         // list is space separated
-        S.colors(st_local("palette"))
+    if (ptype==1) { 
+        S.colors(pal) // space-separated list of color specifications
         st_local("palette", "custom") // assign default palette name
     }
     else if (ptype==2) { // ColrSpace palette
                          // palette: full palette name
                          // pfirst:  first word of palette name
-        pal = st_local("palette")
         if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
-            "twilight", "matplotlib"), st_local("pfirst")))
+            "twilight", "matplotlib"), pfirst))
              S.palette(pal, n, strtoreal(tokens(st_local("range"))))
         else S.palette(pal, n, st_local("noexpand")!="")
-        st_local("palette", S.pname())
+        st_local("palette", S.name())
     }
     else if (ptype==3) {    // palette is Mata objest
                             // mataname: name of object 
@@ -996,28 +961,27 @@ void getpalette(real scalar ptype, real scalar n)
         }
         S = *p
         if (S.pclass()=="") S.pclass(st_local("class"))
-        if (S.pname()!="") st_local("palette", S.pname())
-        else               st_local("palette", st_local("mataname"))
+        if (S.name()!="")   st_local("palette", S.name())
+        else                st_local("palette", st_local("mataname"))
     }
     else if (ptype==4) { // ColrSpace color generator
                          // pfirst: generator name
                          // prest:  scheme
-        pal = st_local("pfirst")
-        if (anyof(("hcl","lch","jmh"), pal)) {
-            hclgenerate(S, pal, st_local("prest"), n,
+        if (anyof(("hcl","lch","jmh"), pfirst)) {
+            hclgenerate(S, pfirst, prest, n,
                 strtoreal(tokens(st_local("hue"))), 
                 strtoreal(tokens(st_local("chroma"))), 
                 strtoreal(tokens(st_local("luminance"))),
                 strtoreal(tokens(st_local("power"))))
         }
-        else if (pal=="hsv") {
-            hsvgenerate(S, st_local("prest"), n,
+        else if (pfirst=="hsv") {
+            hsvgenerate(S, prest, n,
                 strtoreal(tokens(st_local("hue"))), 
                 strtoreal(tokens(st_local("saturation"))), 
                 strtoreal(tokens(st_local("value"))),
                 strtoreal(tokens(st_local("power"))))
         }
-        else { // pal=="hue"
+        else { // pfirst=="hue"
             S.generate(pal, n, strtoreal(tokens(st_local("hue"))), 
                 strtoreal(st_local("chroma")), 
                 strtoreal(st_local("luminance")),
@@ -1029,13 +993,13 @@ void getpalette(real scalar ptype, real scalar n)
                          // pnames:  comma-separated list of color names
                          // pinfo:   comma-separated list of descriptions
                          // class:   palette class (already covered above)
-                         // info:    palette info
+                         // note:    palette note
                          // source:  palette source
         S.colors(st_local("plist"), ",")
         if (st_local("pnames")!="") S.names(st_local("pnames"), ",")
         if (st_local("pinfo")!="")  S.info(st_local("pinfo"), ",")
-        S.pinfo(st_local("info"))
-        S.psource(st_local("source"))
+        S.note(st_local("note"))
+        S.source(st_local("source"))
     }
     // option n()
     if (anyof((1,3,5), ptype)) {
@@ -1096,9 +1060,35 @@ void getpalette(real scalar ptype, real scalar n)
     st_local("plist", S.colors(st_local("forcergb")!=""))
     st_local("pnames", S.names())
     st_local("pinfo", S.info())
-    st_local("info", S.pinfo())
-    st_local("source", S.psource())
+    st_local("note", S.note())
+    st_local("source", S.source())
     st_local("class", S.pclass())
+}
+
+void checkpalette(class ColrSpace scalar S, real scalar ptype, 
+    string scalar pal0, string scalar pfirst, string scalar prest)
+{
+    string scalar pal
+
+    // characters % * # " may occur in color specifications, but are currently
+    // not used in ColrSpace palette names; exit if such characters are found
+    if (any(strpos(pal0, ("%", "*", "#",`"""')))) return
+    // check whether first word matches a palette
+    if ((pal=S.pexists(pfirst))!="") {
+        // get expanded first word of palette
+        pal = tokens(pal)[1]
+        // check whether the first word also matches a color
+        if (pal!=pfirst) {
+            if (S.cvalid(pfirst)==pfirst) return
+        }
+        // set pfirst to expanded first word of palette
+        pfirst = pal
+        // modify palette such that first word is expanded
+        if (prest!="") pal = pal + " " + prest
+        pal0 = pal
+        // set ptype
+        ptype = 2
+    }
 }
 
 void hclgenerate(class ColrSpace scalar S, string scalar space, string scalar pal0,
