@@ -29,6 +29,15 @@ Installation from GitHub:
 
 Main changes:
 
+    27may2020
+    - updated to new version of ColrSpace
+    - option pname() is now called name()
+    - options luminate() and saturate() can no longer be abbreviated (to avoid 
+      confliction with options of color generators)
+    - interpolation was applied to palettes read from ado-files even if this was
+      not necessary; this is fixed
+    - palette class was not returned if reading palette from ado-file; this is fixed
+    
     19may2020
     - some adaptions due to changes in ColrSpace()
     - some syntax parsting now done in Mata so that ColrSpace object only

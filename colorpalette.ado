@@ -1,4 +1,4 @@
-*! version 1.1.7  19may2020  Ben Jann
+*! version 1.1.9  27may2020  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -131,7 +131,7 @@ end
 
 program Palette_Get2, rclass
     _parse comma palettes 0 : 0
-    syntax [, PNAME2(str) * ]
+    syntax [, name(str) * ]
     local space
     local i 0
     foreach p of local palettes {
@@ -149,8 +149,8 @@ program Palette_Get2, rclass
     }
     return scalar n = `i'
     return local p `"`plist'"'
-    if `"`pname2'"'!="" {
-        return local pname `"`pname2'"'
+    if `"`name'"'!="" {
+        return local pname `"`name'"'
     }
     else {
         return local pname "custom"
@@ -159,15 +159,28 @@ program Palette_Get2, rclass
 end
 
 program Palette_Get, rclass
-    local opts [, N(numlist max=1 integer >=1) Select(numlist integer) ///
-        order(numlist integer) REVerse ///
+    local opts N(numlist max=1 integer >=1) ///
+        Select(numlist integer) order(numlist integer) REVerse ///
         INtensity(numlist >=0 missingokay) ///
         OPacity(numlist int >=0 missingokay) ///
-        IPolate(str) intensify(numlist >=0 missingokay) ///
-        SATurate(str) LUMinate(str) GScale GScale2(str) CBlind CBlind2(str) ///
-        NOEXPAND class(str) PNAME2(str) FORCErgb cmyk * ]
-    syntax [anything(name=palette id="palette" everything equalok)] `opts'
+        IPolate(str) ///
+        intensify(numlist >=0 missingokay) ///
+        saturate(str) luminate(str) ///
+        GScale GScale2(str) ///
+        CBlind CBlind2(str) ///
+        NOEXPAND class(str) name(str) FORCErgb
+    syntax [anything(name=palette id="palette" everything equalok)] ///
+        [, `opts' ///
+        /// palette-specific options
+        Hue(passthru) Chroma(passthru) SATuration(passthru) ///
+        Luminance(passthru) VALue(passthru)  ///
+        POWer(passthru) DIRection(passthru)  ///
+        RAnge(passthru) SHIFTed cmyk * ]
     remove_repeatedopts `"`opts'"' `", `options'"'
+    local passthruopts `hue' `chroma' `saturation' `luminance' `value' /*
+        */`power' `direction' `range' `shifted' `cmyk' `options'
+    parse_psopts, `hue' `chroma' `saturation' `luminance' `value' /*
+        */`power' `direction' `range'
     if `"`opacity'"'!="" {
         if c(stata_version)<15 {
             di as err "{bf:opacity()} requires Stata 15"
@@ -188,9 +201,36 @@ program Palette_Get, rclass
     if "`cblind'"!=""       parse_cblind `cblind2'
     if `"`class'"'!=""      capture parse_class, `class'
     // get colors
-    gettoken pfirst prest : palette
-    local prest = strtrim(`"`prest'"')
-    mata: getpalette(strtoreal("`n'"))
+    local ptype 0
+    if `"`palette'"'=="" { // use s2 if palette is empty
+        local palette s2
+        local ptype 2
+    }
+    else {  // check whether palette is mata(name)
+        capt parse_mata, `palette' // returns local mataname
+        if _rc==0 local ptype 3
+    }
+    if `ptype'==0 {
+        // check whether palette has more than 3 words
+        // (ColrSpace currently has no palette names with more than 3 words)
+        if `:list sizeof palette'>3 {
+            local ptype 1
+        }
+        // check whether palette is list of colors in (...)
+        else {
+            gettoken pal rest : palette, match(paren)
+            if "`paren'"=="(" {
+                if `"`rest'"'!="" local palette `"`pal' `rest'"'
+                else              local palette `"`pal'"'
+                local ptype 1
+            }
+        }
+    }
+    if `ptype'==0 {
+        mata: backwardcompatibility() // may reset palette
+    }
+    local options `shifted' `cmyk' `options'
+    mata: getpalette(strtoreal("`n'"), `ptype')
     // return palette
     local i 0
     foreach p of local plist {
@@ -205,8 +245,8 @@ program Palette_Get, rclass
     return local pclass  `"`class'"'
     return local psource `"`source'"'
     return local pnote   `"`note'"'
-    if `"`pname2'"'!="" {
-        local palette `"`pname2'"'
+    if `"`name'"'!="" {
+        local palette `"`name'"'
     }
     return local pname   `"`palette'"'
     return local ptype   "color"
@@ -215,13 +255,8 @@ end
 
 program remove_repeatedopts
     args opts 0
-    syntax `opts'
+    syntax [, `opts' * ]
     c_local options `"`options'"'
-end
-
-program parse_mata
-    syntax, Mata(name)
-    c_local mataname `"`mata'"'
 end
 
 program _Palette_Get
@@ -317,6 +352,53 @@ program parse_class
     local class `qualitative' `sequential' `diverging'
     if `:list sizeof class'>1 exit 198
     c_local class `class'
+end
+
+program parse_mata
+    syntax, Mata(name)
+    c_local mataname `"`mata'"'
+end
+
+program parse_psopts // options for color generators and matplotlib colormaps
+    syntax [, Hue(numlist max=2) ///
+        Chroma(numlist max=1 >=0) SATuration(numlist max=2 >=0 <=1) ///
+        Luminance(numlist max=1 >=0 <=100) VALue(numlist max=2 >=0 <=1) ///
+        POWer(numlist max=2 >0) DIRection(numlist int max=1) /// 
+        RAnge(numlist max=2 >=0 <=1) ]
+    if "`saturation'"!="" {
+        if "`chroma'"!="" &  {
+            di as err "chroma() and saturation() not both allowed"
+            exit 198
+        }
+        local chroma `saturation'
+    }
+    if "`value'"!="" {
+        if "`luminance'"!="" &  {
+            di as err "luminance() and value() not both allowed"
+            exit 198
+        }
+        local luminance `value'
+    }
+    if "`direction'"!="" {
+        if "`power'"!="" &  {
+            di as err "power() and direction() not both allowed"
+            exit 198
+        }
+        if !inlist(`direction',1,-1) {
+            di as err "{bf:direction()} must be 1 or -1"
+            exit 198
+        }
+        local power = (`direction'==-1)
+    }
+    c_local hue `hue'
+    c_local chroma `chroma'
+    c_local luminance `luminance'
+    c_local power `power'
+    c_local range `range'
+end
+
+program parse_optnotallowed
+    syntax [, _somew3irednamedopt ]
 end
 
 /*----------------------------------------------------------------------------*/
@@ -804,115 +886,28 @@ void colorpalette_mkdir(path)
     }
 }
 
-void getpalette(real scalar n)
+void getpalette(real scalar n, real scalar ptype)
 {
-    real scalar     ptype, ip_n
-    string scalar   pal, pfirst, prest, opts
+    real scalar     ip_n, rc
+    string scalar   pal, p1
     class ColrSpace scalar S
     pragma unset    S
     pointer scalar  p
 
-    // Step 1: determine type of palette
-    pal     = st_local("palette")
-    pfirst  = st_local("pfirst")
-    prest   = st_local("prest")
-    ptype = 0
+    // Step 1: determine type of palette and parse additional options
     //    ptype 0 = <not defined>
     //          1 = color list
     //          2 = ColrSpace palette
-    //          3 = mata() object
-    //          4 = color generator
-    //          5 = colorpalette_<palette>.ado
-    if (pal=="") {
-        // no palette specified; use s2
-        pal  = "s2"
-        ptype = 2
-    }
-    else if (pal=="hue") {
-        // hue color generator
-        st_local("0", ", "+st_local("options"))
-        stata("syntax [, Hue(numlist max=2) Chroma(numlist max=1 >=0) " +
-            "Luminance(numlist max=1 >=0 <=100) DIRection(int 1) ]")
-        if (!anyof(("1","-1"), st_local("direction"))) {
-            display("{err}{bf:direction()} must be 1 or -1")
-            exit(198)
-        }
-        st_local("options", "")
-        ptype = 4
-    }
-    else if (anyof(("hcl", "lch", "jmh"), pfirst)) {
-        // hcl/lch/jmh color generator
-        st_local("0", ", "+st_local("options"))
-        stata("syntax [, Hue(numlist max=2) Chroma(numlist max=2 >=0) " + 
-            "Luminance(numlist max=2 >=0 <=100) POWer(numlist max=2 >0) " + 
-            (prest=="" ? "* " : "") + "]")
-        if (prest=="") prest = st_local("options") // backward compatibility
-        st_local("options", "")
-        ptype = 4
-    }
-    else if (pfirst=="hsv") {
-        // hsv generator
-        st_local("0", ", "+st_local("options"))
-        stata("syntax [, Hue(numlist max=2) SATuration(numlist max=2 >=0 <=1) " +
-            "VALue(numlist max=2 >=0 <=1) POWer(numlist max=2 >0) " +
-            (prest=="" ? "* " : "") + "]")
-        if (prest=="") prest = st_local("options") // backward compatibility
-        st_local("options", "")
-        ptype = 4
-    }
-    else {
-        // check whether palette is mata(name)
-        if (_stata("parse_mata, " + pal, 1)==0) ptype = 3 // returns local mataname
-    }
-    if (ptype==0) {
-        // check whether palette is list of colors specified as (...)
-        stata("gettoken pal rest : palette, match(paren)")
-        if (st_local("paren")=="(") {
-            pal = st_local("pal")
-            if (st_local("rest")!="") pal = pal + " " + st_local("rest")
-            ptype = 1
-        }
-    }
+    //          3 = mata() object (already set)
+    //          4 = colorpalette_<palette>.ado
+    pal = st_local("palette")
     if (ptype==0) {
         // check whether palette exists in ColrSpace
-        checkpalette(S, ptype, pal, pfirst, prest)
-    }
-    if (ptype==2 & st_local("cmyk")!="") {
-        // cmyk variants of the palettes are in ado, not in ColrSpace
-        stata("_Palette_Get " + pfirst + ", " + prest + 
-            " n(\`n') \`cmyk' \`options'")
-        st_local("options", "")
-        ptype = 5
-    }
-    if (ptype==2) {
-        // parse additional options for ColrSpace palettes
-        opts = ""
-        if (prest=="") {    // backward compatibility
-            if (anyof(("ptol", "d3", "lin", "spmap", "sfso", "matplotlib", 
-                "webcolors"), pfirst)) opts = " *"
-        }
-        if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
-            "twilight", "matplotlib"), pfirst)) {
-            opts = " RAnge(numlist max=2 >=0 <=1)" + opts
-            if (prest=="" & pfirst=="twilight") opts = " SHIFTed" + opts
-        }
-        if (strtrim(opts)!="") {
-            st_local("0", ", "+st_local("options"))
-            stata("syntax [, " + opts + " ]")
-            if (prest=="") {
-                // backward compatibility
-                pal = pal +" "+ st_local("options") +" "+ st_local("shifted")
-            }
-            st_local("options", "")
-        }
-        if (pfirst=="matplotlib") {
-            // set default for matplotlib
-            if (length(tokens(pal))==1) pal = pal + " jet"
-        }
+        checkpalette(S, ptype, pal)
     }
     if (ptype==0) {
         // by now, if palette has multiple words, it must be a color list
-        ptype = (prest!="")
+        if (length(tokens(pal))>1) ptype = 1
     }
     if (ptype==0) {
         // if only one word: check whether resulting program name is valid
@@ -922,15 +917,16 @@ void getpalette(real scalar n)
         // check whether palette program exists; if yes: run it
         if (_stata("local junk: properties colorpalette_"+pal, 1)) ptype = 1
         else {
-            stata("_Palette_Get "+pal+", n(\`n') \`cmyk' \`options'")
+            rc = _stata("_Palette_Get "+pal+", n(\`n') \`passthruopts'")
+            if (rc) exit(rc)
             st_local("options", "")
-            ptype = 5
+            ptype = 4
         }
     }
     // make sure no extra options are left
-    st_local("0", ", "+st_local("options"))
-    stata("syntax [, _somew3irednamedopt ]")
-    
+    rc = _stata("parse_optnotallowed, "+st_local("options"))
+    if (rc) exit(rc)
+
     // Step 2: collect palette/colors and apply options
     // setup
     S.pclass(st_local("class"))
@@ -942,13 +938,21 @@ void getpalette(real scalar n)
     else if (ptype==2) { // ColrSpace palette
                          // palette: full palette name
                          // pfirst:  first word of palette name
-        if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
-            "twilight", "matplotlib"), pfirst))
-             S.palette(pal, n, strtoreal(tokens(st_local("range"))))
+        p1 = tokens(pal)[1]
+        if (anyof(("hue", "HCL","LCh","JMh","HSV","HSL"), p1)) {
+            S.palette(pal, n, strtoreal(tokens(st_local("hue"))), 
+                strtoreal(tokens(st_local("chroma"))), 
+                strtoreal(tokens(st_local("luminance"))),
+                strtoreal(tokens(st_local("power"))))
+        }
+        else if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
+            "twilight", "matplotlib"), p1)) {
+            S.palette(pal, n, strtoreal(tokens(st_local("range"))))
+        }
         else S.palette(pal, n, st_local("noexpand")!="")
         st_local("palette", S.name())
     }
-    else if (ptype==3) {    // palette is Mata objest
+    else if (ptype==3) {    // palette is Mata object
                             // mataname: name of object 
         p = findexternal(st_local("mataname"))
         if (p==NULL) {
@@ -964,31 +968,7 @@ void getpalette(real scalar n)
         if (S.name()!="")   st_local("palette", S.name())
         else                st_local("palette", st_local("mataname"))
     }
-    else if (ptype==4) { // ColrSpace color generator
-                         // pfirst: generator name
-                         // prest:  scheme
-        if (anyof(("hcl","lch","jmh"), pfirst)) {
-            hclgenerate(S, pfirst, prest, n,
-                strtoreal(tokens(st_local("hue"))), 
-                strtoreal(tokens(st_local("chroma"))), 
-                strtoreal(tokens(st_local("luminance"))),
-                strtoreal(tokens(st_local("power"))))
-        }
-        else if (pfirst=="hsv") {
-            hsvgenerate(S, prest, n,
-                strtoreal(tokens(st_local("hue"))), 
-                strtoreal(tokens(st_local("saturation"))), 
-                strtoreal(tokens(st_local("value"))),
-                strtoreal(tokens(st_local("power"))))
-        }
-        else { // pfirst=="hue"
-            S.generate(pal, n, strtoreal(tokens(st_local("hue"))), 
-                strtoreal(st_local("chroma")), 
-                strtoreal(st_local("luminance")),
-                st_local("direction")!="1")
-        }
-    }
-    else if (ptype==5) { // colorpalette_<palette>.ado
+    else if (ptype==4) { // colorpalette_<palette>.ado
                          // plist:   comma-separated list of colors
                          // pnames:  comma-separated list of color names
                          // pinfo:   comma-separated list of descriptions
@@ -999,11 +979,12 @@ void getpalette(real scalar n)
         if (st_local("pnames")!="") S.names(st_local("pnames"), ",")
         if (st_local("pinfo")!="")  S.info(st_local("pinfo"), ",")
         S.note(st_local("note"))
+        S.pclass(st_local("class"))
         S.source(st_local("source"))
     }
     // option n()
-    if (anyof((1,3,5), ptype)) {
-        if (n<.) {
+    if (ptype!=2) {
+        if (n<. & n!=S.N()) {
             if (n<S.N() & S.pclass()=="qualitative") S.recycle(n)
             if (st_local("noexpand")=="") {
                 if (S.pclass()=="qualitative") S.recycle(n)
@@ -1065,226 +1046,164 @@ void getpalette(real scalar n)
     st_local("class", S.pclass())
 }
 
-void checkpalette(class ColrSpace scalar S, real scalar ptype, 
-    string scalar pal0, string scalar pfirst, string scalar prest)
+void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal0)
 {
-    string scalar pal
+    string scalar    pal, p1
+    string rowvector PAL
 
     // characters % * # " may occur in color specifications, but are currently
     // not used in ColrSpace palette names; exit if such characters are found
     if (any(strpos(pal0, ("%", "*", "#",`"""')))) return
-    // check whether first word matches a palette
-    if ((pal=S.pexists(pfirst))!="") {
-        // get expanded first word of palette
-        pal = tokens(pal)[1]
-        // check whether the first word also matches a color
-        if (pal!=pfirst) {
-            if (S.cvalid(pfirst)==pfirst) return
+    // case 1: palette exists in ColrSpace
+    PAL = tokens(pal0)
+    if ((pal=S.pexists(pal0))!="") {
+        p1 = tokens(pal)[1]
+        if (PAL[1]!=p1) {
+            // if first word is not an exact match, check whether first word has 
+            // an exact match in named colors; if yes, assume pal to be a list
+            // of colors (such that, e.g., "blue" will be interpreted as color
+            // "blue" and not as palette "Blues")
+            if (S.cvalid(PAL[1])==PAL[1]) return
         }
-        // set pfirst to expanded first word of palette
-        pfirst = pal
+        pal0 = pal  // return expanded palette name
+        ptype = 2
+        return
+    }
+    // case 2: check whether first word matches a palette
+    if ((pal=S.pexists(PAL[1]))!="") {
+        p1 = tokens(pal)[1]
+        if (PAL[1]!=p1) {
+            // (see note above)
+            if (S.cvalid(PAL[1])==PAL[1]) return
+        }
         // modify palette such that first word is expanded
-        if (prest!="") pal = pal + " " + prest
-        pal0 = pal
-        // set ptype
+        PAL[1] = p1
+        pal0   = invtokens(PAL)
         ptype = 2
     }
 }
 
-void hclgenerate(class ColrSpace scalar S, string scalar space, string scalar pal0,
-    real scalar n, real vector h, real vector c, real vector l, real vector p)
+void backwardcompatibility()
 {
-    real scalar    h1, h2, c1, c2, l1, l2, p1, p2
-    real rowvector d
-    string scalar  pal, pclass
+    string scalar    pal, opt
+    string rowvector scheme
     
-    pal = strlower(strtrim(pal0))
-    if (n>=.)        n = 15
-    if (length(h)>0) h1 = h[1]
-    if (length(h)>1) h2 = h[2]
-    if (length(c)>0) c1 = c[1]
-    if (length(c)>1) c2 = c[2]
-    if (length(l)>0) l1 = l[1]
-    if (length(l)>1) l2 = l[2]
-    if (length(p)>0) p1 = p[1]
-    if (length(p)>1) p2 = p[2]
-    if (space=="hcl") {
-    if      (smatch(pal, "qualitative")) d = (1,  15,   .,  60,   ., 70,  .,   .,   .)
-    else if (smatch(pal, "intense"    )) d = (1,  15,   ., 100,   ., 65,  .,   .,   .)
-    else if (smatch(pal, "dark"       )) d = (1,  15,   .,  80,   ., 60,  .,   .,   .)
-    else if (smatch(pal, "light"      )) d = (1,  15,   .,  50,   ., 80,  .,   .,   .)
-    else if (smatch(pal, "pastel"     )) d = (1,  15,   .,  35,   ., 85,  .,   .,   .)
-    else if (smatch(pal, "sequential" )) d = (2, 260,   .,  80,  10, 25, 95,   1,   .)
-    else if (smatch(pal, "blues"      )) d = (2, 260,   .,  80,  10, 25, 95,   1,   .)
-    else if (smatch(pal, "greens"     )) d = (2, 145, 125,  80,  10, 25, 95,   1,   .)
-    else if (smatch(pal, "grays"      )) d = (2,   0,   .,   0,   0, 15, 95,   1,   .)
-    else if (smatch(pal, "oranges"    )) d = (2,  40,   ., 100,  10, 50, 95,   1,   .)
-    else if (smatch(pal, "purples"    )) d = (2, 280,   .,  70,  10, 20, 95,   1,   .)
-    else if (smatch(pal, "reds"       )) d = (2,  10,  20,  80,  10, 25, 95,   1,   .)
-    else if (smatch(pal, "heat"       )) d = (2,   0,  90, 100,  30, 50, 90, 0.2, 1.0)
-    else if (smatch(pal, "heat2"      )) d = (2,   0,  90,  80,  30, 30, 90, 0.2, 2.0)
-    else if (smatch(pal, "terrain"    )) d = (2, 130,   0,  80,   0, 60, 95, 0.1, 1.0)
-    else if (smatch(pal, "terrain2"   )) d = (2, 130,  30,  65,   0, 45, 90, 0.5, 1.5)
-    else if (smatch(pal, "viridis"    )) d = (2, 300,  75,  35,  95, 15, 90, 0.8, 1.2)
-    else if (smatch(pal, "plasma"     )) d = (2, 100, 100,  60, 100, 15, 95, 2.0, 0.9)
-    else if (smatch(pal, "redblue"    )) d = (2,   0,-100,  80,  40, 40, 75, 1.0, 1.0)
-    else if (smatch(pal, "diverging"  )) d = (3, 260,   0,  80,   ., 30, 95,   1,   .)
-    else if (smatch(pal, "bluered"    )) d = (3, 260,   0,  80,   ., 30, 95,   1,   .)
-    else if (smatch(pal, "bluered2"   )) d = (3, 260,   0, 100,   ., 50, 95,   1,   .)
-    else if (smatch(pal, "bluered3"   )) d = (3, 180, 330,  60,   ., 75, 95,   1,   .)
-    else if (smatch(pal, "greenorange")) d = (3, 130,  45, 100,   ., 70, 95,   1,   .)
-    else if (smatch(pal, "browngreen" )) d = (3,  55, 160,  60,   ., 35, 95,   1,   .)
-    else if (smatch(pal, "pinkgreen"  )) d = (3, 340, 128,  90,   ., 35, 95,   1,   .) 
-    else if (smatch(pal, "purplegreen")) d = (3, 300, 128,  60,   ., 30, 95,   1,   .)
-    else {
-        display("{err}scheme '" + pal0 + "' not allowed")
-        exit(3498)
+    pal = st_local("palette")
+    if (length(tokens(pal))!=1) return
+    scheme = tokens(st_local("options"))
+    if (length(scheme)==1) {
+        if (anyof(("hcl","lch","jmh"), pal)) {
+            if (smatch(scheme, ("qualitative", "intense", "dark", "light",
+                "pastel", "sequential", "blues", "greens", "grays", "oranges",
+                "purples", "reds", "heat", "heat2", "terrain", "terrain2",
+                "viridis", "plasma", "redblue", "diverging", "bluered",
+                "bluered2", "bluered3", "greenorange", "browngreen",
+                "pinkgreen", "purplegreen")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal=="hsv") {
+            if (smatch(scheme, ("qualitative", "intense", "dark", "light",
+                "pastel", "rainbow", "sequential", "blues", "greens", "grays",
+                "oranges", "purples", "reds", "heat", "terrain", "diverging",
+                "bluered", "bluered2", "bluered3", "greenorange", "browngreen",
+                "pinkgreen", "purplegreen", "heat0", "terrain0")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal==substr("matplotlib", 1, max((7, strlen(pal))))) {
+            if (smatch(scheme, ("jet", "autumn", "spring", "summer",
+                "winter", "bone", "cool", "copper", "coolwarm", "hot")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal=="ptol") {
+            if (smatch(scheme, ("qualitative", "diverging", "rainbow")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal=="lin") {
+            if (smatch(scheme, ("carcolor", "food", "features",
+                "activities", "fruits", "vegetables", "drinks", "brands")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal=="d3") {
+            if (smatch(scheme, ("10", "20", "20b", "20c")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal=="spmap") {
+            if (smatch(scheme, ("blues", "greens", "greys", "reds",
+                "rainbow", "heat", "terrain", "topological")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else if (pal=="sfso") {
+            if (smatch(scheme, ("blue", "brown", "orange", "red", "pink",
+                "purple", "violet", "ltblue", "turquoise", "green", "olive",
+                "black", "parties", "languages", "votes"))) {
+                pal = pal + " " + scheme
+                if (st_local("cmyk")!="") {
+                    pal = pal + " cmyk"
+                    st_local("cmyk", "")
+                }
+            }
+            else return
+        }
+        else if (pal==substr("webcolors", 1, max((3, strlen(pal))))) {
+            if (smatch(scheme, ("pink", "purple", "redorange", "yellow",
+                "green", "cyan", "blue", "brown", "white", "gray", "grey")))
+                pal = pal + " " + scheme
+            else return
+        }
+        else return
+        st_local("options", "")
     }
+    else if (length(scheme)==2) {
+        opt    = scheme[2]
+        scheme = scheme[1]
+        if (pal=="lin") {
+            if (smatch(scheme, ("carcolor", "food", "features",
+                "activities", "fruits", "vegetables", "drinks", "brands")) 
+                & _smatch(opt,"algorithm"))
+                pal = pal + " " + scheme + " " + opt
+            else return
+        }
+        else return
+        st_local("options", "")
     }
-    else if (space=="lch") {
-    if      (smatch(pal, "qualitative")) d = (1,  28,   .,  35,   ., 70,  .,   .,   .)
-    else if (smatch(pal, "intense"    )) d = (1,  28,   .,  57,   ., 65,  .,   .,   .)
-    else if (smatch(pal, "dark"       )) d = (1,  28,   .,  47,   ., 60,  .,   .,   .)
-    else if (smatch(pal, "light"      )) d = (1,  28,   .,  29,   ., 80,  .,   .,   .)
-    else if (smatch(pal, "pastel"     )) d = (1,  28,   .,  21,   ., 85,  .,   .,   .)
-    else if (smatch(pal, "sequential" )) d = (2, 290,   .,  72,   6, 25, 95,   1,   .)
-    else if (smatch(pal, "blues"      )) d = (2, 290,   .,  72,   6, 25, 95,   1,   .)
-    else if (smatch(pal, "greens"     )) d = (2, 157, 142,  95,   8, 25, 95,   1,   .)
-    else if (smatch(pal, "grays"      )) d = (2,   0,   .,   0,   0, 15, 95,   1,   .)
-    else if (smatch(pal, "oranges"    )) d = (2,  70,   .,  95,   6, 50, 95,   1,   .)
-    else if (smatch(pal, "purples"    )) d = (2, 310,   .,  90,   7, 20, 95,   1,   .)
-    else if (smatch(pal, "reds"       )) d = (2,  30,   .,  56,   6, 25, 95,   1,   .)
-    else if (smatch(pal, "heat"       )) d = (2,   9, 112,  61,  21, 50, 90, 0.2, 1.0)
-    else if (smatch(pal, "heat2"      )) d = (2,  10, 112,  54,  21, 30, 90, 0.2, 2.0)
-    else if (smatch(pal, "terrain"    )) d = (2, 140,  10,  72,   0, 60, 95, 0.4, 1.0)
-    else if (smatch(pal, "terrain2"   )) d = (2, 140,  40,  64,   0, 45, 90, 0.5, 1.5)
-    else if (smatch(pal, "viridis"    )) d = (2, 324,  96,  49,  82, 15, 90, 1.0, 1.0)
-    else if (smatch(pal, "plasma"     )) d = (2, 115, 115,  68,  86, 15, 95, 2.0, 0.9)
-    else if (smatch(pal, "redblue"    )) d = (2,   9, -74,  52,  25, 40, 75, 1.0, 1.0)
-    else if (smatch(pal, "diverging"  )) d = (3, 293,  10,  59,  .,  30, 95,   1,   .)
-    else if (smatch(pal, "bluered"    )) d = (3, 293,  10,  59,  .,  30, 95,   1,   .)
-    else if (smatch(pal, "bluered2"   )) d = (3, 293,  10,  64,  .,  50, 95,   1,   .)
-    else if (smatch(pal, "bluered3"   )) d = (3, 186, 341,  45,  .,  75, 95,   1,   .)
-    else if (smatch(pal, "greenorange")) d = (3, 140,  74,  85,  .,  70, 95,   1,   .)
-    else if (smatch(pal, "browngreen" )) d = (3,  84, 171,  73,  .,  35, 95,   1,   .)
-    else if (smatch(pal, "pinkgreen"  )) d = (3, 347, 128,  96,  .,  35, 95,   1,   .)
-    else if (smatch(pal, "purplegreen")) d = (3, 324, 132,  68,  .,  30, 95,   1,   .)
-    else {
-        display("{err}scheme '" + pal0 + "' not allowed")
-        exit(3498)
+    else if (st_local("shifted")!="") {
+        if (pal=="twilight") pal = pal + " shifted"
+        else return
+        st_local("shifted", "")
     }
+    else if (st_local("cmyk")!="") {
+        if (anyof(("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1",
+            "Set2", "Set3", "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "OrRd",
+            "Oranges", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn",
+            "YlGnBu", "YlOrBr", "YlOrRd", "BrBG", "PRGn", "PiYG", "PuOr", "RdBu",
+            "RdGy", "RdYlBu", "RdYlGn", "Spectral", "sfso"), pal))
+            pal = pal + " cmyk"
+        else return
+        st_local("cmyk", "")
     }
-    else if (space=="jmh") {
-    if      (smatch(pal, "qualitative")) d = (1,  25,   .,  24,  .,  73,  .,   .,   .)
-    else if (smatch(pal, "intense"    )) d = (1,  25,   .,  34,  .,  67,  .,   .,   .)
-    else if (smatch(pal, "dark"       )) d = (1,  25,   .,  30,  .,  62,  .,   .,   .)
-    else if (smatch(pal, "light"      )) d = (1,  25,   .,  20,  .,  82,  .,   .,   .)
-    else if (smatch(pal, "pastel"     )) d = (1,  25,   .,  16,  .,  87,  .,   .,   .)
-    else if (smatch(pal, "sequential" )) d = (2, 255,   .,  32,  7,  25, 96,   1,   .)
-    else if (smatch(pal, "blues"      )) d = (2, 255,   .,  32,  7,  25, 96,   1,   .)
-    else if (smatch(pal, "greens"     )) d = (2, 145,   .,  56,  6,  24, 96,   1,   .)
-    else if (smatch(pal, "grays"      )) d = (2,   0,   .,   0,  0,  18, 96,   1,   .)
-    else if (smatch(pal, "oranges"    )) d = (2,  70,   .,  57,  3,  54, 96,   1,   .)
-    else if (smatch(pal, "purples"    )) d = (2, 290,   .,  31,  6,  23, 96,   1,   .)
-    else if (smatch(pal, "reds"       )) d = (2,  25,  25,  32,  3,  29, 96,   1,   .)
-    else if (smatch(pal, "heat"       )) d = (2,   8, 111,  32, 11,  56, 91, 0.2, 1.0)
-    else if (smatch(pal, "heat2"      )) d = (2,   8, 111,  32, 11,  35, 91, 0.2, 2.0)
-    else if (smatch(pal, "terrain"    )) d = (2, 140,   8,  32,  0,  61, 96, 0.3, 1.0)
-    else if (smatch(pal, "terrain2"   )) d = (2, 140,  30,  30,  0,  46, 91, 0.5, 1.5)
-    else if (smatch(pal, "viridis"    )) d = (2, 323,  98,  24, 33,  19, 92, 1.0, 1.0)
-    else if (smatch(pal, "plasma"     )) d = (2, 114, 116,  64, 35,  17, 95, 2.0, 0.9)
-    else if (smatch(pal, "redblue"    )) d = (2,   8, -92,  39, 18,  45, 77, 1.0, 1.0)
-    else if (smatch(pal, "diverging"  )) d = (3, 256,   8,  31,  .,  33, 96,   1,   .)
-    else if (smatch(pal, "bluered"    )) d = (3, 256,   8,  31,  .,  33, 96,   1,   .)
-    else if (smatch(pal, "bluered2"   )) d = (3, 256,   8,  33,  .,  53, 96,   1,   .)
-    else if (smatch(pal, "bluered3"   )) d = (3, 189, 342,  25,  .,  77, 96,   1,   .)
-    else if (smatch(pal, "greenorange")) d = (3, 140,  73,  35,  .,  72, 96,   1,   .)
-    else if (smatch(pal, "browngreen" )) d = (3,  97, 171,  40,  .,  36, 96,   1,   .)
-    else if (smatch(pal, "pinkgreen"  )) d = (3, 351, 127,  51,  .,  37, 96,   1,   .)
-    else if (smatch(pal, "purplegreen")) d = (3, 322, 127,  39,  .,  32, 96,   1,   .)
-    else {
-        display("{err}scheme '" + pal0 + "' not allowed")
-        exit(3498)
-    }
-    }
-    if (h1>=.) h1 = d[2]
-    if (h2>=.) h2 = (d[3]<. ? d[3] : (d[1]==1 ? h1 + 360*(n-1)/n : h1))
-    if (c1>=.) c1 = d[4]
-    if (c2>=.) c2 = (d[5]<. ? d[5] : c1)
-    if (l1>=.) l1 = d[6]
-    if (l2>=.) l2 = (d[7]<. ? d[7] : l1)
-    if (p1>=.) p1 = d[8]
-    if (p2>=.) p2 = (d[9]<. ? d[9] : p1)
-    if      (d[1]==1) pclass = "qualitative"
-    else if (d[1]==2) pclass = "sequential"
-    else if (d[1]==3) pclass = "diverging"
-    if (space=="hcl") S.generate(space+" "+pclass, n, (h1,h2), (c1,c2), (l1,l2), (p1,p2))
-    else              S.generate(space+" "+pclass, n, (l1,l2), (c1,c2), (h1,h2), (p1,p2))
-    st_local("palette", space + " " + pal)
+    else return
+    st_local("palette", pal)
 }
 
-void hsvgenerate(class ColrSpace scalar S, string scalar pal0,
-    real scalar n, real vector h, real vector s, real vector v, real vector p)
+real scalar smatch(string scalar scheme, string vector schemes)
 {
-    real scalar    h1, h2, s1, s2, v1, v2, p1, p2
-    real rowvector d
-    string scalar  pal, pclass
+    real scalar i, n
     
-    pal = strlower(strtrim(pal0))
-    if (n>=.)        n = 15
-    if (length(h)>0) h1 = h[1]
-    if (length(h)>1) h2 = h[2]
-    if (length(s)>0) s1 = s[1]
-    if (length(s)>1) s2 = s[2]
-    if (length(v)>0) v1 = v[1]
-    if (length(v)>1) v2 = v[2]
-    if (length(p)>0) p1 = p[1]
-    if (length(p)>1) p2 = p[2]
-    if      (smatch(pal,"qualitative")) d = (1,   0,   ., .4,   ., .85,   .,   .,   .)
-    else if (smatch(pal,"intense"    )) d = (1,   0,   ., .6,   ., .9 ,   .,   .,   .)
-    else if (smatch(pal,"dark"       )) d = (1,   0,   ., .6,   ., .7 ,   .,   .,   .)
-    else if (smatch(pal,"light"      )) d = (1,   0,   ., .3,   ., .9 ,   .,   .,   .)
-    else if (smatch(pal,"pastel"     )) d = (1,   0,   ., .2,   ., .9 ,   .,   .,   .)
-    else if (smatch(pal,"rainbow"    )) d = (1,   0,   .,  1,   .,  1 ,   .,   .,   .)
-    else if (smatch(pal,"sequential" )) d = (2, 240,   ., .8, .05, .6 ,  1 , 1.2,   .)
-    else if (smatch(pal,"blues"      )) d = (2, 240,   ., .8, .05, .6 ,  1 , 1.2,   .)
-    else if (smatch(pal,"greens"     )) d = (2, 140, 120,  1, .1 , .3 ,  1 , 1.2,   .)
-    else if (smatch(pal,"grays"      )) d = (2,   0,   .,  0,  0 , .1 , .95, 1  ,   .)
-    else if (smatch(pal,"oranges"    )) d = (2,  30,   .,  1, .1 , .9 ,  1 , 1.2,   .)
-    else if (smatch(pal,"purples"    )) d = (2, 270,   .,  1, .1 , .6 ,  1 , 1.2,   .)
-    else if (smatch(pal,"reds"       )) d = (2,   0,  20,  1, .1 , .6 ,  1 , 1.2,   .)
-    else if (smatch(pal,"heat"       )) d = (2,   0,  60,  1, .2 ,  1 ,  1 , 0.3,   .)
-    else if (smatch(pal,"terrain"    )) d = (2, 120,   0,  1,  0 , .65, .95, 0.7, 1.5)
-    else if (smatch(pal,"diverging"  )) d = (3, 240,   0, .8,   ., .6 , .95, 1.2,   .)
-    else if (smatch(pal,"bluered"    )) d = (3, 240,   0, .8,   ., .6 , .95, 1.2,   .)
-    else if (smatch(pal,"bluered2"   )) d = (3, 240,   0, .6,   ., .8 , .95, 1.2,   .)
-    else if (smatch(pal,"bluered3"   )) d = (3, 175, 320, .6,   ., .8 , .95, 1.2,   .)
-    else if (smatch(pal,"greenorange")) d = (3, 130,  40,  1,   ., .8 , .95, 1.2,   .)
-    else if (smatch(pal,"browngreen" )) d = (3,  40, 150, .8,   ., .6 , .95, 1.2,   .)
-    else if (smatch(pal,"pinkgreen"  )) d = (3, 330, 120, .9,   ., .6 , .95, 1.2,   .) 
-    else if (smatch(pal,"purplegreen")) d = (3, 290, 120, .7,   ., .5 , .95, 1.2,   .)
-    else if (smatch(pal,"heat0"      )) d = (4,   0,  60,  1,   0,  1 ,  . ,   .,   .)
-    else if (smatch(pal,"terrain0"   )) d = (5, 120,   0,  1,   0, .65,  .9,   .,   .)
-    else {
-        display("{err}scheme '" + pal0 + "' not allowed")
-        exit(3498)
+    n = length(schemes)
+    for (i=1; i<=n; i++) {
+        if (_smatch(scheme, schemes[i])) return(1)
     }
-    if (h1>=.) h1 = d[2]
-    if (h2>=.) h2 = (d[3]<. ? d[3] : (d[1]==1 ? 360*(n-1)/n : h1))
-    if (s1>=.) s1 = d[4]
-    if (s2>=.) s2 = (d[5]<. ? d[5] : s1)
-    if (v1>=.) v1 = d[6]
-    if (v2>=.) v2 = (d[7]<. ? d[7] : v1)
-    if (p1>=.) p1 = d[8]
-    if (p2>=.) p2 = (d[9]<. ? d[9] : p1)
-    if      (d[1]==1) pclass = "qualitative"
-    else if (d[1]==2) pclass = "sequential"
-    else if (d[1]==3) pclass = "diverging"
-    S.generate("hsv"+" "+pclass, n, (h1,h2), (s1,s2), (v1,v2), (p1,p2))
-    st_local("palette", "hsv" + " " + pal)
+    return(0)
 }
 
-real scalar smatch(string scalar A, string scalar B)
+real scalar _smatch(string scalar A, string scalar B)
 {
     if (A==substr(B, 1, strlen(A))) {
         A = B
@@ -1293,492 +1212,6 @@ real scalar smatch(string scalar A, string scalar B)
     return(0)
 }
 
-end
-
-/*----------------------------------------------------------------------------*/
-/* CMYK palettes; kept for backward compatibility; rest is in ColrSpace()     */
-/*----------------------------------------------------------------------------*/
-
-program colorpalette_Accent
-c_local P .5 0 .5 0,.25 .25 0 0,0 .25 .4 0,0 0 .4 0,.8 .4 0 0,0 1 0 0,.25 .6 .9 0,0 0 0 .6
-c_local name Accent cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Dark2
-c_local P .9 0 .55 0,.15 .6 1 0,.55 .45 0 0,.05 .85 .05 0,.6 .1 1 0,.1 .3 1 0,.35 .45 .9 0,0 0 0 .6
-c_local name Dark2 cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Paired
-c_local P .35 .07 0 0,.9 .3 0 0,.3 0 .45 0,.8 0 1 0,0 .4 .25 0,.1 .9 .8 0,0 .25 .5 0,0 .5 1 0,.2 .25 0 0,.6 .7 0 0,0 0 .4 0,.23 .73 .98 .12
-c_local name Paired cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Pastel1
-c_local P 0 .3 .2 0,.3 .1 0 0,.2 0 .2 0,.12 .17 0 0,0 .15 .3 0,0 0 .2 0,.1 .12 .2 0,0 .15 0 0,0 0 0 .05
-c_local name Pastel1 cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Pastel2
-c_local P .3 0 .15 0,0 .2 .25 0,.2 .1 0 0,.03 .2 0 0,.1 0 .2 0,0 .05 .3 0,.05 .1 .15 0,0 0 0 .2
-c_local name Pastel2 cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Set1
-c_local P .1 .9 .8 0,.8 .3 0 0,.7 0 .8 0,.4 .65 0 0,0 .5 1 0,0 0 .8 0,.35 .6 .8 0,0 .5 0 0,0 0 0 .4
-c_local name Set1 cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Set2
-c_local P .6 0 .3 0,0 .45 .5 0,.45 .25 0 0,.07 .45 0 0,.35 0 .7 0,0 .15 .8 0,.1 .2 .35 0,0 0 0 .3
-c_local name Set2 cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Set3
-c_local P .45 0 .15 0,0 0 .3 0,.25 .2 0 0,0 .5 .4 0,.5 .15 0 0,0 .3 .55 0,.3 0 .6 0,0 .2 0 0,0 0 0 .15,.25 .45 0 0,.2 0 .2 0,0 .07 .55 0
-c_local name Set3 cmyk
-c_local class "qualitative"
-end
-
-program colorpalette_Blues
-c_local P3 .13 .03 0 0,.38 .08 0 0,.82 .27 0 0
-c_local P4 .08 .02 0 0,.28 .07 0 0,.57 .14 0 0,.9 .34 0 0
-c_local P5 .08 .02 0 0,.28 .07 0 0,.57 .14 0 0,.82 .27 0 0,1 .45 0 .07
-c_local P6 .08 .02 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.82 .27 0 0,1 .45 0 .07
-c_local P7 .08 .02 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.75 .22 0 0,.9 .34 0 0,1 .55 0 .05
-c_local P8 .03 .01 0 0,.13 .03 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.75 .22 0 0,.9 .34 0 0,1 .55 0 .05
-c_local P9 .03 .01 0 0,.13 .03 0 0,.24 .06 0 0,.38 .08 0 0,.57 .14 0 0,.75 .22 0 0,.9 .34 0 0,1 .45 0 .07,1 .55 0 .3
-c_local name Blues cmyk
-c_local class "sequential"
-end
-
-program colorpalette_BuGn
-c_local P3 .1 0 0 0,.4 0 .15 0,.83 0 .7 0
-c_local P4 .07 0 0 0,.3 0 .05 0,.6 0 .3 0,.87 .1 .83 0
-c_local P5 .07 0 0 0,.3 0 .05 0,.6 0 .3 0,.83 0 .7 0,1 .2 1 0
-c_local P6 .07 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.83 0 .7 0,1 .2 1 0
-c_local P7 .07 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.75 0 .55 0,.87 .1 .83 0,1 .35 1 0
-c_local P8 .03 0 0 0,.1 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.75 0 .55 0,.87 .1 .83 0,1 .35 1 0
-c_local P9 .03 0 0 0,.1 0 0 0,.2 0 .06 0,.4 0 .15 0,.6 0 .3 0,.75 0 .55 0,.87 .1 .83 0,1 .2 1 0,1 .5 1 0
-c_local name BuGn cmyk
-c_local class "sequential"
-end
-
-program colorpalette_BuPu
-c_local P3 .12 .03 0 0,.38 .14 0 0,.47 .6 0 0
-c_local P4 .07 0 0 0,.3 .1 0 0,.45 .3 0 0,.47 .7 0 0
-c_local P5 .07 0 0 0,.3 .1 0 0,.45 .3 0 0,.47 .6 0 0,.47 .95 0 .05
-c_local P6 .07 0 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.47 .6 0 0,.47 .95 0 .05
-c_local P7 .07 0 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.45 .5 0 0,.47 .7 0 0,.5 1 0 .15
-c_local P8 .03 0 0 0,.12 .03 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.45 .5 0 0,.47 .7 0 0,.5 1 0 .15
-c_local P9 .03 0 0 0,.12 .03 0 0,.25 .09 0 0,.38 .14 0 0,.45 .3 0 0,.45 .5 0 0,.47 .7 0 0,.47 .95 0 .05,.5 1 0 .4
-c_local name BuPu cmyk
-c_local class "sequential"
-end
-
-program colorpalette_GnBu
-c_local P3 .12 0 .12 0,.34 0 .25 0,.75 .12 0 0
-c_local P4 .06 0 .08 0,.27 0 .23 0,.52 0 .15 0,.8 .2 0 0
-c_local P5 .06 0 .08 0,.27 0 .23 0,.52 0 .15 0,.75 .12 0 0,1 .35 0 0
-c_local P6 .06 0 .08 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.75 .12 0 0,1 .35 0 0
-c_local P7 .06 0 .08 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.7 .05 0 0,.85 .2 0 0,1 .42 0 .05
-c_local P8 .03 0 .05 0,.12 0 .12 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.7 .05 0 0,.85 .2 0 0,1 .42 0 .05
-c_local P9 .03 0 .05 0,.12 0 .12 0,.2 0 .2 0,.34 0 .25 0,.52 0 .15 0,.7 .05 0 0,.85 .2 0 0,1 .35 0 0,1 .5 0 .2
-c_local name GnBu cmyk
-c_local class "sequential"
-end
-
-program colorpalette_Greens
-c_local P3 .1 0 .1 0,.37 0 .37 0,.81 0 .76 0
-c_local P4 .07 0 .07 0,.27 0 .27 0,.55 0 .55 0,.84 .1 .83 0
-c_local P5 .07 0 .07 0,.27 0 .27 0,.55 0 .55 0,.81 0 .76 0,1 .2 1 0
-c_local P6 .07 0 .07 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.81 0 .76 0,1 .2 1 0
-c_local P7 .07 0 .07 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.75 0 .7 0,.87 .1 .83 0,1 .35 .9 0
-c_local P8 .03 0 .03 0,.1 0 .1 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.75 0 .7 0,.87 .1 .83 0,1 .35 .9 0
-c_local P9 .03 0 .03 0,.1 0 .1 0,.22 0 .22 0,.37 0 .37 0,.55 0 .55 0,.75 0 .7 0,.87 .1 .83 0,1 .2 1 0,1 .5 1 0
-c_local name Greens cmyk
-c_local class "sequential"
-end
-
-program colorpalette_Greys
-c_local P3 0 0 0 .06,0 0 0 .26,0 0 0 .61
-c_local P4 0 0 0 .03,0 0 0 .2,0 0 0 .41,0 0 0 .68
-c_local P5 0 0 0 .03,0 0 0 .2,0 0 0 .41,0 0 0 .61,0 0 0 .85
-c_local P6 0 0 0 .03,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .61,0 0 0 .85
-c_local P7 0 0 0 .03,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .55,0 0 0 .68,0 0 0 .85
-c_local P8 0 0 0 0,0 0 0 .06,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .55,0 0 0 .68,0 0 0 .85
-c_local P9 0 0 0 0,0 0 0 .06,0 0 0 .15,0 0 0 .26,0 0 0 .41,0 0 0 .55,0 0 0 .68,0 0 0 .85,0 0 0 1
-c_local name Greys cmyk
-c_local class "sequential"
-end
-
-program colorpalette_OrRd
-c_local P3 0 .09 .18 0,0 .27 .4 0,.1 .7 .7 0
-c_local P4 0 .06 .12 0,0 .2 .4 0,0 .45 .55 0,.15 .8 .8 0
-c_local P5 0 .06 .12 0,0 .2 .4 0,0 .45 .55 0,.1 .7 .7 0,.3 1 1 0
-c_local P6 0 .06 .12 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.1 .7 .7 0,.3 1 1 0
-c_local P7 0 .06 .12 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.05 .6 .6 0,.15 .8 .8 0,.4 1 1 0
-c_local P8 0 .03 .06 0,0 .09 .18 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.05 .6 .6 0,.15 .8 .8 0,.4 1 1 0
-c_local P9 0 .03 .06 0,0 .09 .18 0,0 .17 .32 0,0 .27 .4 0,0 .45 .55 0,.05 .6 .6 0,.15 .8 .8 0,.3 1 1 0,.5 1 1 0
-c_local name OrRd cmyk
-c_local class "sequential"
-end
-
-program colorpalette_Oranges
-c_local P3 0 .1 .15 0,0 .32 .5 0,.1 .65 .95 0
-c_local P4 0 .07 .1 0,0 .26 .4 0,0 .45 .7 0,.15 .7 1 0
-c_local P5 0 .07 .1 0,0 .26 .4 0,0 .45 .7 0,.1 .65 .95 0,.35 .75 1 0
-c_local P6 0 .07 .1 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.1 .65 .95 0,.35 .75 1 0
-c_local P7 0 .07 .1 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.05 .58 .9 0,.15 .7 1 0,.45 .78 1 0
-c_local P8 0 .04 .06 0,0 .1 .15 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.05 .58 .9 0,.15 .7 1 0,.45 .78 1 0
-c_local P9 0 .04 .06 0,0 .1 .15 0,0 .19 .3 0,0 .32 .5 0,0 .45 .7 0,.05 .58 .9 0,.15 .7 1 0,.35 .75 1 0,.5 .8 1 0
-c_local name Oranges cmyk
-c_local class "sequential"
-end
-
-program colorpalette_PuBu
-c_local P3 .07 .07 0 0,.35 .15 0 0,.85 .2 0 0
-c_local P4 .05 .05 0 0,.26 .13 0 0,.55 .17 0 0,1 .3 0 0
-c_local P5 .05 .05 0 0,.26 .13 0 0,.55 .17 0 0,.85 .2 0 0,1 .3 0 .2
-c_local P6 .05 .05 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.85 .2 0 0,1 .3 0 .2
-c_local P7 .05 .05 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.8 .2 0 0,1 .3 0 0,1 .3 0 .3
-c_local P8 0 .03 0 0,.07 .07 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.8 .2 0 0,1 .3 0 0,1 .3 0 .3
-c_local P9 0 .03 0 0,.07 .07 0 0,.18 .12 0 0,.35 .15 0 0,.55 .17 0 0,.8 .2 0 0,1 .3 0 0,1 .3 0 .2,1 .3 0 .5
-c_local name PuBu cmyk
-c_local class "sequential"
-end
-
-program colorpalette_PuBuGn
-c_local P3 .07 .09 0 0,.35 .15 0 0,.9 .12 .27 0
-c_local P4 .03 .05 0 0,.26 .13 0 0,.6 .15 0 0,1 .15 .35 0
-c_local P5 .03 .05 0 0,.26 .13 0 0,.6 .15 0 0,.9 .12 .27 0,1 .25 .65 0
-c_local P6 .03 .05 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.9 .12 .27 0,1 .25 .65 0
-c_local P7 .03 .05 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.8 .2 0 0,1 .15 .35 0,1 .3 .7 0
-c_local P8 0 .03 0 0,.07 .09 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.8 .2 0 0,1 .15 .35 0,1 .3 .7 0
-c_local P9 0 .03 0 0,.07 .09 0 0,.18 .12 0 0,.35 .15 0 0,.6 .15 0 0,.8 .2 0 0,1 .15 .35 0,1 .25 .65 0,1 .5 .8 0
-c_local name PuBuGn cmyk
-c_local class "sequential"
-end
-
-program colorpalette_PuRd
-c_local P3 .09 .09 0 0,.2 .38 0 0,.1 .9 .15 0
-c_local P4 .05 .05 0 0,.15 .25 0 0,.1 .6 0 0,.17 .95 .35 0
-c_local P5 .05 .05 0 0,.15 .25 0 0,.1 .6 0 0,.1 .9 .15 0,.4 1 .47 0
-c_local P6 .05 .05 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.1 .9 .15 0,.4 1 .47 0
-c_local P7 .05 .05 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.05 .85 .05 0,.17 .95 .35 0,.43 1 .5 0
-c_local P8 .03 .03 0 0,.09 .09 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.05 .85 .05 0,.17 .95 .35 0,.43 1 .5 0
-c_local P9 .03 .03 0 0,.09 .09 0 0,.16 .23 0 0,.2 .38 0 0,.1 .6 0 0,.05 .85 .05 0,.17 .95 .35 0,.4 1 .47 0,.6 1 .75 0
-c_local name PuRd cmyk
-c_local class "sequential"
-end
-
-program colorpalette_Purples
-c_local P3 .06 .05 0 0,.28 .18 0 0,.55 .48 0 0
-c_local P4 .05 .04 0 0,.2 .15 0 0,.38 .3 0 0,.6 .6 0 0
-c_local P5 .05 .04 0 0,.2 .15 0 0,.38 .3 0 0,.55 .48 0 0,.7 .8 0 0
-c_local P6 .05 .04 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.55 .48 0 0,.7 .8 0 0
-c_local P7 .05 .04 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.5 .4 0 0,.6 .6 0 0,.75 .9 0 0
-c_local P8 .01 .01 0 0,.06 .05 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.5 .4 0 0,.6 .6 0 0,.75 .9 0 0
-c_local P9 .01 .01 0 0,.06 .05 0 0,.14 .1 0 0,.26 .18 0 0,.38 .3 0 0,.5 .4 0 0,.6 .6 0 0,.7 .8 0 0,.8 1 0 0
-c_local name Purples cmyk
-c_local class "sequential"
-end
-
-program colorpalette_RdPu
-c_local P3 0 .12 .08 0,0 .38 .12 0,.2 .9 0 0
-c_local P4 0 .08 .08 0,0 .3 .15 0,0 .6 .1 0,.3 1 0 0
-c_local P5 0 .08 .08 0,0 .3 .15 0,0 .6 .1 0,.2 .9 0 0,.5 1 0 .05
-c_local P6 0 .08 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.2 .9 0 0,.5 1 0 .05
-c_local P7 0 .08 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.1 .8 0 0,.3 1 0 0,.5 1 0 .05
-c_local P8 0 .03 .03 0,0 .12 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.1 .8 0 0,.3 1 0 0,.5 1 0 .05
-c_local P9 0 .03 .03 0,0 .12 .08 0,0 .23 .15 0,0 .38 .12 0,0 .6 .1 0,.1 .8 0 0,.3 1 0 0,.5 1 0 .05,.7 1 0 .15
-c_local name RdPu cmyk
-c_local class "sequential"
-end
-
-program colorpalette_Reds
-c_local P3 0 .12 .12 0,0 .43 .43 0,.12 .82 .75 0
-c_local P4 0 .1 .1 0,0 .32 .32 0,0 .59 .59 0,.2 .9 .8 0
-c_local P5 0 .1 .1 0,0 .32 .32 0,0 .59 .59 0,.12 .82 .75 0,.35 .95 .85 0
-c_local P6 0 .1 .1 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.12 .82 .75 0,.35 .95 .85 0
-c_local P7 0 .1 .1 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.05 .77 .72 0,.2 .9 .8 0,.4 1 .9 0
-c_local P8 0 .04 .04 0,0 .12 .12 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.05 .77 .72 0,.2 .9 .8 0,.4 1 .9 0
-c_local P9 0 .04 .04 0,0 .12 .12 0,0 .27 .27 0,0 .43 .43 0,0 .59 .59 0,.05 .77 .72 0,.2 .9 .8 0,.35 .95 .85 0,.6 1 .9 0
-c_local name Reds cmyk
-c_local class "sequential"
-end
-
-program colorpalette_YlGn
-c_local P3 .03 0 .27 0,.32 0 .43 0,.81 0 .76 0
-c_local P4 0 0 .2 0,.24 0 .39 0,.53 0 .53 0,.87 .1 .83 0
-c_local P5 0 0 .2 0,.24 0 .39 0,.53 0 .53 0,.81 0 .76 0,1 .25 .9 0
-c_local P6 0 0 .2 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.81 0 .76 0,1 .25 .9 0
-c_local P7 0 0 .2 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.75 0 .7 0,.87 .15 .83 0,1 .35 .9 0
-c_local P8 0 0 .1 0,.03 0 .27 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.75 0 .7 0,.87 .15 .83 0,1 .35 .9 0
-c_local P9 0 0 .1 0,.03 0 .27 0,.15 0 .35 0,.32 0 .43 0,.53 0 .53 0,.75 0 .7 0,.87 .15 .83 0,1 .25 .9 0,1 .5 .9 0
-c_local name YlGn cmyk
-c_local class "sequential"
-end
-
-program colorpalette_YlGnBu
-c_local P3 .07 0 .3 0,.5 0 .2 0,.85 .27 0 0
-c_local P4 0 0 .2 0,.37 0 .25 0,.75 0 .1 0,.9 .45 0 0
-c_local P5 0 0 .2 0,.37 0 .25 0,.75 0 .1 0,.85 .27 0 0,.9 .7 0 0
-c_local P6 0 0 .2 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.85 .27 0 0,.9 .7 0 0
-c_local P7 0 0 .2 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.9 .15 0 0,.9 .45 0 0,1 .7 0 .1
-c_local P8 0 0 .15 0,.07 0 .3 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.9 .15 0 0,.9 .45 0 0,1 .7 0 .1
-c_local P9 0 0 .15 0,.07 0 .3 0,.22 0 .27 0,.5 0 .2 0,.75 0 .1 0,.9 .15 0 0,.9 .45 0 0,.9 .7 0 0,1 .7 0 .4
-c_local name YlGnBu cmyk
-c_local class "sequential"
-end
-
-program colorpalette_YlOrBr
-c_local P3 0 .03 .25 0,0 .23 .65 0,.15 .6 .95 0
-c_local P4 0 0 .17 0,0 .15 .4 0,0 .4 .8 0,.2 .67 1 0
-c_local P5 0 0 .17 0,0 .15 .4 0,0 .4 .8 0,.15 .6 .95 0,.4 .75 1 0
-c_local P6 0 0 .17 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.15 .6 .95 0,.4 .75 1 0
-c_local P7 0 0 .17 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.07 .55 .9 0,.2 .67 1 0,.45 .78 1 0
-c_local P8 0 0 .1 0,0 .03 .25 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.07 .55 .9 0,.2 .67 1 0,.45 .78 1 0
-c_local P9 0 0 .1 0,0 .03 .25 0,0 .11 .4 0,0 .23 .65 0,0 .4 .8 0,.07 .55 .9 0,.2 .67 1 0,.4 .75 1 0,.6 .8 1 0
-c_local name YlOrBr cmyk
-c_local class "sequential"
-end
-
-program colorpalette_YlOrRd
-c_local P3 0 .07 .35 0,0 .3 .65 0,.05 .77 .8 0
-c_local P4 0 0 .3 0,0 .2 .6 0,0 .45 .7 0,.1 .9 .8 0
-c_local P5 0 0 .3 0,0 .2 .6 0,0 .45 .7 0,.05 .77 .8 0,.25 1 .7 0
-c_local P6 0 0 .3 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,.05 .77 .8 0,.25 1 .7 0
-c_local P7 0 0 .3 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,0 .7 .75 0,.1 .9 .8 0,.3 1 .7 0
-c_local P8 0 0 .2 0,0 .07 .35 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,0 .7 .75 0,.1 .9 .8 0,.3 1 .7 0
-c_local P9 0 0 .2 0,0 .07 .35 0,0 .15 .5 0,0 .3 .65 0,0 .45 .7 0,0 .7 .75 0,.1 .9 .8 0,.25 1 .7 0,.5 1 .7 0
-c_local name YlOrRd cmyk
-c_local class "sequential"
-end
-
-program colorpalette_BrBG
-c_local P3 .15 .25 .55 0,0 0 0 .05,.65 .05 .23 0
-c_local P4 .35 .55 .9 0,.12 .2 .45 0,.5 0 .17 0,1 .1 .55 0
-c_local P5 .35 .55 .9 0,.12 .2 .45 0,0 0 0 .05,.5 0 .17 0,1 .1 .55 0
-c_local P6 .45 .6 1 0,.15 .25 .55 0,.03 .08 .2 0,.22 0 .06 0,.65 .05 .23 0,1 .3 .6 0
-c_local P7 .45 .6 1 0,.15 .25 .55 0,.03 .08 .2 0,0 0 0 .05,.22 0 .06 0,.65 .05 .23 0,1 .3 .6 0
-c_local P8 .45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0
-c_local P9 .45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,0 0 0 .05,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0
-c_local P10 .45 .6 1 .4,.45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0,1 .3 .7 .4
-c_local P11 .45 .6 1 .4,.45 .6 1 0,.25 .43 .8 0,.12 .2 .45 0,.03 .08 .2 0,0 0 0 .05,.22 0 .06 0,.5 0 .17 0,.8 .12 .35 0,1 .3 .6 0,1 .3 .7 .4
-c_local name BrBG cmyk
-c_local class "diverging"
-end
-
-program colorpalette_PRGn
-c_local P3 .31 .38 0 0,0 0 0 .03,.5 .05 .5 0
-c_local P4 .53 .77 0 0,.23 .3 0 0,.35 0 .35 0,1 0 1 0
-c_local P5 .53 .77 0 0,.23 .3 0 0,0 0 0 .03,.35 0 .35 0,1 0 1 0
-c_local P6 .55 .8 .1 0,.31 .38 0 0,.09 .14 0 0,.15 0 .15 0,.5 .05 .5 0,.9 .2 .9 0
-c_local P7 .55 .8 .1 0,.31 .38 0 0,.09 .14 0 0,0 0 0 .03,.15 0 .15 0,.5 .05 .5 0,.9 .2 .9 0
-c_local P8 .55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0
-c_local P9 .55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,0 0 0 .03,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0
-c_local P10 .6 1 0 .4,.55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0,1 .5 1 0
-c_local P11 .6 1 0 .4,.55 .8 .1 0,.4 .49 .05 0,.23 .3 0 0,.09 .14 0 0,0 0 0 .03,.15 0 .15 0,.35 0 .35 0,.65 .05 .65 0,.9 .2 .9 0,1 .5 1 0
-c_local name PRGn cmyk
-c_local class "diverging"
-end
-
-program colorpalette_PiYG
-c_local P3 .07 .35 .03 0,0 0 0 .03,.37 0 .6 0
-c_local P4 .15 .9 0 0,.04 .28 0 0,.28 0 .47 0,.7 0 1 0
-c_local P5 .15 .9 0 0,.04 .28 0 0,0 0 0 .03,.28 0 .47 0,.7 0 1 0
-c_local P6 .2 .9 .1 0,.07 .35 .03 0,0 .12 0 0,.1 0 .17 0,.37 0 .6 0,.7 .15 1 0
-c_local P7 .2 .9 .1 0,.07 .35 .03 0,0 .12 0 0,0 0 0 .03,.1 0 .17 0,.37 0 .6 0,.7 .15 1 0
-c_local P8 .2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0
-c_local P9 .2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,0 0 0 .03,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0
-c_local P10 .1 1 0 .35,.2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0,.75 0 1 .4
-c_local P11 .1 1 0 .35,.2 .9 .1 0,.11 .52 .06 0,.04 .28 0 0,0 .12 0 0,0 0 0 .03,.1 0 .17 0,.28 0 .47 0,.5 .05 .8 0,.7 .15 1 0,.75 0 1 .4
-c_local name PiYG cmyk
-c_local class "diverging"
-end
-
-program colorpalette_PuOr
-c_local P3 .05 .35 .7 0,0 0 0 .03,.4 .35 0 0
-c_local P4 .1 .6 1 0,0 .28 .55 0,.3 .25 0 0,.65 .7 0 0
-c_local P5 .1 .6 1 0,0 .28 .55 0,0 0 0 .03,.3 .25 0 0,.65 .7 0 0
-c_local P6 .3 .6 1 0,.05 .35 .7 0,0 .12 .24 0,.15 .1 0 0,.4 .35 0 0,.7 .8 .05 0
-c_local P7 .3 .6 1 0,.05 .35 .7 0,0 .12 .24 0,0 0 0 .03,.15 .1 0 0,.4 .35 0 0,.7 .8 .05 0
-c_local P8 .3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0
-c_local P9 .3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,0 0 0 .03,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0
-c_local P10 .5 .7 1 0,.3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0,.75 1 0 .4
-c_local P11 .5 .7 1 0,.3 .6 1 0,.12 .46 .92 0,0 .28 .55 0,0 .12 .24 0,0 0 0 .03,.15 .1 0 0,.3 .25 0 0,.5 .45 .05 0,.7 .8 .05 0,.75 1 0 .4
-c_local name PuOr cmyk
-c_local class "diverging"
-end
-
-program colorpalette_RdBu
-c_local P3 .05 .45 .5 0,0 0 0 .03,.6 .15 0 0
-c_local P4 .2 1 .75 0,.03 .35 .38 0,.43 .08 0 0,1 .3 0 0
-c_local P5 .2 1 .75 0,.03 .35 .38 0,0 0 0 .03,.43 .08 0 0,1 .3 0 0
-c_local P6 .3 .9 .7 0,.05 .45 .5 0,0 .14 .16 0,.18 .04 0 0,.6 .15 0 0,.9 .4 0 0
-c_local P7 .3 .9 .7 0,.05 .45 .5 0,0 .14 .16 0,0 0 0 .03,.18 .04 0 0,.6 .15 0 0,.9 .4 0 0
-c_local P8 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0
-c_local P9 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .03,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0
-c_local P10 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0,1 .5 0 .4
-c_local P11 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .03,.18 .04 0 0,.43 .08 0 0,.75 .2 0 0,.9 .4 0 0,1 .5 0 .4
-c_local name RdBu cmyk
-c_local class "diverging"
-end
-
-program colorpalette_RdGy
-c_local P3 .05 .45 .5 0,0 0 0 0,0 0 0 .4
-c_local P4 .2 1 .75 0,.03 .35 .38 0,0 0 0 .27,0 0 0 .75
-c_local P5 .2 1 .75 0,.03 .35 .38 0,0 0 0 0,0 0 0 .27,0 0 0 .75
-c_local P6 .3 .9 .7 0,.05 .45 .5 0,0 .14 .16 0,0 0 0 .12,0 0 0 .4,0 0 0 .7
-c_local P7 .3 .9 .7 0,.05 .45 .5 0,0 .14 .16 0,0 0 0 0,0 0 0 .12,0 0 0 .4,0 0 0 .7
-c_local P8 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7
-c_local P9 .3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7
-c_local P10 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7,0 0 0 .9
-c_local P11 .6 1 .75 0,.3 .9 .7 0,.15 .6 .57 0,.03 .35 .38 0,0 .14 .16 0,0 0 0 0,0 0 0 .12,0 0 0 .27,0 0 0 .47,0 0 0 .7,0 0 0 .9
-c_local name RdGy cmyk
-c_local class "diverging"
-end
-
-program colorpalette_RdYlBu
-c_local P3 0 .45 .55 0,0 0 .25 0,.43 .11 0 0
-c_local P4 .15 .9 .8 0,0 .32 .55 0,.33 .03 0 0,.85 .3 0 0
-c_local P5 .15 .9 .8 0,0 .32 .55 0,0 0 .25 0,.33 .03 0 0,.85 .3 0 0
-c_local P6 .15 .8 .75 0,0 .45 .55 0,0 .12 .4 0,.12 0 0 0,.43 .11 0 0,.75 .37 0 0
-c_local P7 .15 .8 .75 0,0 .45 .55 0,0 .12 .4 0,0 0 .25 0,.12 0 0 0,.43 .11 0 0,.75 .37 0 0
-c_local P8 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .4 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0
-c_local P9 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .4 0,0 0 .25 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0
-c_local P10 .35 1 .7 0,.15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .4 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0,.85 .7 0 0
-c_local P11 .35 1 .7 0,.15 .8 .75 0,.03 .57 .63 0,0 .35 .55 0,0 .12 .4 0,0 0 .25 0,.12 0 0 0,.33 .03 0 0,.55 .15 0 0,.75 .37 0 0,.85 .7 0 0
-c_local name RdYlBu cmyk
-c_local class "diverging"
-end
-
-program colorpalette_RdYlGn
-c_local P3 0 .45 .55 0,0 0 .25 0,.43 0 .65 0
-c_local P4 .15 .9 .8 0,0 .32 .55 0,.35 0 .6 0,.9 0 .9 0
-c_local P5 .15 .9 .8 0,0 .35 .55 0,0 0 .25 0,.35 0 .6 0,.9 0 .9 0
-c_local P6 .15 .8 .75 0,0 .45 .55 0,0 .12 .42 0,.15 0 .45 0,.43 0 .65 0,.9 0 .9 0
-c_local P7 .15 .8 .75 0,0 .45 .55 0,0 .12 .42 0,0 0 .25 0,.15 0 .45 0,.43 0 .65 0,.9 0 .8 0
-c_local P8 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0
-c_local P9 .15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0
-c_local P10 .35 1 .7 0,.15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0,1 .25 .9 0
-c_local P11 .35 1 .75 0,.15 .8 .75 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.15 0 .45 0,.35 0 .6 0,.6 0 .65 0,.9 0 .8 0,1 .25 .9 0
-c_local name RdYlGn cmyk
-c_local class "diverging"
-end
-
-program colorpalette_Spectral
-c_local P3 0 .45 .55 0,0 0 .25 0,.4 0 .4 0
-c_local P4 .15 .9 .8 0,0 .32 .55 0,.33 0 .33 0,.85 .25 0 0
-c_local P5 .15 .9 .8 0,0 .32 .55 0,0 0 .25 0,.33 0 .33 0,.85 .25 0 0
-c_local P6 .15 .75 .5 0,0 .45 .55 0,0 .12 .42 0,.1 0 .4 0,.4 0 .4 0,.82 .23 0 0
-c_local P7 .15 .75 .5 0,0 .45 .55 0,0 .12 .42 0,0 0 .25 0,.1 0 .4 0,.4 0 .4 0,.82 .23 0 0
-c_local P8 .15 .75 .5 0,.03 .57 .53 0,0 .32 .55 0,0 .12 .42 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0
-c_local P9 .15 .75 .5 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0
-c_local P10 0 1 .2 .35,.15 .75 .5 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0,.65 .6 0 0
-c_local P11 0 1 .2 .35,.15 .75 .5 0,.03 .57 .63 0,0 .32 .55 0,0 .12 .42 0,0 0 .25 0,.1 0 .4 0,.33 0 .33 0,.6 0 .3 0,.82 .23 0 0,.65 .6 0 0
-c_local name Spectral cmyk
-c_local class "diverging"
-end
-
-program colorpalette_sfso
-    syntax [, BRown ORange red PInk PUrple VIolet BLue LTBLue TUrquoise ///
-        green OLive black parties LANGuages VOTEs THemes * ]
-    local pal `brown' `orange' `red' `pink' `purple' `violet' `blue' ///
-        `ltblue' `turquoise' `green' `olive' `black' `parties' `languages' ///
-        `votes' `themes'
-    local class "sequential"
-    if `:list sizeof pal'>1 {
-        di as err "only one scheme allowed"
-        exit 198
-    }
-    if "`pal'"=="" local pal blue // default
-    if      "`pal'"=="brown" {
-        c_local P 0 1 .7 .6,0 .74 .57 .32,0 .56 .5 .24,0 .4 .4 .16,0 .27 .35 .1,0 .12 .22 .05
-        //sRGB: c_local P #6b0616,#a1524f,#b67d6c,#cca590,#ddc3a8,#eee3cd
-    }
-    else if "`pal'"=="orange" {
-        c_local P 0 .75 1 .4,0 .75 1 0,0 .59 1 0,0 .4 1 0,0 .26 .68 0,0 .13 .35 0
-        //sRGB: c_local P #91490d,#cd6725,#d68c25,#e1b124,#eccf76,#f6e7be
-    }
-    else if "`pal'"=="red" {
-        c_local P .1 1 .6 .55,.1 1 .6 .15,0 .95 .64 0,0 .71 .48 0,0 .5 .34 0,0 .25 .16 0
-        //sRGB: c_local P #6d0724,#a61346,#c62a4f,#d17377,#dea59f,#efd6d1
-    }
-    else if "`pal'"=="pink" {
-        c_local P .12 1 .12 .45,.09 1 .09 .18,0 1 .09 .04,0 .75 .07 .03,0 .53 .04 .02,0 .25 .02 0
-        //sRGB: c_local P #7b0051,#a4006f,#c0007b,#cc669d,#da9dbf,#f0d7e5
-    }
-    else if "`pal'"=="purple" {
-        c_local P .45 1 0 .45,.45 1 0 .05,.32 .9 0 0,.15 .75 0 0,.05 .53 0 0,0 .25 0 0
-        //sRGB: c_local P #5e0058,#890783,#a23092,#be63a6,#d79dc5,#f0d7e8
-    }
-    else if "`pal'"=="violet" {
-        c_local P .75 1 0 .5,.65 .9 0 .12,.51 .75 0 0,.38 .56 0 0,.25 .38 0 0,.12 .2 0 0
-        //sRGB: c_local P #3a0054,#682b86,#8c58a3,#a886bc,#c5b0d4,#e1d7eb
-    }
-    else if "`pal'"=="blue" {
-        c_local P .83 .45 0 .7,.85 .55 0 .4,.7 .45 0 .2,.63 .36 0 0,.43 .22 0 0,.22 .1 0 0,.13 .07 0 0
-        //sRGB: c_local P #1c3258,#374a83,#6473aa,#8497cf,#afbce2,#d8def2,#e8eaf7
-        c_local N ,,,BFS-Blau,,,BFS-Blau 20%
-    }
-    else if "`pal'"=="ltblue" {
-        c_local P .98 0 .14 .45,.98 0 .14 .05,.72 0 .1 .03,.49 0 .07 .02,.35 0 .04 0,.12 0 0 0
-        //sRGB: c_local P #086e8c,#159dc9,#76b7da,#abd0e7,#c8e0f2,#edf5fd
-    }
-    else if "`pal'"=="turquoise" {
-        c_local P 1 0 .55 .65,1 0 .55 .35,.94 0 .5 0,.6 0 .3 0,.33 0 .17 0,.15 0 .05 0
-        //sRGB: c_local P #005046,#107a6d,#3aa59a,#95c6c3,#cbe1df,#e9f2f5
-    }
-    else if "`pal'"=="green" {
-        c_local P .75 0 1 .6,.75 0 1 .15,.6 0 .85 0,.45 0 .68 0,.28 0 .45 0,.12 0 .28 0
-        //sRGB: c_local P #3a6419,#68a139,#95c15c,#b3d07f,#d3e3af,#ecf2d1
-    }
-    else if "`pal'"=="olive" {
-        c_local P .05 0 1 .7,.05 0 1 .45,0 0 1 .3,0 0 .6 .15,0 0 .35 .09,0 0 .17 0
-        //sRGB: c_local P #6f6f01,#a3a20a,#c5c00c,#e3df85,#eeecbc,#fffde6
-    }
-    else if "`pal'"=="black" {
-        c_local P 0 0 0 .9,0 0 0 .65,0 0 0 .43,0 0 0 .25,0 0 0 .15,0 0 0 .05
-        //sRGB: c_local P #3c3c3c,#828282,#b2b2b2,#d4d4d4,#e6e6e6,#f6f6f6
-    }
-    else if "`pal'"=="parties" {
-        local class "qualitative"
-        c_local P .76 .6 .02 0,0 .57 .78 0,0 .85 .58 0,.8 .3 1 .2,.28 .01 .96 0,.01 0 .96 0,.72 0 1 0,.6 .92 0 0,.5 .29 0 0,0 .2 .5 0,0 0 0 .35
-        c_local N FDP,CVP,SP,SVP,GLP,BDP,Grüne,small leftwing parties,small middle parties,small rightwing parties,other parties
-    }
-    else if "`pal'"=="languages" {
-        local class "qualitative"
-        c_local P 0 .9 .9 0,.9 .5 0 0,.9 0 .8 0,0 .25 .9 0,.6 .7 0 0
-        c_local N German,French,Italian,Rhaeto-Romanic,English
-    }
-    else if "`pal'"=="votes" {
-        local class "diverging"
-        c_local P .6 .9 0 .15,.6 .9 0 .15*.8,.6 .9 0 .15*.6,.6 .9 0 .15*.4,.6 .9 0 .15*.2,.9 0 .9 .15*.2,.9 0 .9 .15*.4,.9 0 .9 .15*.6,.9 0 .9 .15*.8,.9 0 .9 .15
-        c_local I No,,,,,,,,,Yes
-    }
-    else if "`pal'"=="themes" {
-        local class "qualitative"
-        c_local P .63 .36 0 0,0 .38 1 0,0 .59 1 0,0 .76 .88 0,0 .95 .64 0,0 1 .09 .04,.32 .9 0 0,.51 .57 0 0,.62 .6 0 0,.63 .22 0 .03,.8 .29 0 0,.98 0 .14 .05,.94 0 .5 0,.6 0 .85 0,.42 0 .76 0,0 0 1 .3,0 .19 .98 .35,.13 0 .6 .32,0 .36 .5 .24,0 .74 .57 .32,0 .5 .16 .14,.32 0 .18 .37
-        c_local N 00 Basics and overviews,01 Population,02 Territory and environment,03 Work and income,/*
-        */04 National economy,05 Prices,06 Industry and services,07 Agriculture and forestry,/*
-        */08 Energy,09 Construction and housing,10 Tourism,11 Mobility and transport,/*
-        */"12 Money, banks and insurance",13 Social security,14 Health,15 Education and science,/*
-        */"16 Culture, media, information society, sport",17 Politics,18 General Government and finance,/*
-        */19 Crime and criminal justice,20 Economic and social situation of the population,/*
-        */21 Sustainable development
-        local cmyk cmyk
-    }
-    c_local name sfso `pal' cmyk
-    c_local class "`class'"
 end
 
 exit

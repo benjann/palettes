@@ -1,5 +1,5 @@
 {smcl}
-{* 18may2020}{...}
+{* 27may2020}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {right:{browse "http://github.com/benjann/palettes/"}}
@@ -52,7 +52,7 @@ or {cmd:.} to insert a gap.
 {marker palette}{synopthdr:palette}
 {synoptline}
 {syntab:Color list}
-{synopt:{it:{help colorpalette##colorlist:colorlist}}}custom list of colors (including 140 named {help colorpalette##webcolors:HTML colors}){p_end}
+{synopt:{it:{help colorpalette##colorlist:colorlist}}}custom list of colors{p_end}
 
 {syntab:Stata palettes ({stata "colorpalette, lc(black): s2 / s1 / s1r / economist / mono":{it:view}})}
 {synopt:{helpb colorpalette##s2:s2}}15 colors as in Stata's {helpb scheme s2:s2color} scheme; the default{p_end}
@@ -73,8 +73,8 @@ or {cmd:.} to insert a gap.
 
 {syntab:Color generators}
 {synopt:{helpb colorpalette##hue:hue}}evenly spaced HCL hues{p_end}
-{synopt:{helpb colorpalette##hcl:hcl} | {helpb colorpalette##hcl:lch} | {helpb colorpalette##hcl:jmh}}HCL, LCh, or J'M'h color generator{p_end}
-{synopt:{helpb colorpalette##hsv:hsv}}HSV color generator{p_end}
+{synopt:{helpb colorpalette##hcl:HCL} | {helpb colorpalette##hcl:LCh} | {helpb colorpalette##hcl:JMh}}HCL, LCh, or J'M'h color generator{p_end}
+{synopt:{helpb colorpalette##hsv:HSV} | {helpb colorpalette##hsv:HSL}}HSV or HSL color generator{p_end}
 
 {syntab:Collections}
 {synopt:{it:{help colorpalette##cbrew:colorbrewer}}}ColorBrewer palettes from {browse "http://colorbrewer2.org":colorbrewer2.org}{p_end}
@@ -86,15 +86,16 @@ or {cmd:.} to insert a gap.
 {synopt:{helpb colorpalette##spmap:spmap}}color schemes from {cmd:spmap} by Pisati (2007){p_end}
 {synopt:{helpb colorpalette##sfso:sfso}}color schemes used by the Swiss Federal
     Statistical Office{p_end}
-{synopt:{helpb colorpalette##webc:webcolors}}categorical HTML colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
+{synopt:{helpb colorpalette##html:HTML}}categorical HTML colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
+{synopt:{helpb colorpalette##w3:w3}}W3.CSS colors from {browse "https://www.w3schools.com/w3css/w3css_colors.asp":www.w3schools.com}{p_end}
 
 {syntab:Custom}
 {synopt:{it:{help colorpalette##myname:myname}}}custom palette provided by program {cmd:colorpalette_}{it:myname}{p_end}
 {synopt:{help colorpalette##mata:{bf:{ul:m}ata(}{it:name}{bf:)}}}custom palette provided by {helpb colrspace:ColrSpace} object {it:name}{p_end}
 {synoptline}
 {pstd}
-Palette names can be abbreviated; if abbreviation is ambiguous, the first
-matching palette will be used.
+Palette names can be abbreviated and typed in lowercase letters; if abbreviation is ambiguous, the first
+matching palette in the sorted will be used.
 
 
 {synoptset 20 tabbed}{...}
@@ -117,9 +118,9 @@ matching palette will be used.
     {p_end}
 {synopt:{helpb colorpalette##intensify:{ul:in}tensify({it:numlist})}}modify intensity
     {p_end}
-{synopt:{helpb colorpalette##saturate:{ul:sat}urate({it:spec})}}modify saturation (colorfulness)
+{synopt:{helpb colorpalette##saturate:saturate({it:spec})}}modify saturation (colorfulness)
     {p_end}
-{synopt:{helpb colorpalette##luminate:{ul:lum}inate({it:spec})}}modify luminance (brightness)
+{synopt:{helpb colorpalette##luminate:luminate({it:spec})}}modify luminance (brightness)
     {p_end}
 {synopt:{helpb colorpalette##gscale:{ul:gs}cale{sf:[}({it:spec}){sf:]}}}convert to grayscale
     {p_end}
@@ -135,7 +136,7 @@ matching palette will be used.
     {p_end}
 {synopt:{helpb colorpalette##class:class({it:class})}}set palette class
     {p_end}
-{synopt:{helpb colorpalette##pname:pname({it:str})}}assign a palette name
+{synopt:{helpb colorpalette##pname:name({it:str})}}assign a palette name
     {p_end}
 {synoptline}
 
@@ -198,10 +199,8 @@ matching palette will be used.
     {cmd:colorpalette} is a utility command to retrieve or display color
     palettes. Palette entries are returned in
     {helpb colorpalette##returns:r()} or, optionally, as global or local
-    {helpb colorpalette##macrooptions:macros}.
-
-{pstd}
-    {cmd:colorpalette} is used by {helpb grstyle set}.
+    {helpb colorpalette##macrooptions:macros} or as
+    {help colorpalette##stylefiles:style files}.
 
 {pstd}
     {cmd:colorpalette} requires version 14.2 of Stata or newer. Users of older
@@ -277,7 +276,7 @@ matching palette will be used.
     {cmd:order()}, and {cmd:reverse} have been applied.
 
 {pmore}
-    Example: {stata `"colorpalette "189 30 36", intensity(0.1(.05)1) pname(Reds)"'}
+    Example: {stata `"colorpalette "189 30 36", intensity(0.1(.05)1) name(Reds)"'}
 
 {marker ipolate}{...}
 {phang}
@@ -288,7 +287,7 @@ matching palette will be used.
     and opacity levels, if defined, will also be interpolated).
 
 {pmore}
-    Example: {stata colorpalette cranberry dkorange, ipolate(5) pname(red to orange)}
+    Example: {stata colorpalette cranberry dkorange, ipolate(5) name(red to orange)}
 
 {pmore}
     Suboptions are as follows.
@@ -301,7 +300,7 @@ matching palette will be used.
     help {helpb colrspace##ipolate:colrspace} for details.
 
 {pmore2}
-    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(10) pname(Jab) / #fafa6e #2a4858, ipolate(10, JMh) pname(JMh)"}
+    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(10) name(Jab) / #fafa6e #2a4858, ipolate(10, JMh) name(JMh)"}
 
 {phang2}
     {opt ra:nge(lb [ub])} sets the interpolation range, where {it:lb} and
@@ -310,7 +309,7 @@ matching palette will be used.
     order. Extrapolation will be applied if the specified range exceeds [0,1].
 
 {pmore2}
-    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(11, HCL) pname([0,1]) / #fafa6e #2a4858, ipolate(6, HCL range(0 .5)) pname([0,.5])"}
+    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(11, HCL) name([0,1]) / #fafa6e #2a4858, ipolate(6, HCL range(0 .5)) name([0,.5])"}
 
 {phang2}
     {opt pow:er(#)}, with # > 0, determines how the destination colors are
@@ -325,7 +324,7 @@ matching palette will be used.
     it moves the center of the color gradient up (if # > 1) or down (if 0 < # < 1).
 
 {pmore2}
-    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(30, HCL power(1.5)) pname(slow) / #fafa6e #2a4858, ipolate(30, HCL power(0.7)) pname(fast)"}
+    Example: {stata "colorpalette: #fafa6e #2a4858, ipolate(30, HCL power(1.5)) name(slow) / #fafa6e #2a4858, ipolate(30, HCL power(0.7)) name(fast)"}
 
 {phang2}
     {opth pos:itions(numlist)} specifies the positions of the origin colors
@@ -336,7 +335,7 @@ matching palette will be used.
     colors, these colors will be averaged before applying interpolation.
 
 {pmore2}
-    Example: {stata "colorpalette: Black Crimson Gold, ipolate(30, position(0 .3 1)) pname(left) / Black Crimson Gold, ipolate(30, position(0 .7 1)) pname(right)"}
+    Example: {stata "colorpalette: Black Crimson Gold, ipolate(30, position(0 .3 1)) name(left) / Black Crimson Gold, ipolate(30, position(0 .7 1)) name(right)"}
 
 {phang2}
     {opt pad:ded} requests padded interpolation. By
@@ -353,7 +352,7 @@ matching palette will be used.
     than the unpadded variant):
 
 {p 16 18 2}
-    . {stata "colorpalette, span vertical: BrBG / BrBG, ipolate(30) pname(ipolate) / BrBG, ipolate(30, padded) pname(padded ipolate)"}
+    . {stata "colorpalette, span vertical: BrBG / BrBG, ipolate(30) name(ipolate) / BrBG, ipolate(30, padded) name(padded ipolate)"}
 
 {marker intensify}{...}
 {phang}
@@ -380,7 +379,7 @@ matching palette will be used.
     interpolation, whereas {cmd:intensify()} is applied after interpolation.
 
 {pmore}
-    Example: {stata `"colorpalette "189 30 36", intensify(0.1(.05)1) pname(Reds)"'}
+    Example: {stata `"colorpalette "189 30 36", intensify(0.1(.05)1) name(Reds)"'}
 
 {marker saturate}{...}
 {phang}
@@ -410,7 +409,7 @@ matching palette will be used.
     levels. Chroma values of typical colors lie between 0 and 100 or maybe 150.
 
 {pmore}
-    Example: {stata "colorpalette: RdYlGn, saturate(25) pname(+25) / RdYlGn / RdYlGn, saturate(-25) pname(-25)"}
+    Example: {stata "colorpalette: RdYlGn, saturate(25) name(+25) / RdYlGn / RdYlGn, saturate(-25) name(-25)"}
 
 {marker luminate}{...}
 {phang}
@@ -445,7 +444,7 @@ matching palette will be used.
     Examples:
 
 {p 12 16 2}
-    . {stata "colorpalette: ptol, luminate(15) pname(+15) / ptol / ptol, luminate(-15) pname(-25)"}
+    . {stata "colorpalette: ptol, luminate(15) name(+15) / ptol / ptol, luminate(-15) name(-25)"}
     {p_end}
 {p 12 16 2}
     . {stata "colorpalette: blue red green, select(1 1 2 2 3 3) luminate(. 40)"}
@@ -466,7 +465,7 @@ matching palette will be used.
     (CIECAM02-based J'M'h). The default is {cmd:LCh}. Example:
 
 {p 12 16 2}
-    . {stata "colorpalette: s2 / s2, gscale(.5) pname(50% gray) / s2, gscale pname(100% gray)"}
+    . {stata "colorpalette: s2 / s2, gscale(.5) name(50% gray) / s2, gscale name(100% gray)"}
 
 {marker cblnd}{...}
 {phang}
@@ -486,7 +485,7 @@ matching palette will be used.
     information on color blindness. Example:
 
 {p 12 16 2}
-    . {stata "colorpalette: Set1 / Set1, cblind(.5, deut) pname(50% deut) / Set1, cblind(.5, prot) pname(50% prot) / Set1, cblind(1, trit) pname(tritanopia)"}
+    . {stata "colorpalette: Set1 / Set1, cblind(.5, deut) name(50% deut) / Set1, cblind(.5, prot) name(50% prot) / Set1, cblind(1, trit) name(tritanopia)"}
 
 {marker other}{...}
 {phang}
@@ -520,7 +519,7 @@ matching palette will be used.
     the class as part of their definition.
 
 {marker pname}{...}
-    {opt pname(str)} assigns a custom name to the palette.
+    {opt name(str)} assigns a custom name to the palette.
 
 {marker macrooptions}{...}
 {dlgtab:Macro options (syntax 1 only)}
@@ -715,10 +714,10 @@ matching palette will be used.
     one of the following:
 
 {p2colset 9 28 30 2}{...}
-{p2col:{help colorstyle##colorstyle:{it:name}}}Stata color name; this includes
+{p2col:{it:name}}color name; this includes
         official Stata's color names as listed in {help colorstyle##colorstyle:{it:colorstyle}},
-        as well as possible user additions provided through style files{p_end}
-{p2col:{help colorpalette##webcolors:{it:webname}}}HTML color name as listed {help colorpalette##webcolors:below}{p_end}
+        possible user additions provided through style files, as well as a large collection
+        of {help colorpalette##htmlcolors:named colors} provided by {helpb colrspace}{p_end}
 {p2col:{cmd:#}{it:rrggbb}}6-digit hex RGB value; white = {cmd:#FFFFFF} or {cmd:#ffffff}, navy = {cmd:#1A476F} or {cmd:#1a476f} {p_end}
 {p2col:{cmd:#}{it:rgb}}3-digit abbreviated hex RGB value; white = {cmd:#FFF} or {cmd:#fff}{p_end}
 {p2col:{it:# # #}}RGB value in 0-255 scaling; navy = {cmd:"26 71 111"}{p_end}
@@ -752,103 +751,88 @@ matching palette will be used.
 
         . {stata colorpalette "26 71 111%80" "26 71 111*.7" "26 71 111%80*.7"}
 
-{marker webcolors}{...}
+{marker htmlcolors}{...}
 {pstd}
-    Example: HTML colors
+    Example: named colors from {helpb colrspace}
 
         . {stata colorpalette slate paleviolet lightsea sandy}
 
 {pstd}
-    Supported are the standard HTML colors listed at
-    {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}. The 148 color
-    names, sorted by color groups, are as follows.
+    Apart from Stata's system colors, the following named colors are supported:
 
 {phang}
-    Pink colors ({stata colorpalette webcolors, pink nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:Pink}, {cmd:LightPink}, {cmd:HotPink}, {cmd:DeepPink},
-    {cmd:PaleVioletRed}, {cmd:MediumVioletRed}
+    {browse "http://www.w3schools.com/colors/colors_names.asp":140 HTML colors}:
+    {cmd:AliceBlue}, {cmd:AntiqueWhite}, {cmd:Aqua}, {cmd:Aquamarine}, {cmd:Azure},
+    {cmd:Beige}, {cmd:Bisque}, {cmd:Black}, {cmd:BlanchedAlmond}, {cmd:Blue},
+    {cmd:BlueViolet}, {cmd:Brown}, {cmd:BurlyWood}, {cmd:CadetBlue},
+    {cmd:Chartreuse}, {cmd:Chocolate}, {cmd:Coral}, {cmd:CornflowerBlue},
+    {cmd:Cornsilk}, {cmd:Crimson}, {cmd:Cyan}, {cmd:DarkBlue}, {cmd:DarkCyan},
+    {cmd:DarkGoldenRod}, {cmd:DarkGray}, {cmd:DarkGrey}, {cmd:DarkGreen},
+    {cmd:DarkKhaki}, {cmd:DarkMagenta}, {cmd:DarkOliveGreen}, {cmd:DarkOrange},
+    {cmd:DarkOrchid}, {cmd:DarkRed}, {cmd:DarkSalmon}, {cmd:DarkSeaGreen},
+    {cmd:DarkSlateBlue}, {cmd:DarkSlateGray}, {cmd:DarkSlateGrey},
+    {cmd:DarkTurquoise}, {cmd:DarkViolet}, {cmd:DeepPink}, {cmd:DeepSkyBlue},
+    {cmd:DimGray}, {cmd:DimGrey}, {cmd:DodgerBlue}, {cmd:FireBrick},
+    {cmd:FloralWhite}, {cmd:ForestGreen}, {cmd:Fuchsia}, {cmd:Gainsboro},
+    {cmd:GhostWhite}, {cmd:Gold}, {cmd:GoldenRod}, {cmd:Gray}, {cmd:Grey},
+    {cmd:Green}, {cmd:GreenYellow}, {cmd:HoneyDew}, {cmd:HotPink}, {cmd:IndianRed},
+    {cmd:Indigo}, {cmd:Ivory}, {cmd:Khaki}, {cmd:Lavender}, {cmd:LavenderBlush},
+    {cmd:LawnGreen}, {cmd:LemonChiffon}, {cmd:LightBlue}, {cmd:LightCoral},
+    {cmd:LightCyan}, {cmd:LightGoldenRodYellow}, {cmd:LightGray}, {cmd:LightGrey},
+    {cmd:LightGreen}, {cmd:LightPink}, {cmd:LightSalmon}, {cmd:LightSeaGreen},
+    {cmd:LightSkyBlue}, {cmd:LightSlateGray}, {cmd:LightSlateGrey},
+    {cmd:LightSteelBlue}, {cmd:LightYellow}, {cmd:Lime}, {cmd:LimeGreen},
+    {cmd:Linen}, {cmd:Magenta}, {cmd:Maroon}, {cmd:MediumAquaMarine},
+    {cmd:MediumBlue}, {cmd:MediumOrchid}, {cmd:MediumPurple}, {cmd:MediumSeaGreen},
+    {cmd:MediumSlateBlue}, {cmd:MediumSpringGreen}, {cmd:MediumTurquoise},
+    {cmd:MediumVioletRed}, {cmd:MidnightBlue}, {cmd:MintCream}, {cmd:MistyRose},
+    {cmd:Moccasin}, {cmd:NavajoWhite}, {cmd:Navy}, {cmd:OldLace}, {cmd:Olive},
+    {cmd:OliveDrab}, {cmd:Orange}, {cmd:OrangeRed}, {cmd:Orchid},
+    {cmd:PaleGoldenRod}, {cmd:PaleGreen}, {cmd:PaleTurquoise}, {cmd:PaleVioletRed},
+    {cmd:PapayaWhip}, {cmd:PeachPuff}, {cmd:Peru}, {cmd:Pink}, {cmd:Plum},
+    {cmd:PowderBlue}, {cmd:Purple}, {cmd:RebeccaPurple}, {cmd:Red},
+    {cmd:RosyBrown}, {cmd:RoyalBlue}, {cmd:SaddleBrown}, {cmd:Salmon},
+    {cmd:SandyBrown}, {cmd:SeaGreen}, {cmd:SeaShell}, {cmd:Sienna}, {cmd:Silver},
+    {cmd:SkyBlue}, {cmd:SlateBlue}, {cmd:SlateGray}, {cmd:SlateGrey}, {cmd:Snow},
+    {cmd:SpringGreen}, {cmd:SteelBlue}, {cmd:Tan}, {cmd:Teal}, {cmd:Thistle},
+    {cmd:Tomato}, {cmd:Turquoise}, {cmd:Violet}, {cmd:Wheat}, {cmd:White},
+    {cmd:WhiteSmoke}, {cmd:Yellow}, {cmd:YellowGreen}
 
 {phang}
-    Purple colors ({stata colorpalette webcolors, purple nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:Lavender}, {cmd:Thistle}, {cmd:Plum}, {cmd:Orchid}, {cmd:Violet},
-    {cmd:Fuchsia}, {cmd:Magenta}, {cmd:MediumOrchid}, {cmd:DarkOrchid},
-    {cmd:DarkViolet}, {cmd:BlueViolet}, {cmd:DarkMagenta}, {cmd:Purple},
-    {cmd:MediumPurple}, {cmd:MediumSlateBlue}, {cmd:SlateBlue},
-    {cmd:DarkSlateBlue}, {cmd:RebeccaPurple}, {cmd:Indigo}
+    {browse "http://www.w3schools.com/w3css/w3css_color_material.asp":30 W3.CSS default colors}:
+    {cmd:w3-red}, {cmd:w3-pink}, {cmd:w3-purple}, {cmd:w3-deep-purple},
+    {cmd:w3-indigo}, {cmd:w3-blue}, {cmd:w3-light-blue}, {cmd:w3-cyan},
+    {cmd:w3-aqua}, {cmd:w3-teal}, {cmd:w3-green}, {cmd:w3-light-green},
+    {cmd:w3-lime}, {cmd:w3-sand}, {cmd:w3-khaki}, {cmd:w3-yellow}, {cmd:w3-amber},
+    {cmd:w3-orange}, {cmd:w3-deep-orange}, {cmd:w3-blue-grey}, {cmd:w3-brown},
+    {cmd:w3-light-grey}, {cmd:w3-grey}, {cmd:w3-dark-grey}, {cmd:w3-black},
+    {cmd:w3-white}, {cmd:w3-pale-red}, {cmd:w3-pale-yellow}, {cmd:w3-pale-green},
+    {cmd:w3-pale-blue}
 
 {phang}
-    Red and orange colors ({stata colorpalette webcolors, redorange nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:LightSalmon}, {cmd:Salmon}, {cmd:DarkSalmon}, {cmd:LightCoral},
-    {cmd:IndianRed}, {cmd:Crimson}, {cmd:Red}, {cmd:FireBrick}, {cmd:DarkRed},
-    {cmd:Orange}, {cmd:DarkOrange}, {cmd:Coral}, {cmd:Tomato}, {cmd:OrangeRed}
-
-{phang}
-    Yellow colors ({stata colorpalette webcolors, yellow nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:Gold}, {cmd:Yellow}, {cmd:LightYellow}, {cmd:LemonChiffon},
-    {cmd:LightGoldenRodYellow}, {cmd:PapayaWhip}, {cmd:Moccasin}, {cmd:PeachPuff},
-    {cmd:PaleGoldenRod}, {cmd:Khaki}, {cmd:DarkKhaki}
-
-{phang}
-    Green colors ({stata colorpalette webcolors, green nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:GreenYellow}, {cmd:Chartreuse}, {cmd:LawnGreen}, {cmd:Lime},
-    {cmd:LimeGreen}, {cmd:PaleGreen}, {cmd:LightGreen}, {cmd:MediumSpringGreen},
-    {cmd:SpringGreen}, {cmd:MediumSeaGreen}, {cmd:SeaGreen}, {cmd:ForestGreen},
-    {cmd:Green}, {cmd:DarkGreen}, {cmd:YellowGreen}, {cmd:OliveDrab},
-    {cmd:DarkOliveGreen}, {cmd:MediumAquaMarine}, {cmd:DarkSeaGreen},
-    {cmd:LightSeaGreen}, {cmd:DarkCyan}, {cmd:Teal}
-
-{phang}
-    Cyan colors ({stata colorpalette webcolors, cyan nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:Aqua}, {cmd:Cyan}, {cmd:LightCyan}, {cmd:PaleTurquoise}, {cmd:Aquamarine},
-    {cmd:Turquoise}, {cmd:MediumTurquoise}, {cmd:DarkTurquoise}
-
-{phang}
-    Blue colors ({stata colorpalette webcolors, blue nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:CadetBlue}, {cmd:SteelBlue}, {cmd:LightSteelBlue}, {cmd:LightBlue},
-    {cmd:PowderBlue}, {cmd:LightSkyBlue}, {cmd:SkyBlue}, {cmd:CornflowerBlue},
-    {cmd:DeepSkyBlue}, {cmd:DodgerBlue}, {cmd:RoyalBlue}, {cmd:Blue},
-    {cmd:MediumBlue}, {cmd:DarkBlue}, {cmd:Navy}, {cmd:MidnightBlue}
-
-{phang}
-    Brown colors ({stata colorpalette webcolors, brown nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:Cornsilk}, {cmd:BlanchedAlmond}, {cmd:Bisque}, {cmd:NavajoWhite},
-    {cmd:Wheat}, {cmd:BurlyWood}, {cmd:Tan}, {cmd:RosyBrown}, {cmd:SandyBrown},
-    {cmd:GoldenRod}, {cmd:DarkGoldenRod}, {cmd:Peru}, {cmd:Chocolate}, {cmd:Olive},
-    {cmd:SaddleBrown}, {cmd:Sienna}, {cmd:Brown}, {cmd:Maroon}
-
-{phang}
-    White colors ({stata colorpalette webcolors, white nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:White}, {cmd:Snow}, {cmd:HoneyDew}, {cmd:MintCream}, {cmd:Azure},
-    {cmd:AliceBlue}, {cmd:GhostWhite}, {cmd:WhiteSmoke}, {cmd:SeaShell},
-    {cmd:Beige}, {cmd:OldLace}, {cmd:FloralWhite}, {cmd:Ivory}, {cmd:AntiqueWhite},
-    {cmd:Linen}, {cmd:LavenderBlush}, {cmd:MistyRose}
-
-{phang}
-    Gray colors ({stata colorpalette webcolors, gray nonumbers:{it:view}}):{p_end}
-{pmore}
-    {cmd:Gainsboro}, {cmd:LightGray} (or {cmd:LightGrey}), {cmd:Silver},
-    {cmd:DarkGray} (or {cmd:LightGrey}),
-    {cmd:DimGray} (or {cmd:DimGrey}),
-    {cmd:Gray} (or {cmd:Grey}),
-    {cmd:LightSlateGray} (or {cmd:LightSlateGrey}),
-    {cmd:SlateGray} (or {cmd:SlateGrey}),
-    {cmd:DarkSlateGray} (or {cmd:DarkSlateGrey}),
-    {cmd:Black}
+    Further color collections from W3.CSS (using names as provided by
+    W3.CSS, e.g. {cmd:w3-flat-turquoise}):
+    {browse "http://www.w3schools.com/w3css/w3css_color_flat.asp":Flat UI Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_metro.asp":Metro UI Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_win8.asp":Windows 8 Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_ios.asp":iOS Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":US Highway Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":US Safety Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":European Signal Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Fashion Colors 2019},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Fashion Colors 2018},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Fashion Colors 2017},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Vivid Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Food Colors},
+    {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Camouflage Colors},
+    {browse "http://www.w3schools.com/colors/colors_fs595.asp":ANA (Army Navy Aero) Colors}, and
+    {browse "http://www.w3schools.com/colors/colors_ral.asp":Traffic Colors}.
 
 {pstd}
     The color names can be abbreviated and typed in lowercase letters. If
     abbreviation is ambiguous, the first matching name in the alphabetically
     ordered list will be used. In case of name conflict with a Stata color, the
-    HTML color will take precedence only if the specified name is an exact
+    color from {helpb colrspace} will take precedence only if the specified name is an exact
     match including case. For example, {cmd:pink} will refer to official
     Stata's pink, whereas {cmd:Pink} will refer to HTML color pink.
 
@@ -1018,27 +1002,27 @@ matching palette will be used.
     Examples:
 
 {p 8 12 2}
-        . {stata "colorpalette, span: hue, n(3) pname(3) / hue, n(5) pname(5) / hue, n(7) pname(7) / hue, n(9) pname(9)"}
+        . {stata "colorpalette, span: hue, n(3) name(3) / hue, n(5) name(5) / hue, n(7) name(7) / hue, n(9) name(9)"}
         {p_end}
         . {stata colorpalette hue, n(5) hue(90 -30) chroma(50) luminance(70)}
 
 {marker hcl}{...}
-{dlgtab:hcl/lch/jmh}
+{dlgtab:HCL/LCh/JMh}
 
 {pstd}
-    The {cmd:hcl}, {cmd:lch}, and {cmd:jmh} palettes are color generators in the
+    The {cmd:HCL}, {cmd:LCh}, and {cmd:JMh} palettes are color generators in the
     HCL (Hue-Chroma-Luminance) space (cylindrical representation of CIE L*u*v*), the LCh space
     (cylindrical representation of CIE L*a*b*), and the CIECAM02-based J'M'h space,
-    respectively. The {cmd:hcl} implementation is based on R's {cmd:colorspace} package by
+    respectively. The {cmd:HCL} implementation is based on R's {cmd:colorspace} package by
     {browse "http://CRAN.R-project.org/package=colorspace":Ihaka et al. (2016)}; also
     see {browse "http://dx.doi.org/10.1016/j.csda.2008.11.033":Zeileis et al. (2009)}
-    and {browse "http://hclwizard.org":hclwizard.org}. The {cmd:lch} and
-    {cmd:jmh} generators are implemented analogously.
+    and {browse "http://hclwizard.org":hclwizard.org}. The {cmd:LCh} and
+    {cmd:JMmh} generators are implemented analogously.
 
 {pstd}
     Let h1 and h2 be two hues on the 360 degree color wheel, c1 and c2 two
-    chroma levels (M' in case of {cmd:jmh}), l1 and l2 two luminance levels (J' in case of
-    {cmd:jmh}), p1 and p2 two power parameters, and i an index from 1 to n,
+    chroma levels (M' in case of {cmd:JMh}), l1 and l2 two luminance levels (J' in case of
+    {cmd:JMh}), p1 and p2 two power parameters, and i an index from 1 to n,
     where n is the number of requested colors. The colors are then generated
     according to the following formulas.
 
@@ -1063,7 +1047,7 @@ matching palette will be used.
     Syntax:
 
 {p 8 15 2}
-    {c -(}{cmd:hcl}|{cmd:lhc}|{cmd:jmh}{c )-} [{it:scheme}] [{cmd:,} {opt h:ue(h1 [h2])} {opt c:hroma(c1 [c2])} {opt l:uminance(l1 [l2])}
+    {c -(}{cmd:HCL}|{cmd:LCh}|{cmd:JMh}{c )-} [{it:scheme}] [{cmd:,} {opt h:ue(h1 [h2])} {opt c:hroma(c1 [c2])} {opt l:uminance(l1 [l2])}
         {opt pow:er(p1 [p2])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
@@ -1073,57 +1057,57 @@ matching palette will be used.
 
         Qualitative {...}
 (view: {...}
-{stata "colorpalette, lc(white) n(9): hcl qual / hcl intense / hcl dark / hcl light / hcl pastel":{it:hcl}}, {...}
-{stata "colorpalette, lc(white) n(9): lch qual / lch intense / lch dark / lch light / lch pastel":{it:lch}}, {...}
-{stata "colorpalette, lc(white) n(9): jmh qual / jmh intense / jmh dark / jmh light / jmh pastel":{it:jmh}})
+{stata "colorpalette, lc(white) n(9): HCL qual / HCL intense / HCL dark / HCL light / HCL pastel":{it:HCL}}, {...}
+{stata "colorpalette, lc(white) n(9): LCh qual / LCh intense / LCh dark / LCh light / LCh pastel":{it:LCh}}, {...}
+{stata "colorpalette, lc(white) n(9): JMh qual / JMh intense / JMh dark / JMh light / JMh pastel":{it:JMh}})
 {col 28} h1              h2   c1   l1
-        {stata colorpalette hcl qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   60   70
-        {stata colorpalette hcl intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n  100   65
-        {stata colorpalette hcl dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   80   60
-        {stata colorpalette hcl light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   50   80
-        {stata colorpalette hcl pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   35   85
+        {stata colorpalette HCL qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   60   70
+        {stata colorpalette HCL intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n  100   65
+        {stata colorpalette HCL dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   80   60
+        {stata colorpalette HCL light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   50   80
+        {stata colorpalette HCL pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   35   85
 
         Sequential {...}
 (view: {...}
-{stata "colorpalette, n(9): hcl blues / hcl greens / hcl grays / hcl oranges / hcl purples / hcl reds / hcl heat / hcl heat2 / hcl terrain / hcl terrain2 / hcl viridis / hcl plasma / hcl redblue":{it:hcl}}, {...}
-{stata "colorpalette, n(9): lch blues / lch greens / lch grays / lch oranges / lch purples / lch reds / lch heat / lch heat2 / lch terrain / lch terrain2 / lch viridis / lch plasma / lch redblue":{it:lch}}, {...}
-{stata "colorpalette, n(9): jmh blues / jmh greens / jmh grays / jmh oranges / jmh purples / jmh reds / jmh heat / jmh heat2 / jmh terrain / jmh terrain2 / jmh viridis / jmh plasma / jmh redblue":{it:jmh}})
+{stata "colorpalette, n(9): HCL blues / HCL greens / HCL grays / HCL oranges / HCL purples / HCL reds / HCL heat / HCL heat2 / HCL terrain / HCL terrain2 / HCL viridis / HCL plasma / HCL redblue":{it:HCL}}, {...}
+{stata "colorpalette, n(9): LCh blues / LCh greens / LCh grays / LCh oranges / LCh purples / LCh reds / LCh heat / LCh heat2 / LCh terrain / LCh terrain2 / LCh viridis / LCh plasma / LCh redblue":{it:LCh}}, {...}
+{stata "colorpalette, n(9): JMh blues / JMh greens / JMh grays / JMh oranges / JMh purples / JMh reds / JMh heat / JMh heat2 / JMh terrain / JMh terrain2 / JMh viridis / JMh plasma / JMh redblue":{it:JMh}})
 {col 28} h1   h2   c1   c2   l1   l2   p1   p2
-        {stata colorpalette hcl sequential:{bf:sequential}}{col 28}260   h1   80   10   25   95    1   p1
-        {stata colorpalette hcl blues:{bf:blues}}          {col 28}260   h1   80   10   25   95    1   p1
-        {stata colorpalette hcl greens:{bf:greens}}        {col 28}145  125   80   10   25   95    1   p1
-        {stata colorpalette hcl grays:{bf:grays}}          {col 28}  0   h1    0    0   15   95    1   p1
-        {stata colorpalette hcl oranges:{bf:oranges}}      {col 28} 40   h1  100   10   50   95    1   p1
-        {stata colorpalette hcl purples:{bf:purples}}      {col 28}280   h1   70   10   20   95    1   p1
-        {stata colorpalette hcl reds:{bf:reds}}            {col 28} 10   20   80   10   25   95    1   p1
-        {stata colorpalette hcl heat:{bf:heat}}            {col 28}  0   90  100   30   50   90  0.2  1.0
-        {stata colorpalette hcl heat2:{bf:heat2}}          {col 28}  0   90   80   30   30   90  0.2  2.0
-        {stata colorpalette hcl terrain:{bf:terrain}}      {col 28}130    0   80    0   60   95  0.1  1.0
-        {stata colorpalette hcl terrain2:{bf:terrain2}}    {col 28}130   30   65    0   45   90  0.5  1.5
-        {stata colorpalette hcl viridis:{bf:viridis}}      {col 28}300   75   35   95   15   90  0.8  1.2
-        {stata colorpalette hcl plasma:{bf:plasma}}        {col 28}100   h1   60  100   15   95  2.0  0.9
-        {stata colorpalette hcl redblue:{bf:redblue}}      {col 28}  0 -100   80   40   40   75  1.0  1.0
+        {stata colorpalette HCL sequential:{bf:sequential}}{col 28}260   h1   80   10   25   95    1   p1
+        {stata colorpalette HCL blues:{bf:blues}}          {col 28}260   h1   80   10   25   95    1   p1
+        {stata colorpalette HCL greens:{bf:greens}}        {col 28}145  125   80   10   25   95    1   p1
+        {stata colorpalette HCL grays:{bf:grays}}          {col 28}  0   h1    0    0   15   95    1   p1
+        {stata colorpalette HCL oranges:{bf:oranges}}      {col 28} 40   h1  100   10   50   95    1   p1
+        {stata colorpalette HCL purples:{bf:purples}}      {col 28}280   h1   70   10   20   95    1   p1
+        {stata colorpalette HCL reds:{bf:reds}}            {col 28} 10   20   80   10   25   95    1   p1
+        {stata colorpalette HCL heat:{bf:heat}}            {col 28}  0   90  100   30   50   90  0.2  1.0
+        {stata colorpalette HCL heat2:{bf:heat2}}          {col 28}  0   90   80   30   30   90  0.2  2.0
+        {stata colorpalette HCL terrain:{bf:terrain}}      {col 28}130    0   80    0   60   95  0.1  1.0
+        {stata colorpalette HCL terrain2:{bf:terrain2}}    {col 28}130   30   65    0   45   90  0.5  1.5
+        {stata colorpalette HCL viridis:{bf:viridis}}      {col 28}300   75   35   95   15   90  0.8  1.2
+        {stata colorpalette HCL plasma:{bf:plasma}}        {col 28}100   h1   60  100   15   95  2.0  0.9
+        {stata colorpalette HCL redblue:{bf:redblue}}      {col 28}  0 -100   80   40   40   75  1.0  1.0
 
         Diverging {...}
 (view: {...}
-{stata "colorpalette, n(9): hcl bluered / hcl bluered2 / hcl bluered3 / hcl greenorange / hcl browngreen / hcl pinkgreen / hcl purplegreen":{it:hcl}}, {...}
-{stata "colorpalette, n(9): lch bluered / lch bluered2 / lch bluered3 / lch greenorange / lch browngreen / lch pinkgreen / lch purplegreen":{it:lch}}, {...}
-{stata "colorpalette, n(9): jmh bluered / jmh bluered2 / jmh bluered3 / jmh greenorange / jmh browngreen / jmh pinkgreen / jmh purplegreen":{it:jmh}})
+{stata "colorpalette, n(9): HCL bluered / HCL bluered2 / HCL bluered3 / HCL greenorange / HCL browngreen / HCL pinkgreen / HCL purplegreen":{it:HCL}}, {...}
+{stata "colorpalette, n(9): LCh bluered / LCh bluered2 / LCh bluered3 / LCh greenorange / LCh browngreen / LCh pinkgreen / LCh purplegreen":{it:LCh}}, {...}
+{stata "colorpalette, n(9): JMh bluered / JMh bluered2 / JMh bluered3 / JMh greenorange / JMh browngreen / JMh pinkgreen / JMh purplegreen":{it:JMh}})
 {col 28} h1   h2   c1   l1   l2   p1   p2
-        {stata colorpalette hcl diverging:{bf:diverging}}    {col 28}260    0   80   30   95    1   p1
-        {stata colorpalette hcl bluered:{bf:bluered}}        {col 28}260    0   80   30   95    1   p1
-        {stata colorpalette hcl bluered2:{bf:bluered2}}      {col 28}260    0  100   50   95    1   p1
-        {stata colorpalette hcl bluered3:{bf:bluered3}}      {col 28}180  330   60   75   95    1   p1
-        {stata colorpalette hcl greenorange:{bf:greenorange}}{col 28}130   45  100   70   95    1   p1
-        {stata colorpalette hcl browngreen:{bf:browngreen}}  {col 28} 55  160   60   35   95    1   p1
-        {stata colorpalette hcl pinkgreen:{bf:pinkgreen}}    {col 28}340  128   90   35   95    1   p1
-        {stata colorpalette hcl purplegreen:{bf:purplegreen}}{col 28}300  128   60   30   95    1   p1
+        {stata colorpalette HCL diverging:{bf:diverging}}    {col 28}260    0   80   30   95    1   p1
+        {stata colorpalette HCL bluered:{bf:bluered}}        {col 28}260    0   80   30   95    1   p1
+        {stata colorpalette HCL bluered2:{bf:bluered2}}      {col 28}260    0  100   50   95    1   p1
+        {stata colorpalette HCL bluered3:{bf:bluered3}}      {col 28}180  330   60   75   95    1   p1
+        {stata colorpalette HCL greenorange:{bf:greenorange}}{col 28}130   45  100   70   95    1   p1
+        {stata colorpalette HCL browngreen:{bf:browngreen}}  {col 28} 55  160   60   35   95    1   p1
+        {stata colorpalette HCL pinkgreen:{bf:pinkgreen}}    {col 28}340  128   90   35   95    1   p1
+        {stata colorpalette HCL purplegreen:{bf:purplegreen}}{col 28}300  128   60   30   95    1   p1
 
 {pstd}
     The shown parameter values are for
-   {cmd:hcl}; {cmd:lch} and {cmd:jmh} use adjusted values such that the end points
-   of the generated colors are similar to the ones generated by {cmd:hcl} (see the source code of
-   {stata viewsource colorpalette.ado:colorpalette.ado}). Options are:
+    {cmd:HCL}; {cmd:LCh} and {cmd:JMh} use adjusted values such that the end points
+    of the generated colors are similar to the ones generated by {cmd:HCL} (see source file
+    {help colrspace_library_generators:colrspace_library_generators.sthlp}). Options are:
 
 {phang}
     {opt hue(h1 [h2])} overwrites the default values for h1 and h2. h1 and h2 are hues on
@@ -1144,43 +1128,21 @@ matching palette will be used.
     the transition faster, {it:p#}<1 makes the transition slower.
 
 {marker hsv}{...}
-{dlgtab:hsv}
+{dlgtab:HSV/HSL}
 
 {pstd}
-    The {cmd:hsv} palette is a HSV color generator (Hue-Saturation-Value). The
+    The {cmd:HSV} and {cmd:HSL} palettes are color generators in the HSV (Hue-Saturation-Value)
+    and HSL (Hue-Saturation-Lightness) spaces. The
     implementation is partially based on R's {cmd:grDevices} package (which is
     part of the R core) and partially on {cmd:colorspace} by
-    {browse "http://CRAN.R-project.org/package=colorspace":Ihaka et al. (2016)}.
-
-{pstd}
-    Let h1 and h2 be two hues on the 360 degree color wheel, s1 and s2 two
-    saturation levels, v1 and v2 two value levels, p1 and p2 two power
-    parameters, and i an index from 1 to n, where n is the number of requested
-    colors. The HSV colors are then generated according to the following
-    formulas.
-
-        Qualitative:
-            H = h1 + (h2 - h1) * (i - 1) / (n - 1)
-            S = s1
-            V = v1
-
-        Sequential:
-            H = h2 - (h2 - h1) * j
-            S = s2 - (s2 - s1) * j^p1
-            V = v2 - (v2 - v1) * j^p2
-            with j = (n - i) / (n - 1)
-
-        Diverging:
-            H = cond(j > 0, h1, h2)
-            S = s1 * abs(j)^p1
-            V = v2 - (v2 - v1) * abs(j)^p2
-            with j = (n - 2*j + 1) / (n - 1)
+    {browse "http://CRAN.R-project.org/package=colorspace":Ihaka et al. (2016)}. Used formulas
+    are analogous to the formulas of the {helpb colorpalette##hcl:HCL} generator.
 
 {pstd}
     Syntax:
 
 {p 8 15 2}
-    {cmd:hsv} [{it:scheme}] [{cmd:,} {opt h:ue(h1 [h2])} {opt sat:uration(s1 [s2])} {opt val:ue(v1 [v2])}
+    {c -(}{cmd:HSV}|{cmd:HSL}{c )-} [{it:scheme}] [{cmd:,} {opt h:ue(h1 [h2])} {opt sat:uration(s1 [s2])} {opt val:ue(v1 [v2])}
         {opt pow:er(p1 [p2])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
@@ -1188,40 +1150,45 @@ matching palette will be used.
     or diverging) and sets the default parameter values. {it:scheme} can be one of
     following ({cmd:qualitative} is the default; abbreviations are allowed).
 
-        Qualitative {...}
-({stata "colorpalette, lc(white) n(9): hsv qual / hsv intense / hsv dark / hsv light / hsv pastel / hsv rainbow":{it:view}}){...}
-{col 28} h1              h2   s1   v1
-        {stata colorpalette hsv qualitative:{bf:qualitative}}{col 28} 15  h1+360*(n-1)/n   .4  .85
-        {stata colorpalette hsv intense:{bf:intense}}        {col 28} 15  h1+360*(n-1)/n   .6  .9
-        {stata colorpalette hsv dark:{bf:dark}}              {col 28} 15  h1+360*(n-1)/n   .6  .7
-        {stata colorpalette hsv light:{bf:light}}            {col 28} 15  h1+360*(n-1)/n   .3  .9
-        {stata colorpalette hsv pastel:{bf:pastel}}          {col 28} 15  h1+360*(n-1)/n   .2  .9
-        {stata colorpalette hsv rainbow:{bf:rainbow}}        {col 28} 15  h1+360*(n-1)/n    1   1
+{pstd}
+    For {cmd:HSV}, {it:scheme} can be one of the following.
 
-        Sequential {...}
-({stata "colorpalette, n(9): hsv blues / hsv greens / hsv grays / hsv oranges / hsv purples / hsv reds / hsv heat / hsv terrain":{it:view}}){...}
-{col 28} h1   h2   s1   s2   v1   v2   p1   p2
-        {stata colorpalette hsv sequential:{bf:sequential}}{col 28}240   h1   .8  .05   .6   1   1.2   p1
-        {stata colorpalette hsv blues:{bf:blues}}          {col 28}240   h1   .8  .05   .6   1   1.2   p1
-        {stata colorpalette hsv greens:{bf:greens}}        {col 28}140  120   1   .1    .3   1   1.2   p1
-        {stata colorpalette hsv grays:{bf:grays}}          {col 28}  0   h1   0    0    .1  .95  1.0   p1
-        {stata colorpalette hsv oranges:{bf:oranges}}      {col 28} 30   h1   1   .1    .9   1   1.2   p1
-        {stata colorpalette hsv purples:{bf:purples}}      {col 28}270   h1   1   .1    .6   1   1.2   p1
-        {stata colorpalette hsv reds:{bf:reds}}            {col 28}  0   20   1   .1    .6   1   1.2   p1
-        {stata colorpalette hsv heat:{bf:heat}}            {col 28}  0   60   1   .2     1   1   0.3   p1
-        {stata colorpalette hsv terrain:{bf:terrain}}      {col 28}120    0   1    0    .65 .95  0.7  1.5
+{p2colset 9 29 30 2}{...}
+{p2col:Qualitative ({stata "colorpalette, lc(white) n(9): hsv qual / hsv intense / hsv dark / hsv light / hsv pastel / hsv rainbow":{it:view}}):}
+{stata colorpalette HSV qualitative:{bf:qualitative}},
+{stata colorpalette HSV intense:{bf:intense}},
+{stata colorpalette HSV dark:{bf:dark}},
+{stata colorpalette HSV light:{bf:light}},
+{stata colorpalette HSV pastel:{bf:pastel}},
+{stata colorpalette HSV rainbow:{bf:rainbow}}
+{p_end}
+{p2col:Sequential ({stata "colorpalette, n(9): hsv blues / hsv greens / hsv grays / hsv oranges / hsv purples / hsv reds / hsv heat / hsv terrain / hsv heat0 / hsv terrain0":{it:view}}):}
+{stata colorpalette HSV sequential:{bf:sequential}},
+{stata colorpalette HSV blues:{bf:blues}},
+{stata colorpalette HSV greens:{bf:greens}},
+{stata colorpalette HSV grays:{bf:grays}},
+{stata colorpalette HSV oranges:{bf:oranges}},
+{stata colorpalette HSV purples:{bf:purples}},
+{stata colorpalette HSV reds:{bf:reds}},
+{stata colorpalette HSV heat:{bf:heat}},
+{stata colorpalette HSV terrain:{bf:terrain}},
+{stata colorpalette HSV heat0:{bf:heat0}},
+{stata colorpalette HSV terrain0:{bf:terrain0}}
+{p_end}
+{p2col:Diverging ({stata "colorpalette, n(9): hsv bluered / hsv bluered2 / hsv bluered3 / hsv greenorange / hsv browngreen / hsv pinkgreen / hsv purplegreen":{it:view}}):}
+{stata colorpalette HSV diverging:{bf:diverging}},
+{stata colorpalette HSV bluered:{bf:bluered}},
+{stata colorpalette HSV bluered2:{bf:bluered2}},
+{stata colorpalette HSV bluered3:{bf:bluered3}},
+{stata colorpalette HSV greenorange:{bf:greenorange}},
+{stata colorpalette HSV browngreen:{bf:browngreen}},
+{stata colorpalette HSV pinkgreen:{bf:pinkgreen}},
+{stata colorpalette HSV purplegreen:{bf:purplegreen}}
 
-        Diverging {...}
-({stata "colorpalette, n(9): hsv bluered / hsv bluered2 / hsv bluered3 / hsv greenorange / hsv browngreen / hsv pinkgreen / hsv purplegreen":{it:view}}){...}
-{col 28} h1   h2   s1   v1   v2   p1   p2
-        {stata colorpalette hsv diverging:{bf:diverging}}    {col 28}240    0   .8   .6  .95  1.2   p1
-        {stata colorpalette hsv bluered:{bf:bluered}}        {col 28}240    0   .8   .6  .95  1.2   p1
-        {stata colorpalette hsv bluered2:{bf:bluered2}}      {col 28}240    0   .6   .8  .95  1.2   p1
-        {stata colorpalette hsv bluered3:{bf:bluered3}}      {col 28}175  320   .6   .8  .95  1.2   p1
-        {stata colorpalette hsv greenorange:{bf:greenorange}}{col 28}130   40   1    .8  .95  1.2   p1
-        {stata colorpalette hsv browngreen:{bf:browngreen}}  {col 28} 40  150   .8   .6  .95  1.2   p1
-        {stata colorpalette hsv pinkgreen:{bf:pinkgreen}}    {col 28}330  120   .9   .6  .95  1.2   p1
-        {stata colorpalette hsv purplegreen:{bf:purplegreen}}{col 28}290  120   .7   .5  .95  1.2   p1
+{pstd}
+    For {cmd:HSL}, {it:scheme} can be: {stata colorpalette HSL qualitative:{bf:qualitative}},
+    {stata colorpalette HSL sequential:{bf:sequential}}, or
+    {stata colorpalette HSL diverging:{bf:diverging}}
 
 {pstd}
     Options are:
@@ -1231,19 +1198,24 @@ matching palette will be used.
     are hues on the 360 degree color wheel.
 
 {phang}
-    {opt sat:uration(s1 [s2])} sets overwrites the default values for
-    s1 and s2, with {it:s#} in [0, 1]. s1 and s2 determine the colorfulness
+    {opt sat:uration(c1 [c2])} overwrites the default values for
+    c1 and c2, with {it:c#} in [0, 1]. c1 and c2 determine the colorfulness
     (color intensity).
 
 {phang}
-    {opt val:ue(v1 [v2])} overwrites the default values for v1 and v2, with
-    {it:v#} in [0, 1]. l1 and l2 determine the brightness.
+    {opt val:ue(l1 [l2])} overwrites the default values for l1 and l2, with
+    {it:l#} in [0, 1]. l1 and l2 determine the brightness.
 
 {phang}
     {opt power(p1 [p2])} overwrites the default values for p1 and p2,
     with {it:p#} > 0. p1 and p2 determine the shape of the transition between
     saturation and value levels. For linear transitions, set {it:p#}=1; {it:p#}>1 makes
     the transition faster, {it:p#}<1 makes the transition slower.
+
+{pstd}
+    See source file
+    {help colrspace_library_generators:colrspace_library_generators.sthlp} for default
+    parameter values of the above schemes.
 
 {marker cbrew}{...}
 {dlgtab:ColorBrewer}
@@ -1265,11 +1237,11 @@ matching palette will be used.
 {pstd}The syntax for the ColorBrewer palettes is
 
 {p 8 15 2}
-    {it:scheme} [{cmd:,} {cmd:cmyk} {help colorpalette##opts:{it:palette_options}} ]
+    {it:scheme} [{cmd:cmyk}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following (abbreviations and lower case
-    spelling allowed as long as {cmd:cmyk} is not specified)
+    spelling allowed)
 
 {p2colset 9 22 24 2}{...}
 {p2col:Qualitative ({stata "colorpalette, lc(black): Accent / Dark2 / Paired / Pastel1 / Pastel2 / Set1 / Set2 / Set3":{it:view}})}{p_end}
@@ -1316,7 +1288,7 @@ matching palette will be used.
 {p2col:{stata colorpalette Spectral:{bf:Spectral}}}red - orange - yellow - green - blue (3-11 colors){p_end}
 
 {phang}
-    and option {cmd:cmyk} requests the CMYK variant of the scheme. The default is to use
+    and argument {cmd:cmyk} requests the CMYK variant of the scheme. The default is to use
     the RGB variant.
 
 {marker viridis}{...}
@@ -1369,7 +1341,7 @@ matching palette will be used.
 
 {pstd}
     where {it:scheme} is one of the following (abbreviations allowed)
-    ({stata "colorpalette: matplotlib jet / matplotlib autumn / matplotlib spring / matplotlib summer / matplotlib winter / matplotlib bone / matplotlib cool / matplotlib copper / matplotlib coolwarm / matplotlib hot":{it:view}})
+    ({stata "colorpalette: matplot jet / matplot autumn / matplot spring / matplot summer / matplot winter / matplot bone / matplot cool / matplot copper / matplot coolwarm / matplot hot / matplot turbo":{it:view}})
 
 {p2colset 9 22 24 2}{...}
 {p2col:{stata colorpalette matplotlib jet:{bf:jet}}}blue - green - yellow - red; the default{p_end}
@@ -1382,6 +1354,7 @@ matching palette will be used.
 {p2col:{stata colorpalette matplotlib copper:{bf:copper}}}black - orange/brown{p_end}
 {p2col:{stata colorpalette matplotlib coolwarm:{bf:coolwarm}}}blue - red (diverging){p_end}
 {p2col:{stata colorpalette matplotlib hot:{bf:hot}}}heat colors{p_end}
+{p2col:{stata colorpalette matplotlib turbo:{bf:turbo}}}similar to {cmd:jet}{p_end}
 
 {pstd}
     and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
@@ -1504,13 +1477,13 @@ matching palette will be used.
     syntax is
 
 {p 8 15 2}
-    {cmd:sfso} [{it:scheme}] [{cmd:,} {cmd:cmyk} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:sfso} [{it:scheme}] [{cmd:cmyk}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:scheme} is one of the following (abbreviations allowed as long as {cmd:cmyk} is not specified)
+    where {it:scheme} is one of the following (abbreviations allowed)
 
 {p2colset 9 24 26 2}{...}
-{p2col:Sequential ({stata "colorpalette: sfso br / sfso or / sfso red / sfso pi / sfso pu / sfso vi / sfso bl / sfso ltbl / sfso tu / sfso green / sfso ol / sfso black":{it:view}})}{p_end}
+{p2col:Sequential ({stata "colorpalette: sfso br / sfso or / sfso red / sfso pi / sfso pu / sfso vi / sfso blu / sfso ltbl / sfso tu / sfso green / sfso ol / sfso black":{it:view}})}{p_end}
 {p2col:{stata colorpalette sfso brown:{bf:brown}}}dark brown to light brown (6 colors){p_end}
 {p2col:{stata colorpalette sfso orange:{bf:orange}}}dark orange to light orange (6 colors){p_end}
 {p2col:{stata colorpalette sfso red:{bf:red}}}dark red to light red (6 colors){p_end}
@@ -1530,40 +1503,94 @@ matching palette will be used.
 {p2col:{stata colorpalette sfso votes:{bf:votes}}}colors used by the SFSO for results from votes (10 colors){p_end}
 
 {phang}
-    and option {cmd:cmyk} requests the CMYK variant of the scheme. The default is to use
+    and argument {cmd:cmyk} requests the CMYK variant of the scheme. The default is to use
     the RGB variant.
 
-{marker webc}{...}
-{dlgtab:webcolors}
+{marker html}{...}
+{dlgtab:HTML}
 
 {pstd}
-    The {cmd:webcolors} collection provides named HTML colors from
+    The {cmd:HTML} collection provides named HTML colors from
     {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}. The
     syntax is
 
 {p 8 15 2}
-    {cmdab:web:colors} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+    {cmdab:HTML} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:scheme} is one of the following (abbreviations allowed; see {help colorpalette##webcolors:here} for
-    color names).
+    where {it:scheme} is one of the following (abbreviations allowed).
 
 {p2colset 9 24 26 2}{...}
-{p2col:{stata colorpalette webcolors pink:{bf:pink}}}6 pink colors{p_end}
-{p2col:{stata colorpalette webcolors purple:{bf:purple}}}19 purple colors{p_end}
-{p2col:{stata colorpalette webcolors redorange:{bf:redorange}}}14 red and orange colors{p_end}
-{p2col:{stata colorpalette webcolors yellow:{bf:yellow}}}11 yellow colors{p_end}
-{p2col:{stata colorpalette webcolors green:{bf:green}}}22 green colors{p_end}
-{p2col:{stata colorpalette webcolors cyan:{bf:cyan}}}8 cyan colors{p_end}
-{p2col:{stata colorpalette webcolors blue:{bf:blue}}}16 blue colors{p_end}
-{p2col:{stata colorpalette webcolors brown:{bf:brown}}}18 brown colors{p_end}
-{p2col:{stata colorpalette webcolors white:{bf:white}}}17 white colors{p_end}
-{p2col:{stata colorpalette webcolors gray:{bf:gray}}}10 gray colors{p_end}
-{p2col:{stata colorpalette webcolors grey:{bf:grey}}}10 grey colors (same color codes as {cmd:gray}){p_end}
+{p2col:{stata colorpalette HTML pink:{bf:pink}}}6 pink colors{p_end}
+{p2col:{stata colorpalette HTML purple:{bf:purple}}}19 purple colors{p_end}
+{p2col:{stata colorpalette HTML red:{bf:red}}}14 red and orange colors{p_end}
+{p2col:{stata colorpalette HTML orange:{bf:orange}}}14 red and orange colors{p_end}
+{p2col:{stata colorpalette HTML yellow:{bf:yellow}}}11 yellow colors{p_end}
+{p2col:{stata colorpalette HTML green:{bf:green}}}22 green colors{p_end}
+{p2col:{stata colorpalette HTML cyan:{bf:cyan}}}8 cyan colors{p_end}
+{p2col:{stata colorpalette HTML blue:{bf:blue}}}16 blue colors{p_end}
+{p2col:{stata colorpalette HTML brown:{bf:brown}}}18 brown colors{p_end}
+{p2col:{stata colorpalette HTML white:{bf:white}}}17 white colors{p_end}
+{p2col:{stata colorpalette HTML gray:{bf:gray}}}10 gray colors{p_end}
+{p2col:{stata colorpalette HTML grey:{bf:grey}}}10 grey colors (same color codes as {cmd:gray}){p_end}
 
 {pstd}
     All 148 HTML colors (alphabetically sorted) will be returned if {it:scheme}
     is omitted.
+
+{marker w3}{...}
+{dlgtab:w3}
+
+{pstd}
+    The {cmd:w3} collection provides colors from
+    {browse "https://www.w3schools.com/w3css/w3css_colors.asp":W3.CSS}. The
+    syntax is
+
+{p 8 15 2}
+    {cmdab:w3} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations allowed).
+
+{p2colset 9 24 26 2}{...}
+{p2col:{stata colorpalette w3 default:{bf:default}}}30 {browse "http://www.w3schools.com/w3css/w3css_color_material.asp":Default Colors}; the default{p_end}
+{p2col:{stata colorpalette w3 flat:{bf:flat}}}20 {browse "http://www.w3schools.com/w3css/w3css_color_flat.asp":Flat UI Colors}{p_end}
+{p2col:{stata colorpalette w3 metro:{bf:metro}}}17 {browse "http://www.w3schools.com/w3css/w3css_color_metro.asp":Metro UI Colors}{p_end}
+{p2col:{stata colorpalette w3 win8:{bf:win8}}}22 {browse "http://www.w3schools.com/w3css/w3css_color_win8.asp":Windows 8 Colors}{p_end}
+{p2col:{stata colorpalette w3 ios:{bf:ios}}}12 {browse "http://www.w3schools.com/w3css/w3css_color_ios.asp":iOS Colors}{p_end}
+{p2col:{stata colorpalette w3 highway:{bf:highway}}}7 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":US Highway Colors}{p_end}
+{p2col:{stata colorpalette w3 safety:{bf:safety}}}6 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":US Safety Colors}{p_end}
+{p2col:{stata colorpalette w3 signal:{bf:signal}}}10 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":European Signal Colors}{p_end}
+{p2col:{stata colorpalette w3 2019:{bf:2019}}}32 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Fashion Colors 2019}{p_end}
+{p2col:{stata colorpalette w3 2018:{bf:2018}}}30 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Fashion Colors 2018}{p_end}
+{p2col:{stata colorpalette w3 2017:{bf:2017}}}20 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Fashion Colors 2017}{p_end}
+{p2col:{stata colorpalette w3 vivid:{bf:vivid}}}21 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Vivid Colors}{p_end}
+{p2col:{stata colorpalette w3 food:{bf:food}}}40 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Food Colors}{p_end}
+{p2col:{stata colorpalette w3 camo:{bf:camo}}}15 {browse "http://www.w3schools.com/w3css/w3css_color_libraries.asp":Camouflage Colors}{p_end}
+{p2col:{stata colorpalette w3 ana:{bf:ana}}}44 {browse "http://www.w3schools.com/colors/colors_fs595.asp":Army Navy Aero Colors}{p_end}
+{p2col:{stata colorpalette w3 traffic:{bf:traffic}}}9 {browse "http://www.w3schools.com/colors/colors_ral.asp":Traffic Colors}{p_end}
+{p2col:{stata colorpalette w3 amber:{bf:amber}}}11 sequential Amber colors{p_end}
+{p2col:{stata colorpalette w3 black:{bf:black}}}11 sequential Black colors{p_end}
+{p2col:{stata colorpalette w3 blue:{bf:blue}}}11 sequential Blue colors{p_end}
+{p2col:{stata colorpalette w3 blue-grey:{bf:blue-grey}}}11 sequential Blue Grey colors{p_end}
+{p2col:{stata colorpalette w3 brown:{bf:brown}}}11 sequential Brown colors{p_end}
+{p2col:{stata colorpalette w3 cyan:{bf:cyan}}}11 sequential Cyan colors{p_end}
+{p2col:{stata colorpalette w3 dark-grey:{bf:dark-grey}}}11 sequential Dark Grey colors{p_end}
+{p2col:{stata colorpalette w3 deep-orange:{bf:deep-orange}}}11 sequential Deep Orange colors{p_end}
+{p2col:{stata colorpalette w3 deep-purple:{bf:deep-purple}}}11 sequential Deep Purple colors{p_end}
+{p2col:{stata colorpalette w3 green:{bf:green}}}11 sequential Green colors{p_end}
+{p2col:{stata colorpalette w3 grey:{bf:grey}}}11 sequential Grey colors{p_end}
+{p2col:{stata colorpalette w3 indigo:{bf:indigo}}}11 sequential Indigo colors{p_end}
+{p2col:{stata colorpalette w3 khaki:{bf:khaki}}}11 sequential Khaki colors{p_end}
+{p2col:{stata colorpalette w3 light-blue:{bf:light-blue}}}11 sequential Light Blue colors{p_end}
+{p2col:{stata colorpalette w3 light-green:{bf:light-green}}}11 sequential Light Green colors{p_end}
+{p2col:{stata colorpalette w3 lime:{bf:lime}}}11 sequential Lime colors{p_end}
+{p2col:{stata colorpalette w3 orange:{bf:orange}}}11 sequential Orange colors{p_end}
+{p2col:{stata colorpalette w3 pink:{bf:pink}}}11 sequential Pink colors{p_end}
+{p2col:{stata colorpalette w3 purple:{bf:purple}}}11 sequential Purple colors{p_end}
+{p2col:{stata colorpalette w3 red:{bf:red}}}11 sequential Red colors{p_end}
+{p2col:{stata colorpalette w3 teal:{bf:teal}}}11 sequential Teal colors{p_end}
+{p2col:{stata colorpalette w3 yellow:{bf:yellow}}}11 sequential Yellow colors{p_end}
 
 {marker myname}{...}
 {dlgtab:myname}
@@ -1583,8 +1610,8 @@ matching palette will be used.
             c_local P #ffffff,#337ab7,#5cb85c,#5bc0de,#f0ad4e,#d9534f, ///
                       #e6e6e6,#286090,#449d44,#31b0d5,#ec971f,#c9302c
             c_local N default,primary,success,info,warning,danger, ///
-                default_focus,primary_focus,success_focus,info_focus, ///
-                warning_focus,danger_focus
+                default.focus,primary.focus,success.focus,info.focus, ///
+                warning.focus,danger.focus
             c_local class qualitative
         end{txt}
 
@@ -1592,11 +1619,6 @@ matching palette will be used.
     After defining the program, you can, for example, type
 
         {com}. colorpalette bootstrap3, rows(6){txt}
-
-{pstd}
-    to view the palette. More complicated definitions of palettes that
-    take account of options are also possible. See the palette definitions
-    {stata viewsource colorpalette.ado:colorpalette.ado} for examples.
 
 {marker mata}{...}
 {dlgtab:Mata ColrSpace object}
@@ -1632,7 +1654,7 @@ matching palette will be used.
     the {helpb colorpalette##hcl:hcl} color generator:
 
         . {stata sysuse sandstone, clear}
-        . {stata colorpalette jmh, terrain n(10) nograph}
+        . {stata colorpalette jmh terrain, n(10) nograph}
 {p 8 12 2}
         . {stata twoway contour depth northing easting, levels(`r(n)') ccolors(`r(p)')}
 
@@ -1642,9 +1664,9 @@ matching palette will be used.
 {pstd}
     To make colors available as {helpb global} macros, use the
     {helpb colorpalette##macrooptions:globals()} option. For example, to
-    make all {help colorpalette##webcolors:HTML colors} available, type:
+    make all {help colorpalette##htmlcolors:HTML colors} available, type:
 
-        {com}. colorpalette webcolors, globals{txt}
+        {com}. colorpalette HTML, globals{txt}
 
 {pstd}
     You can then use the created globals in subsequent graph commands:
