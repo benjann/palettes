@@ -1,9 +1,9 @@
 v 3
 d palettes: module providing color palettes, symbol palettes, and line pattern palettes
 d 
-d Author: Ben Jann, University of Bern, ben.jann@soz.unibe.ch
+d Author: Ben Jann, University of Bern, ben.jann@unibe.ch
 d
-d Distribution-Date: 20200527
+d Distribution-Date: 20220324
 f colorpalette.ado
 f colorpalette.sthlp
 f symbolpalette.hlp

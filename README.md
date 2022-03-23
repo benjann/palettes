@@ -29,6 +29,10 @@ Installation from GitHub:
 
 Main changes:
 
+    23mar2022
+    - option class() had no effect if used with a colorlist or with a custom palette
+      provided by a program; this is fixed
+
     27may2020
     - updated to new version of ColrSpace
     - option pname() is now called name()

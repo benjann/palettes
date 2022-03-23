@@ -1,4 +1,4 @@
-*! version 1.1.9  27may2020  Ben Jann
+*! version 1.2.0  23mar2022  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -284,8 +284,8 @@ program _Palette_Get
     c_local plist  `"`P'"'
     c_local pnames `"`N'"'
     c_local pinfo  `"`I'"'
-    c_local class  `"`class'"'
-    if `"`name'"'!="" c_local palette `"`name'"'
+    if `"`class'"'!="" c_local class  `"`class'"'
+    if `"`name'"'!=""  c_local palette `"`name'"'
     c_local note   `"`note'"'
     c_local source `"`source'"'
 end
@@ -928,8 +928,6 @@ void getpalette(real scalar n, real scalar ptype)
     if (rc) exit(rc)
 
     // Step 2: collect palette/colors and apply options
-    // setup
-    S.pclass(st_local("class"))
     // get colors
     if (ptype==1) { 
         S.colors(pal) // space-separated list of color specifications
@@ -964,7 +962,6 @@ void getpalette(real scalar n, real scalar ptype)
             exit(498)
         }
         S = *p
-        if (S.pclass()=="") S.pclass(st_local("class"))
         if (S.name()!="")   st_local("palette", S.name())
         else                st_local("palette", st_local("mataname"))
     }
@@ -972,16 +969,16 @@ void getpalette(real scalar n, real scalar ptype)
                          // plist:   comma-separated list of colors
                          // pnames:  comma-separated list of color names
                          // pinfo:   comma-separated list of descriptions
-                         // class:   palette class (already covered above)
                          // note:    palette note
                          // source:  palette source
         S.colors(st_local("plist"), ",")
         if (st_local("pnames")!="") S.names(st_local("pnames"), ",")
         if (st_local("pinfo")!="")  S.info(st_local("pinfo"), ",")
         S.note(st_local("note"))
-        S.pclass(st_local("class"))
         S.source(st_local("source"))
     }
+    // class
+    if (S.pclass()=="") S.pclass(st_local("class"))
     // option n()
     if (ptype!=2) {
         if (n<. & n!=S.N()) {
