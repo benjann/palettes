@@ -1,5 +1,5 @@
 {smcl}
-{* 27may2020}{...}
+{* 01apr2022}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {right:{browse "http://github.com/benjann/palettes/"}}
@@ -61,15 +61,16 @@ or {cmd:.} to insert a gap.
 {synopt:{helpb colorpalette##economist:economist}}15 colors as in Stata's {helpb scheme economist:economist} scheme{p_end}
 {synopt:{helpb colorpalette##mono:mono}}15 gray scales as in Stata's monochrome schemes{p_end}
 
-{syntab:Other palettes ({stata "colorpalette, lc(black): cblind / plottig / 538 / mrc / tfl / burd / lean / tableau":{it:view}})}
-{synopt:{helpb colorpalette##cblind:cblind}}9 colorblind-friendly colors by Okabe and Ito (2002){p_end}
-{synopt:{helpb colorpalette##plottig:plottig}}15 colors as in {cmd:plottig} by Bischof (2017b){p_end}
-{synopt:{helpb colorpalette##538:538}}6 + 7 colors as in {cmd:538} by Bischof (2017a){p_end}
-{synopt:{helpb colorpalette##mrc:mrc}}7 colors as in {cmd:mrc} by Morris (2013){p_end}
-{synopt:{helpb colorpalette##tfl:tfl}}8 colors as in {cmd:tfl} by Morris (2015){p_end}
-{synopt:{helpb colorpalette##burd:burd}}9 + 4 colors as in {cmd:burd} by Briatte (2013){p_end}
-{synopt:{helpb colorpalette##lean:lean}}15 gray scales as in {cmd:lean} by Juul (2003){p_end}
-{synopt:{helpb colorpalette##tableau:tableau}}20 categorical colors by Lin et al. (2013){p_end}
+{syntab:Other palettes ({stata "colorpalette, lc(black): okabe / cblind / plottig / 538 / mrc / tfl / burd / lean / tableau":{it:view}})}
+{synopt:{helpb colorpalette##cblind:okabe}}8 colorblind-friendly colors by {browse "http://jfly.iam.u-tokyo.ac.jp/color/":Okabe and Ito (2002)}{p_end}
+{synopt:{helpb colorpalette##cblind:cblind}}like {cmd:okabe}, but including gray on second position{p_end}
+{synopt:{helpb colorpalette##plottig:plottig}}15 colors as in {cmd:plottig} by {browse "http://www.stata-journal.com/article.html?article=gr0070":Bischof (2017b)}{p_end}
+{synopt:{helpb colorpalette##538:538}}6 + 7 colors as in {cmd:538} by {browse "http://ideas.repec.org/c/boc/bocode/s458404.html":Bischof (2017a)}{p_end}
+{synopt:{helpb colorpalette##mrc:mrc}}7 colors as in {cmd:mrc} by {browse "http://ideas.repec.org/c/boc/bocode/s458103.html":Morris (2015)}{p_end}
+{synopt:{helpb colorpalette##tfl:tfl}}8 colors as in {cmd:tfl} by {browse "http://ideas.repec.org/c/boc/bocode/s457703.html":Morris (2013)}{p_end}
+{synopt:{helpb colorpalette##burd:burd}}9 + 4 colors as in {cmd:burd} by {browse "http://ideas.repec.org/c/boc/bocode/s457623.html":Briatte (2013)}{p_end}
+{synopt:{helpb colorpalette##lean:lean}}15 gray scales as in {cmd:lean} by {browse "http://www.stata-journal.com/article.html?article=gr0002":Juul (2003)}{p_end}
+{synopt:{helpb colorpalette##tableau:tableau}}20 categorical colors by {browse "http://dx.doi.org/10.1111/cgf.12127":Lin et al. (2013)}{p_end}
 
 {syntab:Color generators}
 {synopt:{helpb colorpalette##hue:hue}}evenly spaced HCL hues{p_end}
@@ -77,17 +78,26 @@ or {cmd:.} to insert a gap.
 {synopt:{helpb colorpalette##hsv:HSV} | {helpb colorpalette##hsv:HSL}}HSV or HSL color generator{p_end}
 
 {syntab:Collections}
-{synopt:{it:{help colorpalette##cbrew:colorbrewer}}}ColorBrewer palettes from {browse "http://colorbrewer2.org":colorbrewer2.org}{p_end}
+{synopt:{helpb colorpalette##d3:d3}}categorical palettes from {browse "http://d3js.org/":D3.js}{p_end}
+{synopt:{helpb colorpalette##sb:sb}}categorical palettes from {browse "http://seaborn.pydata.org/":seaborn.pydata.org}{p_end}
+{synopt:{helpb colorpalette##pals:pals}}categorical palettes from the {browse "http://github.com/kwstat/pals":{bf:pals}} package in R{p_end}
+{synopt:{helpb colorpalette##tab:tab}}color schemes from {browse "http://www.tableau.com/about/blog/2016/7/colors-upgrade-tableau-10-56782":Tableau 10}{p_end}
+{synopt:{helpb colorpalette##tol:tol}}color schemes by Paul Tol from {browse "http://personal.sron.nl/~pault/":personal.sron.nl/~pault}{p_end}
+{synopt:{helpb colorpalette##ptol:ptol}}color schemes from {browse "http://personal.sron.nl/~pault/colourschemes.pdf":Tol (2012)}{p_end}
+{synopt:{it:{help colorpalette##cbrew:colorbrewer}}}{browse "http://colorbrewer2.org":ColorBrewer} palettes{p_end}
+{synopt:{helpb colorpalette##carto:carto}}color schemes from {browse "http://carto.com/carto-colors/":carto.com/carto-colors}{p_end}
 {synopt:{it:{help colorpalette##viridis:viridis}}}perceptually uniform colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
-{synopt:{helpb colorpalette##matplotlib:matplotlib}}other colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
-{synopt:{helpb colorpalette##ptol:ptol}}color schemes from Tol (2012){p_end}
-{synopt:{helpb colorpalette##d3:d3}}categorical color schemes from {browse "http://d3js.org/":D3.js}{p_end}
-{synopt:{helpb colorpalette##lin:lin}}semantic colors schemes by Lin et al. (2013){p_end}
-{synopt:{helpb colorpalette##spmap:spmap}}color schemes from {cmd:spmap} by Pisati (2007){p_end}
+{synopt:{it:{help colorpalette##seaborn:seaborn}}}perceptually uniform colormaps from {browse "http://seaborn.pydata.org/":seaborn.pydata.org}{p_end}
+{synopt:{helpb colorpalette##matplotlib:matplotlib}}further colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
+{synopt:{helpb colorpalette##CET:CET}}perceptually uniform colormaps by {browse "http://arxiv.org/abs/1509.03700":Kovesi (2015)}{p_end}
+{synopt:{helpb colorpalette##scico:scico}}perceptually uniform colorblind-friendly colormaps by {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}{p_end}
+{synopt:{helpb colorpalette##lin:lin}}semantic colors schemes by {browse "http://dx.doi.org/10.1111/cgf.12127":Lin et al. (2013)}{p_end}
+{synopt:{helpb colorpalette##spmap:spmap}}color schemes from {cmd:spmap} by {browse "http://ideas.repec.org/c/boc/bocode/s456812.html":Pisati (2007)}{p_end}
 {synopt:{helpb colorpalette##sfso:sfso}}color schemes used by the Swiss Federal
     Statistical Office{p_end}
-{synopt:{helpb colorpalette##html:HTML}}categorical HTML colors from {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
-{synopt:{helpb colorpalette##w3:w3}}W3.CSS colors from {browse "https://www.w3schools.com/w3css/w3css_colors.asp":www.w3schools.com}{p_end}
+{synopt:{helpb colorpalette##html:HTML}}categorical HTML colors from {browse "http://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}{p_end}
+{synopt:{helpb colorpalette##w3:w3}}W3.CSS colors from {browse "http://www.w3schools.com/w3css/w3css_colors.asp":www.w3schools.com}{p_end}
+{synopt:{help colorpalette##wes:{it:wesanderson}}}Wes Anderson palettes from {browse "http://wesandersonpalettes.tumblr.com/":wesandersonpalettes.tumblr.com}{p_end}
 
 {syntab:Custom}
 {synopt:{it:{help colorpalette##myname:myname}}}custom palette provided by program {cmd:colorpalette_}{it:myname}{p_end}
@@ -106,9 +116,13 @@ matching palette in the sorted will be used.
     {p_end}
 {synopt:{helpb colorpalette##select:{ul:s}elect({it:numlist})}}select (and order) the colors
     {p_end}
+{synopt:{helpb colorpalette##drop:drop({it:numlist})}}drop individual colors
+    {p_end}
 {synopt:{helpb colorpalette##order:order({it:numlist})}}order the colors
     {p_end}
 {synopt:{helpb colorpalette##reverse:{ul:rev}erse}}arrange palette in reverse order
+    {p_end}
+{synopt:{helpb colorpalette##order:shift({it:#})}}shift the positions of the colors
     {p_end}
 {synopt:{helpb colorpalette##opacity:{ul:op}acity({it:numlist})}}set opacity, in percent
     {p_end}
@@ -235,18 +249,40 @@ matching palette in the sorted will be used.
     {opth select(numlist)} selects (and reorders) the colors retrieved from
     the palette. Positive numbers refer to positions from the start;
     negative numbers refer to positions from the end. Only one of {cmd:select()}
-    and {cmd:order()} is allowed.
+    and {cmd:order()} is allowed; only one of {cmd:select()}
+    and {cmd:drop()} is allowed. {cmd:select()} is applied after {cmd:n()} has
+    taken effect.
+
+{marker drop}{...}
+{phang}
+    {opth drop(numlist)} drops individual colors retrieved from
+    the palette. Positive numbers refer to positions from the start;
+    negative numbers refer to positions from the end. Only one of {cmd:select()}
+    and {cmd:drop()} is allowed. {cmd:drop()} is applied after {cmd:n()} has
+    taken effect.
 
 {marker order}{...}
 {phang}
     {opth order(numlist)} reorders the colors. Positive numbers refer to positions
     from the start; negative numbers refer to positions from the end. Colors
     not covered in {it:numlist} will be placed last, in their original order. Only
-    one of {cmd:select()} and {cmd:order()} is allowed.
+    one of {cmd:order()} and {cmd:select()} is allowed. {cmd:order()} is
+    applied after {cmd:n()} and {cmd:drop()} have taken effect.
 
 {marker reverse}{...}
 {phang}
-    {opt reverse} returns the colors in reverse order.
+    {opt reverse} returns the colors in reverse order. {cmd:reverse} is
+    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, and {cmd:order()}
+    have taken effect.
+
+{marker shift}{...}
+{phang}
+    {opth shift(#)} reorders the colors. Positive numbers refer to positions
+    from the start; negative numbers refer to positions from the end. Colors
+    not covered in {it:numlist} will be placed last, in their original order. Only
+    one of {cmd:order()} and {cmd:select()} is allowed. {cmd:shift()} is
+    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()},
+    {cmd:order()}, and {cmd:reverse} have taken effect.
 
 {marker opacity}{...}
 {phang}
@@ -257,8 +293,9 @@ matching palette in the sorted will be used.
     recycled; if the number of opacity levels is larger than the number of
     colors, the colors will be recycled. To skip assigning opacity to a
     particular color, you may set the corresponding element to
-    {cmd:.} (missing). {cmd:opacity()} will be applied after {cmd:n()}, {cmd:select()},
-    {cmd:order()}, and {cmd:reverse} have been applied.
+    {cmd:.} (missing). {cmd:opacity()} is applied after
+    {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()}, {cmd:reverse},
+    and {cmd:shift()} have taken effect.
 
 {marker intensity}{...}
 {phang}
@@ -272,8 +309,9 @@ matching palette in the sorted will be used.
     number of multipliers is larger than the number of colors, the colors will
     be recycled. To skip assigning an intensity multiplier to a particular
     color, you may set the corresponding element to {cmd:.} (missing).
-    {cmd:intensity()} will be applied after {cmd:n()}, {cmd:select()},
-    {cmd:order()}, and {cmd:reverse} have been applied.
+    {cmd:intensity()} is applied after
+    {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()}, {cmd:reverse}, and
+    {cmd:shift()} have taken effect.
 
 {pmore}
     Example: {stata `"colorpalette "189 30 36", intensity(0.1(.05)1) name(Reds)"'}
@@ -282,8 +320,9 @@ matching palette in the sorted will be used.
 {phang}
     {cmd:ipolate(}{it:n}[{cmd:,} {it:suboptions}]{cmd:)}
     interpolates the colors to a total of {it:n} colors. {cmd:ipolate()}
-    will be applied after {cmd:n()}, {cmd:select()}, {cmd:order()}, {cmd:reverse},
-    {cmd:opacity()}, and {cmd:intensity()} have been applied (intensity multipliers
+    is applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
+    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, and {cmd:intensity()}
+    have taken effect (intensity multipliers
     and opacity levels, if defined, will also be interpolated).
 
 {pmore}
@@ -354,6 +393,12 @@ matching palette in the sorted will be used.
 {p 16 18 2}
     . {stata "colorpalette, span vertical: BrBG / BrBG, ipolate(30) name(ipolate) / BrBG, ipolate(30, padded) name(padded ipolate)"}
 
+{pmore}
+    Circular interpolation will be used for palettes declared as {cmd:cyclic}
+    or {cmd:circular} (see option {helpb colorpalette##class:class()}). In this
+    case, options {cmd:range()}, {cmd:power()}, {cmd:positions()}, and
+    {cmd:padded} have no effect.
+
 {marker intensify}{...}
 {phang}
     {opth intensify(numlist)} modifies the intensity of the colors. The values
@@ -365,8 +410,10 @@ matching palette in the sorted will be used.
     the number of colors, the values will be recycled; if the number of
     values is larger than the number of colors, the colors will be
     recycled. To skip adjusting the intensity of a particular color, you may
-    set the corresponding element to {cmd:.} (missing). {cmd:intensify()} will
-    be applied after {cmd:ipolate()} has been applied.
+    set the corresponding element to {cmd:.} (missing). {cmd:intensify()} is
+    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
+    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()}, and
+    {cmd:ipolate()} have taken effect.
 
 {pmore}
     {cmd:intensify()} applies the same kind of intensity adjustment as
@@ -391,8 +438,10 @@ matching palette in the sorted will be used.
     number of colors, the values will be recycled; if the number of values is
     larger than the number of colors, the colors will be recycled. To skip
     adjusting the saturation of a particular color, you may set the
-    corresponding element to {cmd:.} (missing). {cmd:saturate()} will be
-    applied after {cmd:ipolate()} has been applied. Suboptions are as
+    corresponding element to {cmd:.} (missing). {cmd:saturate()} is
+    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
+    {cmd:reverse}, {cmd:shift()},, {cmd:opacity()}, {cmd:intensity()},
+    {cmd:ipolate()}, and {cmd:intensify()} have taken effect. Suboptions are as
     follows.
 
 {phang2}
@@ -421,9 +470,11 @@ matching palette in the sorted will be used.
     number of colors, the values will be recycled; if the number of values is
     larger than the number of colors, the colors will be recycled. To skip
     adjusting the luminance of a particular color, you may set the
-    corresponding element to {cmd:.} (missing). {cmd:luminate()} will be
-    applied after {cmd:ipolate()} has been applied. Suboptions are as
-    follows.
+    corresponding element to {cmd:.} (missing). {cmd:luminate()} is
+    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
+    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
+    {cmd:ipolate()}, {cmd:intensify()}, and {cmd:saturate()} have taken
+    effect. Suboptions are as follows.
 
 {phang2}
     {it:cspace} specifies the color space in which the colors are manipulated.
@@ -467,6 +518,12 @@ matching palette in the sorted will be used.
 {p 12 16 2}
     . {stata "colorpalette: s2 / s2, gscale(.5) name(50% gray) / s2, gscale name(100% gray)"}
 
+{pmore}
+    {cmd:gscale()} is applied after {cmd:n()}, {cmd:select()}, {cmd:drop()},
+    {cmd:order()}, {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
+    {cmd:ipolate()}, {cmd:intensify()}, {cmd:saturate()}, and {cmd:luminate()} have taken
+    effect.
+
 {marker cblnd}{...}
 {phang}
     {cmd:cblind}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:type} ]{cmd:)}]
@@ -481,11 +538,17 @@ matching palette in the sorted will be used.
     specifies type of color vision deficiency, which may be
     {cmdab:d:euteranomaly} (the default), {cmdab:p:rotanomaly}, or
     {cmdab:t:ritanomaly}. See
-    {browse "https://en.wikipedia.org/wiki/Color_blindness":Wikipedia} for basic
+    {browse "http://en.wikipedia.org/wiki/Color_blindness":Wikipedia} for basic
     information on color blindness. Example:
 
 {p 12 16 2}
     . {stata "colorpalette: Set1 / Set1, cblind(.5, deut) name(50% deut) / Set1, cblind(.5, prot) name(50% prot) / Set1, cblind(1, trit) name(tritanopia)"}
+
+{pmore}
+    {cmd:cblind()} is applied after {cmd:n()}, {cmd:select()}, {cmd:drop()},
+    {cmd:order()}, {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
+    {cmd:ipolate()}, {cmd:intensify()}, {cmd:saturate()}, {cmd:luminate()}, and
+    {cmd:gscale()} have taken effect.
 
 {marker other}{...}
 {phang}
@@ -512,11 +575,12 @@ matching palette in the sorted will be used.
 {marker class}{...}
 {phang}
     {opt class(class)} declares the class of the the palette, where {it:class}
-    may be {cmdab:q:ualitative}, {cmdab:s:equential}, {cmdab:d:iverging}, or any
-    other string. Palettes declared as {cmd:qualitative} will be recycled, all
-    other palettes will be interpolated (if recycling or interpolation is
-    necessary). Specifying {cmd:class()} only affects palettes that do not set
-    the class as part of their definition.
+    may be {cmdab:q:ualitative} (or {cmdab:cat:egorical}), {cmdab:s:equential},
+    {cmdab:d:iverging}, {cmdab:cyc:lic} (or {cmdab:circ:ular}), or any other
+    string. Palettes declared as {cmd:qualitative} or {cmd:categoprical} will be
+    recycled, all other palettes will be interpolated (if recycling or
+    interpolation is necessary). Specifying {cmd:class()} only affects
+    palettes that do not set the class as part of their definition.
 
 {marker pname}{...}
     {opt name(str)} assigns a custom name to the palette.
@@ -874,20 +938,20 @@ matching palette in the sorted will be used.
     {helpb scheme s1:s1mono}).
 
 {marker cblind}{...}
-{dlgtab:cblind}
+{dlgtab:okabe and cblind}
 
 {pstd}
-    The {cmd:cblind} palette ({stata colorpalette cblind:{it:view}}) contains
+    The {cmd:okabe} palette ({stata colorpalette okabe:{it:view}}) contains
     colorblind-friendly colors suggested by
-    {browse "http://jfly.iam.u-tokyo.ac.jp/color/":Okabe and Ito (2002)}, including
-    gray as suggested at
+    {browse "http://jfly.iam.u-tokyo.ac.jp/color/":Okabe and Ito (2002)}. The
+    {cmd:cblind} palette ({stata colorpalette cblind:{it:view}}) additionally includes gray as suggested at
     {browse "http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/#a-colorblind-friendly-palette":www.cookbook-r.com}.
     The same colors are also used (in different order and using {cmd:gs10} for gray)
     in the {cmd:plotplainblind} and {cmd:plottigblind} schemes by
     {browse "http://www.stata-journal.com/article.html?article=gr0070":Bischof (2017b)}. Type
     {stata colorpalette cblind, select(1 2 4 5 9 8 7 3 6)} for a palette equivalent to
     the one used in {cmd:plotplainblind}, and
-    {stata colorpalette cblind, select(1 4 5 9 8 7 3 6)} for {cmd:plottigblind}.
+    {stata colorpalette okabe, select(1 3 4 8 7 6 2 5)} for {cmd:plottigblind}.
 
 {marker plottig}{...}
 {dlgtab:plottig}
@@ -1217,6 +1281,220 @@ matching palette in the sorted will be used.
     {help colrspace_library_generators:colrspace_library_generators.sthlp} for default
     parameter values of the above schemes.
 
+{marker d3}{...}
+{dlgtab:d3}
+
+{pstd}
+    The {cmd:d3} collection provides categorical color schemes from
+    {browse "http://d3js.org/":D3.js}, using the color values found at
+    {browse "http://github.com/d3/d3-scale/blob/master/README.md#category-scales":github.com/d3}. The
+    syntax is
+
+{p 8 15 2}
+    {cmd:d3} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following
+    ({stata "colorpalette: d3 10 / d3 20 / d3 20b / d3 20c":{it:view}}).
+
+{p2colset 9 16 18 2}{...}
+{p2col:{stata colorpalette d3 10:{bf:10}}}10 categorical colors; the default; same as first 10 colors in {helpb colorpalette##tableau:tableau}{p_end}
+{p2col:{stata colorpalette d3 20:{bf:20}}}20 categorical colors in pairs; same colors as in {helpb colorpalette##tableau:tableau}, but ordered differently{p_end}
+{p2col:{stata colorpalette d3 20b:{bf:20b}}}20 categorical colors in groups of four{p_end}
+{p2col:{stata colorpalette d3 20c:{bf:20c}}}20 categorical colors in groups of four{p_end}
+
+{pstd}
+    These colors appear to be colors that have been used in earlier versions of
+    {browse "http://www.tableau.com/":Tableau}. The four palettes are thus also
+    available as {stata colorpalette tab10:{bf:tab10}}, {stata colorpalette tab20:{bf:tab20}},
+    {stata colorpalette tab20b:{bf:tab20b}}, and {stata colorpalette tab20c:{bf:tab20c}}.
+
+{marker sb}{...}
+{dlgtab:sb}
+
+{pstd}
+    The {cmd:sb} collection provides categorical color schemes from
+    {browse "http://seaborn.pydata.org/":seaborn.pydata.org} (same basic colors as
+    {stata colorpalette tab10:{bf:tab10}}, but in different tones). The
+    syntax is
+
+{p 8 15 2}
+    {cmd:sb} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations allowed).
+
+{p2colset 9 30 31 2}{...}
+{p2col:10 colors ({stata "colorpalette: sb deep / sb muted / sb pastel / sb bright / sb dark / sb colorblind":{it:view}})}
+    6 colors ({stata "colorpalette: sb deep6 / sb muted6 / sb pastel6 / sb bright6 / sb dark6 / sb colorblind6":{it:view}}){p_end}
+{p2col:{hline 18}} {hline 38}{p_end}
+{p2col:{stata colorpalette sb muted:{bf:muted}} (default)} {stata colorpalette sb muted6:{bf:muted6}} (also available as palette {stata colorpalette sb6:{bf:sb6}}){p_end}
+{p2col:{stata colorpalette sb pastel:{bf:pastel}}}         {stata colorpalette sb pastel6:{bf:pastel6}}{p_end}
+{p2col:{stata colorpalette sb bright:{bf:bright}}}         {stata colorpalette sb bright6:{bf:bright6}}{p_end}
+{p2col:{stata colorpalette sb dark:{bf:dark}}}             {stata colorpalette sb dark6:{bf:dark6}}{p_end}
+{p2col:{stata colorpalette sb colorblind:{bf:colorblind}}} {stata colorpalette sb colorblind6:{bf:colorblind6}}{p_end}
+
+{marker pals}{...}
+{dlgtab:pals}
+
+{pstd}
+    The {cmd:pals} collection provides some categorical color schemes that have been
+    obtained from the {bf:pals} package in R; see
+    {browse "http://github.com/kwstat/pals":github.com/kwstat/pals}. The
+    syntax is
+
+{p 8 15 2}
+    {cmd:pals} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations allowed)
+    ({stata "colorpalette: pals alphabet / pals alphabet2 / pals cols25 / pals glasbey / pals kelly / pals polychrome / pals watlington":{it:view}}).
+
+{p2colset 9 24 26 2}{...}
+{p2col:{stata colorpalette pals alphabet:{bf:alphabet}}}26 colors{p_end}
+{p2col:{stata colorpalette pals alphabet2:{bf:alphabet2}}}26 colors{p_end}
+{p2col:{stata colorpalette pals cols25:{bf:cols25}}}25 colors{p_end}
+{p2col:{stata colorpalette pals glasbey:{bf:glasbey}}}32 colors{p_end}
+{p2col:{stata colorpalette pals kelly:{bf:kelly}}}22 colors; the default{p_end}
+{p2col:{stata colorpalette pals polychrome:{bf:polychrome}}}36 colors{p_end}
+{p2col:{stata colorpalette pals watlington:{bf:watlington}}}16 colors{p_end}
+
+{marker tab}{...}
+{dlgtab:tab}
+
+{pstd}
+    The {cmd:tab} collection provides various color schemes from
+    {browse "http://www.tableau.com/about/blog/2016/7/colors-upgrade-tableau-10-56782":Tableau 10}
+    (the color values have been obtained from the {browse "http://github.com/jrnold/ggthemes/":{bf:ggthemes}}
+    package in R). The syntax is
+
+{p 8 15 2}
+    {cmd:tab} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations and lower case
+    spelling allowed).
+
+{p2colset 9 30 32 2}{...}
+{p2col:Qualitative}
+({stata "colorpalette: tab 10 / tab 20 / tab Color Blind / tab Seattle Grays / tab Traffic / tab Miller Stone / tab Superfishel Stone / tab Nuriel Stone":{it:view 1-8}})
+({stata "colorpalette: tab Jewel Bright / tab Summer / tab Winter / tab Green-Orange-Teal / tab Red-Blue-Brown / tab Purple-Pink-Gray / tab Hue Circle":{it:view 9-15}})
+{p_end}
+{p2col:{stata colorpalette tab 10:{bf:10}}} 10 colors; the default{p_end}
+{p2col:{stata colorpalette tab 20:{bf:20}}} 10 colors{p_end}
+{p2col:{stata colorpalette tab Color Blind:{bf:Color Blind}}} 10 colors{p_end}
+{p2col:{stata colorpalette tab Seattle Grays:{bf:Seattle Grays}}} 5 colors{p_end}
+{p2col:{stata colorpalette tab Traffic:{bf:Traffic}}} 9 colors{p_end}
+{p2col:{stata colorpalette tab Miller Stone:{bf:Miller Stone}}} 11 colors{p_end}
+{p2col:{stata colorpalette tab Superfishel Stone:{bf:Superfishel Stone}}} 10 colors{p_end}
+{p2col:{stata colorpalette tab Nuriel Stone:{bf:Nuriel Stone}}} 9 colors{p_end}
+{p2col:{stata colorpalette tab Jewel Bright:{bf:Jewel Bright}}} 9 colors{p_end}
+{p2col:{stata colorpalette tab Summer:{bf:Summer}}} 8 colors{p_end}
+{p2col:{stata colorpalette tab Winter:{bf:Winter}}} 10 colors{p_end}
+{p2col:{stata colorpalette tab Green-Orange-Teal:{bf:Green-Orange-Teal}}} 12 colors{p_end}
+{p2col:{stata colorpalette tab Red-Blue-Brown:{bf:Red-Blue-Brown}}} 12 colors{p_end}
+{p2col:{stata colorpalette tab Purple-Pink-Gray:{bf:Purple-Pink-Gray}}} 12 colors{p_end}
+{p2col:{stata colorpalette tab Hue Circle:{bf:Hue Circle}}} 19 colors{p_end}
+
+{p2col:Sequential}
+({stata "colorpalette: tab Blue-Green / tab Blue Light / tab Orange Light / tab Blue / tab Orange / tab Green / tab Red / tab Purple":{it:view 1-8}})
+({stata "colorpalette: tab Brown / tab Gray / tab Gray Warm / tab Blue-Teal / tab Orange-Gold / tab Green-Gold / tab Red-Gold":{it:view 9-15}})
+{p_end}
+{p2col:{stata colorpalette tab Blue-Green:{bf:Blue-Green}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Blue Light:{bf:Blue Light}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Orange Light:{bf:Orange Light}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Blue:{bf:Blue}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Orange:{bf:Orange}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Green:{bf:Green}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Red:{bf:Red}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Purple:{bf:Purple}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Brown:{bf:Brown}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Gray:{bf:Gray}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Gray Warm:{bf:Gray Warm}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Blue-Teal:{bf:Blue-Teal}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Orange-Gold:{bf:Orange-Gold}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Green-Gold:{bf:Green-Gold}}} 20 colors{p_end}
+{p2col:{stata colorpalette tab Red-Gold:{bf:Red-Gold}}} 21 colors{p_end}
+
+{p2col:Diverging}
+({stata "colorpalette: tab Orange-Blue / tab Red-Green / tab Green-Blue / tab Red-Blue / tab Red-Black / tab Gold-Purple / tab Red-Green-Go / tab Sunset-Sunrise":{it:view 1-8}})
+({stata "colorpalette: tab Orange-Blue-White / tab Red-Green-White / tab Green-Blue-White / tab Red-Blue-White / tab Red-Black-White / tab Orange-Blue Light / tab Temperature":{it:view 9-15}})
+{p_end}
+{p2col:{stata colorpalette tab Orange-Blue:{bf:Orange-Blue}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Green:{bf:Red-Green}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Green-Blue:{bf:Green-Blue}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Blue:{bf:Red-Blue}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Black:{bf:Red-Black}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Gold-Purple:{bf:Gold-Purple}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Green-Gold:{bf:Red-Green-Gold}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Sunset-Sunrise:{bf:Sunset-Sunrise}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Orange-Blue-White:{bf:Orange-Blue-White}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Green-White:{bf:Red-Green-White}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Green-Blue-White:{bf:Green-Blue-White}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Blue-White:{bf:Red-Blue-White}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Red-Black-White:{bf:Red-Black-White}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Orange-Blue Light:{bf:Orange-Blue Light}}} 7 colors{p_end}
+{p2col:{stata colorpalette tab Temperature:{bf:Temperature}}} 7 colors{p_end}
+
+{marker tol}{...}
+{dlgtab:tol}
+
+{pstd}
+    The {cmd:tol} collection provides various color schemes presented by Paul Tol
+    at {browse "http://personal.sron.nl/~pault/":personal.sron.nl/~pault}. The syntax is
+
+{p 8 15 2}
+    {cmd:tol} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations and lower case
+    spelling allowed).
+
+{p2colset 9 30 32 2}{...}
+{p2col:Qualitative ({stata "colorpalette: tol bright / tol high-contrast / tol vibrant / tol muted / tol medium-contrast / tol light":{it:view}})}{p_end}
+{p2col:{stata colorpalette tol bright:{bf:bright}}} 8 colors{p_end}
+{p2col:{stata colorpalette tol high-contrast:{bf:high-contrast}}} 4 colors{p_end}
+{p2col:{stata colorpalette tol vibrant:{bf:vibrant}}} 8 colors{p_end}
+{p2col:{stata colorpalette tol muted:{bf:muted}}} 11 colors; the default{p_end}
+{p2col:{stata colorpalette tol medium-contrast:{bf:medium-contrast}}} 7 colors{p_end}
+{p2col:{stata colorpalette tol light:{bf:light}}} 10 colors{p_end}
+
+{p2col:Sequential ({stata "colorpalette: tol YlOrBr / tol iridescent":{it:view}})}{p_end}
+{p2col:{stata colorpalette tol YlOrBr:{bf:YlOrBr}}} 9 colors{p_end}
+{p2col:{stata colorpalette tol iridescent:{bf:iridescent}}} 23 colors{p_end}
+
+{p2col:Rainbow ({stata "colorpalette: tol rainbow / tol PuRd / tol PuBr / tol WhRd / tol WhBr":{it:view}})}{p_end}
+{p2col:{stata colorpalette tol rainbow:{bf:rainbow}}} 1-23 colors{p_end}
+{p2col:{stata colorpalette tol PuRd:{bf:PuRd}}} 22 colors{p_end}
+{p2col:{stata colorpalette tol PuBr:{bf:PuBr}}} 26 colors{p_end}
+{p2col:{stata colorpalette tol WhRd:{bf:WhRd}}} 30 colors{p_end}
+{p2col:{stata colorpalette tol WhBr:{bf:WhBr}}} 34 colors{p_end}
+
+{p2col:Diverging ({stata "colorpalette: tol sunset / tol BuRd / tol PRGn":{it:view}})}{p_end}
+{p2col:{stata colorpalette tol sunset:{bf:sunset}}} 11 colors{p_end}
+{p2col:{stata colorpalette tol BuRd:{bf:BuRd}}} 9 colors{p_end}
+{p2col:{stata colorpalette tol PRGn:{bf:PRGn}}} 9 colors{p_end}
+
+{marker ptol}{...}
+{dlgtab:ptol}
+
+{pstd}
+    The {cmd:ptol} collection provides color schemes suggested by
+    {browse "http://personal.sron.nl/~pault/colourschemes.pdf":Tol (2012)}. The
+    syntax is
+
+{p 8 15 2}
+    {cmd:ptol} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations allowed)
+    ({stata "colorpalette: ptol, n(3) / ptol, n(5) / ptol, n(9) / ptol rain, n(4) / ptol rain, n(6) / ptol rain, n(8) / ptol div, n(3) / ptol div, n(5) / ptol div, n(9)":{it:view}}).
+
+{p2colset 9 24 26 2}{...}
+{p2col:{stata colorpalette ptol qualitative:{bf:qualitative}}}1-12 qualitative colors; the default{p_end}
+{p2col:{stata colorpalette ptol rainbow:{bf:rainbow}}}4-12 rainbow colors{p_end}
+{p2col:{stata colorpalette ptol diverging:{bf:diverging}}}3-11 diverging colors; very similar to reverse {helpb colorpalette##cbrew:RdYlBu}{p_end}
+
 {marker cbrew}{...}
 {dlgtab:ColorBrewer}
 
@@ -1291,14 +1569,80 @@ matching palette in the sorted will be used.
     and argument {cmd:cmyk} requests the CMYK variant of the scheme. The default is to use
     the RGB variant.
 
+{marker carto}{...}
+{dlgtab:carto}
+
+{pstd}
+    The {cmd:carto} collection provides various color schemes from
+    {browse "http://carto.com/carto-colors/":Carto}. The syntax is
+
+{p 8 15 2}
+    {cmd:carto} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations and lower case
+    spelling allowed).
+
+{pmore}
+    Qualitative (2-11 colors) ({stata "colorpalette: carto Antique / carto Bold / carto Pastel / carto Prism / carto Safe / carto Vivid":{it:view}})
+    {p_end}
+{pmore}
+    {stata colorpalette carto Antique:{bf:Antique}},
+    {stata colorpalette carto Bold:{bf:Bold}} (the default),
+    {stata colorpalette carto Pastel:{bf:Pastel}},
+    {stata colorpalette carto Prism:{bf:Prism}},
+    {stata colorpalette carto Safe:{bf:Safe}} (colorblind-friendly),
+    {stata colorpalette carto Vivid:{bf:Vivid}}
+
+{pmore}
+    Sequential (2-7 colors)
+    ({stata "colorpalette: carto Burg / carto BurgYl / carto RedOr / carto OrYel / carto Peach / carto PinkYl / carto Mint / carto BluGrn / carto DarkMint / carto Emrld / carto ag_GrnYl":{it:view 1-11}})
+    ({stata "colorpalette: carto BluYl / carto Teal / carto TealGrn / carto Purp / carto PurpOr / carto Sunset / carto Magenta / carto SunsetDark / carto ag_Sunset / carto BrwnYl":{it:view 12-21}})
+    {p_end}
+{pmore}
+    {stata colorpalette carto Burg:{bf:Burg}},
+    {stata colorpalette carto BurgYl:{bf:BurgYl}},
+    {stata colorpalette carto RedOr:{bf:RedOr}},
+    {stata colorpalette carto OrYel:{bf:OrYel}},
+    {stata colorpalette carto Peach:{bf:Peach}},
+    {stata colorpalette carto PinkYl:{bf:PinkYl}},
+    {stata colorpalette carto Mint:{bf:Mint}},
+    {stata colorpalette carto BluGrn:{bf:BluGrn}},
+    {stata colorpalette carto DarkMint:{bf:DarkMint}},
+    {stata colorpalette carto Emrld:{bf:Emrld}},
+    {stata colorpalette carto ag_GrnYl:{bf:ag_GrnYl}},
+    {stata colorpalette carto BluYl:{bf:BluYl}},
+    {stata colorpalette carto Teal:{bf:Teal}},
+    {stata colorpalette carto TealGrn:{bf:TealGrn}},
+    {stata colorpalette carto Purp:{bf:Purp}},
+    {stata colorpalette carto PurpOr:{bf:PurpOr}},
+    {stata colorpalette carto Sunset:{bf:Sunset}},
+    {stata colorpalette carto Magenta:{bf:Magenta}},
+    {stata colorpalette carto SunsetDark:{bf:SunsetDark}},
+    {stata colorpalette carto ag_Sunset:{bf:ag_Sunset}},
+    {stata colorpalette carto BrwnYl:{bf:BrwnYl}}
+
+{pmore}
+    Diverging (2-7 colors) ({stata "colorpalette: carto ArmyRose / carto Fall / carto Geyser / carto Temps / carto TealRose / carto Tropic / carto Earth":{it:view}})
+    {p_end}
+{pmore}
+    {stata colorpalette carto ArmyRose:{bf:ArmyRose}},
+    {stata colorpalette carto Fall:{bf:Fall}},
+    {stata colorpalette carto Geyser:{bf:Geyser}},
+    {stata colorpalette carto Temps:{bf:Temps}},
+    {stata colorpalette carto TealRose:{bf:TealRose}},
+    {stata colorpalette carto Tropic:{bf:Tropic}},
+    {stata colorpalette carto Earth:{bf:Earth}}
+
 {marker viridis}{...}
 {dlgtab:viridis}
 
 {pstd}
-    The viridis collection provides perceptually uniform colormaps from
-    {browse "http://matplotlib.org":matplotlib}, a Python 2D plotting library (Hunter 2007). The
+    The {it:viridis} collection provides perceptually uniform colormaps from
+    {browse "http://matplotlib.org":matplotlib} (also see
+    {browse "http://bids.github.io/colormap/":bids.github.io/colormap}). The
     color values have been taken from file
-    {browse "https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm_listed.py":_cm_listed.py}
+    {browse "http://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm_listed.py":_cm_listed.py}
     at GitHub.
 
 {pstd}The syntax for the viridis palettes is
@@ -1315,9 +1659,38 @@ matching palette in the sorted will be used.
 {p2col:{stata colorpalette plasma:{bf:plasma}}}blue - red - yellow (sequential){p_end}
 {p2col:{stata colorpalette inferno:{bf:inferno}}}black - blue - orange - yellow (sequential){p_end}
 {p2col:{stata colorpalette magma:{bf:magma}}}black - blue - red - yellow (sequential){p_end}
-{p2col:{stata colorpalette cividis:{bf:cividis}}}blue - olive - yellow (sequential){p_end}
-{p2col:{stata colorpalette twilight:{bf:twilight}}}blue - russet (diverging){p_end}
-{p2col:{stata colorpalette twilight shifted:{bf:twilight shifted}}}blue - russet (diverging; shifted variant){p_end}
+{p2col:{stata colorpalette cividis:{bf:cividis}}}blue - olive - yellow (sequential, colorblind-friendly){p_end}
+{p2col:{stata colorpalette twilight:{bf:twilight}}}blue - russet (cyclic){p_end}
+{p2col:{stata colorpalette twilight shifted:{bf:twilight shifted}}}blue - russet (cyclic){p_end}
+
+{pstd}
+    and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
+    must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
+    {it:ub}, the colors are returned in reverse order. {cmd:range()} has not
+    effect for cyclic colormaps.
+
+{marker seaborn}{...}
+{dlgtab:seaborn}
+
+{pstd}
+    The {it:seaborn} collection provides perceptually uniform colormaps from
+    {browse "http://seaborn.pydata.org/":seaborn.pydata.org}.
+    The syntax is
+
+{p 8 15 2}
+    {it:scheme} [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations allowed)
+    ({stata "colorpalette: rocket / mako / flare / crest / vlag / icefire":{it:view}})
+
+{p2colset 9 22 24 2}{...}
+{p2col:{stata colorpalette rocket:{bf:rocket}}}sequential{p_end}
+{p2col:{stata colorpalette mako:{bf:mako}}}sequential{p_end}
+{p2col:{stata colorpalette flare:{bf:flare}}}sequential{p_end}
+{p2col:{stata colorpalette crest:{bf:crest}}}sequential{p_end}
+{p2col:{stata colorpalette vlag:{bf:vlag}}}diverging{p_end}
+{p2col:{stata colorpalette icefire:{bf:icefire}}}diverging{p_end}
 
 {pstd}
     and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
@@ -1328,13 +1701,13 @@ matching palette in the sorted will be used.
 {dlgtab:matplotlib}
 
 {pstd}
-    The {cmd:matplotlib} palette provides several colormaps from
-    {browse "http://matplotlib.org":matplotlib}, a Python 2D plotting library (Hunter 2007). The
+    The {cmd:matplotlib} collection provides several colormaps from
+    {browse "http://matplotlib.org":matplotlib} (Hunter 2007). The
     definitions of the colormaps have been taken from file
-    {browse "https://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm.py":_cm.py}
+    {browse "http://github.com/matplotlib/matplotlib/blob/master/lib/matplotlib/_cm.py":_cm.py}
     at GitHub.
 
-{pstd}The syntax for the {cmd:matplotlib} palette is
+{pstd}The syntax for the {cmd:matplotlib} collection is
 
 {p 8 15 2}
     {cmdab:matplotlib} [{it:scheme}] [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
@@ -1361,47 +1734,153 @@ matching palette in the sorted will be used.
     must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
     {it:ub}, the colors are returned in reverse order.
 
-{marker ptol}{...}
-{dlgtab:ptol}
+{marker CET}{...}
+{dlgtab:CET}
 
 {pstd}
-    The {cmd:ptol} collection provides color schemes suggested by
-    {browse "https://personal.sron.nl/~pault/colourschemes.pdf":Tol (2012)}. The
-    syntax is
+    The {cmd:CET} collection provides perceptually uniform colormaps by
+    {browse "http://arxiv.org/abs/1509.03700":Kovesi (2015)}. The syntax is
 
 {p 8 15 2}
-    {cmd:ptol} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:CET} {it:scheme} [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:scheme} is one of the following (abbreviations allowed)
-    ({stata "colorpalette: ptol, n(3) / ptol, n(5) / ptol, n(9) / ptol rain, n(4) / ptol rain, n(6) / ptol rain, n(8) / ptol div, n(3) / ptol div, n(5) / ptol div, n(9)":{it:view}}).
+    where {it:scheme} is one of the following (abbreviations and lower case spelling allowed)
+    (see {browse "http://colorcet.com/gallery.html":colorcet.com/gallery.html}
+    for an overview)
 
-{p2colset 9 24 26 2}{...}
-{p2col:{stata colorpalette ptol qualitative:{bf:qualitative}}}1-12 qualitative colors; the default{p_end}
-{p2col:{stata colorpalette ptol rainbow:{bf:rainbow}}}4-12 rainbow colors{p_end}
-{p2col:{stata colorpalette ptol diverging:{bf:diverging}}}3-11 diverging colors; very similar to reverse {helpb colorpalette##cbrew:RdYlBu}{p_end}
-
-{marker d3}{...}
-{dlgtab:d3}
+{p2colset 9 30 31 2}{...}
+{p2col:Linear:}
+    {stata colorpalette CET L01:{bf:L01}},
+    {stata colorpalette CET L02:{bf:L02}},
+    {stata colorpalette CET L03:{bf:L03}},
+    {stata colorpalette CET L04:{bf:L04}},
+    {stata colorpalette CET L05:{bf:L05}},
+    {stata colorpalette CET L06:{bf:L06}},
+    {stata colorpalette CET L07:{bf:L07}},
+    {stata colorpalette CET L08:{bf:L08}},
+    {stata colorpalette CET L09:{bf:L09}},
+    {stata colorpalette CET L10:{bf:L10}},
+    {stata colorpalette CET L11:{bf:L11}},
+    {stata colorpalette CET L12:{bf:L12}},
+    {stata colorpalette CET L13:{bf:L13}},
+    {stata colorpalette CET L14:{bf:L14}},
+    {stata colorpalette CET L15:{bf:L15}},
+    {stata colorpalette CET L16:{bf:L16}},
+    {stata colorpalette CET L17:{bf:L17}},
+    {stata colorpalette CET L18:{bf:L18}},
+    {stata colorpalette CET L19:{bf:L19}},
+    {stata colorpalette CET L20:{bf:L20}} (default)
+    {p_end}
+{p2col:Rainbow:}
+    {stata colorpalette CET R1:{bf:R1}},
+    {stata colorpalette CET R2:{bf:R2}},
+    {stata colorpalette CET R3:{bf:R3}},
+    {stata colorpalette CET R4:{bf:R4}}
+    {p_end}
+{p2col:Isoluminant:}
+    {stata colorpalette CET I1:{bf:I1}},
+    {stata colorpalette CET I2:{bf:I2}},
+    {stata colorpalette CET I3:{bf:I3}}
+    {p_end}
+{p2col:Diverging:}
+    {stata colorpalette CET D01:{bf:D01}},
+    {stata colorpalette CET D01A:{bf:D01A}},
+    {stata colorpalette CET D02:{bf:D02}},
+    {stata colorpalette CET D03:{bf:D03}},
+    {stata colorpalette CET D04:{bf:D04}},
+    {stata colorpalette CET D06:{bf:D06}},
+    {stata colorpalette CET D07:{bf:D07}},
+    {stata colorpalette CET D08:{bf:D08}},
+    {stata colorpalette CET D09:{bf:D09}},
+    {stata colorpalette CET D10:{bf:D10}},
+    {stata colorpalette CET D11:{bf:D11}},
+    {stata colorpalette CET D12:{bf:D12}},
+    {stata colorpalette CET D13:{bf:D13}}
+    {p_end}
+{p2col:Circular:}
+    {stata colorpalette CET C1:{bf:C1}},
+    {stata colorpalette CET C2:{bf:C2}},
+    {stata colorpalette CET C3:{bf:C3}},
+    {stata colorpalette CET C4:{bf:C4}},
+    {stata colorpalette CET C5:{bf:C5}},
+    {stata colorpalette CET C6:{bf:C6}},
+    {stata colorpalette CET C7:{bf:C7}},
+    {p_end}
+{p2col:Colorblind-friendly:}
+    {stata colorpalette CET CBD1:{bf:CBD1}},
+    {stata colorpalette CET CBL1:{bf:CBL1}},
+    {stata colorpalette CET CBL2:{bf:CBL2}},
+    {stata colorpalette CET CBC1:{bf:CBC1}},
+    {stata colorpalette CET CBC2:{bf:CBC2}}
+    {p_end}
 
 {pstd}
-    The {cmd:d3} collection provides color schemes from
-    {browse "http://d3js.org/":D3.js}, using the color values found at
-    {browse "https://github.com/d3/d3-scale/blob/master/README.md#category-scales":github.com/d3}. The
-    syntax is
+    and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
+    must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
+    {it:ub}, the colors are returned in reverse order. {cmd:range()} has not
+    effect for circular colormaps.
+
+{marker scico}{...}
+{dlgtab:scico}
+
+{pstd}
+    The {cmd:CET} collection provides perceptually uniform colorblind-friendly colormaps by
+    {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}. The syntax is
 
 {p 8 15 2}
-    {cmd:d3} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+    {cmd:scico} {it:scheme} [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
-    where {it:scheme} is one of the following
-    ({stata "colorpalette: d3 10 / d3 20 / d3 20b / d3 20c":{it:view}}).
+    where {it:scheme} is one of the following (lower case spelling allowed)
+    (see {browse "http://www.fabiocrameri.ch/ws/media-library/0ce197f7ec5c4405bf8a5d6a07192b2b/readme_scientificcolourmaps.pdf":readme_scientificcolourmaps.pdf}
+    for an overview)
 
-{p2colset 9 16 18 2}{...}
-{p2col:{stata colorpalette d3 10:{bf:10}}}10 categorical colors; the default; same as first 10 colors in {helpb colorpalette##tableau:tableau}{p_end}
-{p2col:{stata colorpalette d3 20:{bf:20}}}20 categorical colors in pairs; same colors as in {helpb colorpalette##tableau:tableau}, but ordered differently{p_end}
-{p2col:{stata colorpalette d3 20b:{bf:20b}}}20 categorical colors in groups of four{p_end}
-{p2col:{stata colorpalette d3 20c:{bf:20c}}}20 categorical colors in groups of four{p_end}
+{p2colset 9 22 23 2}{...}
+{p2col:Sequential:}
+    {stata colorpalette scico batlow:{bf:batlow}} (default),
+    {stata colorpalette scico batlowW:{bf:batlowW}},
+    {stata colorpalette scico batlowK:{bf:batlowK}},
+    {stata colorpalette scico devon:{bf:devon}},
+    {stata colorpalette scico lajolla:{bf:lajolla}},
+    {stata colorpalette scico bamako:{bf:bamako}},
+    {stata colorpalette scico davos:{bf:davos}},
+    {stata colorpalette scico bilbao:{bf:bilbao}},
+    {stata colorpalette scico nuuk:{bf:nuuk}},
+    {stata colorpalette scico oslo:{bf:oslo}},
+    {stata colorpalette scico grayC:{bf:grayC}},
+    {stata colorpalette scico hawaii:{bf:hawaii}},
+    {stata colorpalette scico lapaz:{bf:lapaz}},
+    {stata colorpalette scico tokyo:{bf:tokyo}},
+    {stata colorpalette scico buda:{bf:buda}},
+    {stata colorpalette scico acton:{bf:acton}},
+    {stata colorpalette scico turku:{bf:turku}},
+    {stata colorpalette scico imola:{bf:imola}}
+    {p_end}
+{p2col:Diverging:}
+    {stata colorpalette scico broc:{bf:broc}},
+    {stata colorpalette scico cork:{bf:cork}},
+    {stata colorpalette scico vik:{bf:vik}},
+    {stata colorpalette scico lisbon:{bf:lisbon}},
+    {stata colorpalette scico tofino:{bf:tofino}},
+    {stata colorpalette scico berlin:{bf:berlin}},
+    {stata colorpalette scico roma:{bf:roma}},
+    {stata colorpalette scico bam:{bf:bam}},
+    {stata colorpalette scico vanimo:{bf:vanimo}}
+    {p_end}
+{p2col:Cyclic:}
+    {stata colorpalette scico romaO:{bf:romaO}},
+    {stata colorpalette scico bamO:{bf:bamO}},
+    {stata colorpalette scico brocO:{bf:brocO}},
+    {stata colorpalette scico corkO:{bf:corkO}},
+    {stata colorpalette scico vikO:{bf:vikO}}
+    {p_end}
+
+{pstd}
+    and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
+    must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
+    {it:ub}, the colors are returned in reverse order. {cmd:range()} has not
+    effect for cyclic colormaps.
 
 {marker lin}{...}
 {dlgtab:lin}
@@ -1511,7 +1990,7 @@ matching palette in the sorted will be used.
 
 {pstd}
     The {cmd:HTML} collection provides named HTML colors from
-    {browse "https://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}. The
+    {browse "http://www.w3schools.com/colors/colors_names.asp":www.w3schools.com}. The
     syntax is
 
 {p 8 15 2}
@@ -1543,7 +2022,7 @@ matching palette in the sorted will be used.
 
 {pstd}
     The {cmd:w3} collection provides colors from
-    {browse "https://www.w3schools.com/w3css/w3css_colors.asp":W3.CSS}. The
+    {browse "http://www.w3schools.com/w3css/w3css_colors.asp":W3.CSS}. The
     syntax is
 
 {p 8 15 2}
@@ -1591,6 +2070,46 @@ matching palette in the sorted will be used.
 {p2col:{stata colorpalette w3 red:{bf:red}}}11 sequential Red colors{p_end}
 {p2col:{stata colorpalette w3 teal:{bf:teal}}}11 sequential Teal colors{p_end}
 {p2col:{stata colorpalette w3 yellow:{bf:yellow}}}11 sequential Yellow colors{p_end}
+
+{marker wes}{...}
+{dlgtab:wesanderson}
+
+{pstd}
+    The {it:wesanderson} collection provides Wes Anderson palettes from
+    {browse "http://wesandersonpalettes.tumblr.com/":wesandersonpalettes.tumblr.com} (the
+    color codes have been obtained from
+    {browse "http://github.com/karthik/wesanderson":github.com/karthik/wesanderson}). The syntax is
+
+{p 8 15 2}
+    {it:scheme} [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations and lower case spelling allowed).
+
+{p2colset 9 26 27 2}{...}
+{p2col:}
+    ({stata "colorpalette: BottleRocket1 / BottleRocket2 / Rushmore1 / Royal1 / Royal2 / Zissou1 / Darjeeling1 / Darjeeling2 / Chevalier1 / FantasticFox1":{it:view 1-10}})
+    ({stata "colorpalette: Moonrise1 / Moonrise2 / Moonrise3 / Cavalcanti1 / GrandBudapest1 / GrandBudapest2 / IsleofDogs1 / IsleofDogs2 / FrenchDispatch1":{it:view 11-19}})
+    {p_end}
+{p2col:{stata colorpalette BottleRocket1:{bf:BottleRocket1}}} 7 qualitative colors from Bottle Rocket{p_end}
+{p2col:{stata colorpalette BottleRocket2:{bf:BottleRocket2}}} 5 qualitative colors from Bottle Rocket{p_end}
+{p2col:{stata colorpalette Rushmore1:{bf:Rushmore1}}} 5 qualitative colors from Rushmore{p_end}
+{p2col:{stata colorpalette Royal1:{bf:Royal1}}} 4 qualitative colors from The Royal Tenenbaums{p_end}
+{p2col:{stata colorpalette Royal2:{bf:Royal2}}} 5 qualitative colors from The Royal Tenenbaums{p_end}
+{p2col:{stata colorpalette Zissou1:{bf:Zissou1}}} 5 diverging colors from The Life Aquatic with Steve Zissou{p_end}
+{p2col:{stata colorpalette Darjeeling1:{bf:Darjeeling1}}} 5 qualitative colors from The Darjeeling Limited{p_end}
+{p2col:{stata colorpalette Darjeeling2:{bf:Darjeeling2}}} 5 qualitative colors from The Darjeeling Limited{p_end}
+{p2col:{stata colorpalette Chevalier1:{bf:Chevalier1}}} 4 qualitative colors from Hotel Chevalier{p_end}
+{p2col:{stata colorpalette FantasticFox1:{bf:FantasticFox1}}} 5 qualitative colors from Fantastic Mr. Fox{p_end}
+{p2col:{stata colorpalette Moonrise1:{bf:Moonrise1}}} 4 qualitative colors from Moonrise Kingdom{p_end}
+{p2col:{stata colorpalette Moonrise2:{bf:Moonrise2}}} 4 qualitative colors from Moonrise Kingdom{p_end}
+{p2col:{stata colorpalette Moonrise3:{bf:Moonrise3}}} 5 qualitative colors from Moonrise Kingdom{p_end}
+{p2col:{stata colorpalette Cavalcanti1:{bf:Cavalcanti1}}} 5 qualitative colors from Castello Cavalcanti{p_end}
+{p2col:{stata colorpalette GrandBudapest1:{bf:GrandBudapest1}}} 4 qualitative colors from The Grand Budapest Hotel{p_end}
+{p2col:{stata colorpalette GrandBudapest2:{bf:GrandBudapest2}}} 4 qualitative colors from The Grand Budapest Hotel{p_end}
+{p2col:{stata colorpalette IsleofDogs1:{bf:IsleofDogs1}}} 6 qualitative colors from The Isle of Dogs{p_end}
+{p2col:{stata colorpalette IsleofDogs2:{bf:IsleofDogs2}}} 5 qualitative colors from The Isle of Dogs{p_end}
+{p2col:{stata colorpalette FrenchDispatch1:{bf:FrenchDispatch1}}} 5 qualitative colors from The French Dispatch{p_end}
 
 {marker myname}{...}
 {dlgtab:myname}
@@ -1642,7 +2161,7 @@ matching palette in the sorted will be used.
 
 
 {marker examples}{...}
-{title:Example}
+{title:Examples}
 
 {dlgtab:Retrieving colors from r()}
 
@@ -1785,6 +2304,9 @@ matching palette in the sorted will be used.
     Assets. Version 1.1.1. Neuchâtel.
     {p_end}
 {phang}
+    Crameri, F. (2018). Scientific colour maps. Zenodo. {browse "http://doi.org/10.5281/zenodo.1243862":DOI: 10.5281/zenodo.1243862}.
+    {p_end}
+{phang}
     Gomez, M. 2015. Stata command to generate color schemes. Available from
     {browse "http://github.com/matthieugomez/stata-colorscheme"}.
     {p_end}
@@ -1800,6 +2322,9 @@ matching palette in the sorted will be used.
 {phang}
     Juul, S. 2003. {browse "http://www.stata-journal.com/article.html?article=gr0002":Lean mainstream schemes for Stata 8 graphics}. The Stata
     Journal 3(3): 295-301.
+    {p_end}
+{phang}
+    Kovesi, P. (2015). Good Colour Maps: How to Design Them. {browse "http://arxiv.org/abs/1509.03700":arXiv:1509.03700} [cs.GR].
     {p_end}
 {phang}
     Lin, S., J. Fortuna, C. Kulkarni, M. Stone,
@@ -1827,7 +2352,7 @@ matching palette in the sorted will be used.
     {p_end}
 {phang}
     Tol, P. 2012. Colour Schemes. SRON Technical Note, Doc. no. SRON/EPS/TN/09-002. Available
-    from {browse "https://personal.sron.nl/~pault/colourschemes.pdf"}.
+    from {browse "http://personal.sron.nl/~pault/colourschemes.pdf"}.
     {p_end}
 {phang}
     Zeileis, A., K. Hornik, P. Murrell. 2009.
@@ -1840,13 +2365,13 @@ matching palette in the sorted will be used.
 {title:Author}
 
 {pstd}
-    Ben Jann, University of Bern, ben.jann@soz.unibe.ch
+    Ben Jann, University of Bern, ben.jann@unibe.ch
 
 {pstd}
     Thanks for citing this software as
 
 {pmore}
-    Jann, B. (2018). {browse "https://www.stata-journal.com/article.html?article=gr0075":Color palettes for Stata graphics}. The Stata Journal
+    Jann, B. (2018). {browse "http://www.stata-journal.com/article.html?article=gr0075":Color palettes for Stata graphics}. The Stata Journal
     18(4): 765-785.
 
 {pstd}
@@ -1862,5 +2387,6 @@ matching palette in the sorted will be used.
 {title:Also see}
 
 {psee}
-    Online:  help for {helpb colrspace}, {helpb colorpalette9}, {helpb symbolpalette}, {helpb linepalette}, {helpb grstyle set}, {helpb graph}, {help colorstyle}
+    Online:  help for {helpb colrspace}, {helpb colorpalette9}, {helpb symbolpalette}, 
+    {helpb linepalette}, {helpb grstyle set}, {helpb graph}, {help colorstyle}
 

@@ -29,7 +29,13 @@ Installation from GitHub:
 
 Main changes:
 
-    23mar2022
+    01apr2022 (colorpalette v 1.2.1)
+    - help updated to cover new palettes supported by ColrSpace
+    - new options drop() and shift()
+    - support for cyclic (circular) palettes added
+    - discontinued backward compatibility to -colorpalette9- syntax
+
+    23mar2022 (colorpalette v 1.2.0)
     - option class() had no effect if used with a colorlist or with a custom palette
       provided by a program; this is fixed
 

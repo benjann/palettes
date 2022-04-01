@@ -1,4 +1,4 @@
-*! version 1.2.0  23mar2022  Ben Jann
+*! version 1.2.1  01apr2022  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -160,7 +160,8 @@ end
 
 program Palette_Get, rclass
     local opts N(numlist max=1 integer >=1) ///
-        Select(numlist integer) order(numlist integer) REVerse ///
+        Select(numlist integer) drop(numlist integer) ///
+        order(numlist integer) REVerse shift(numlist integer max=1) ///
         INtensity(numlist >=0 missingokay) ///
         OPacity(numlist int >=0 missingokay) ///
         IPolate(str) ///
@@ -175,10 +176,10 @@ program Palette_Get, rclass
         Hue(passthru) Chroma(passthru) SATuration(passthru) ///
         Luminance(passthru) VALue(passthru)  ///
         POWer(passthru) DIRection(passthru)  ///
-        RAnge(passthru) SHIFTed cmyk * ]
+        RAnge(passthru) * ]
     remove_repeatedopts `"`opts'"' `", `options'"'
     local passthruopts `hue' `chroma' `saturation' `luminance' `value' /*
-        */`power' `direction' `range' `shifted' `cmyk' `options'
+        */`power' `direction' `range' `options'
     parse_psopts, `hue' `chroma' `saturation' `luminance' `value' /*
         */`power' `direction' `range'
     if `"`opacity'"'!="" {
@@ -187,9 +188,15 @@ program Palette_Get, rclass
             exit 9
         }
     }
-    if `"`select'"'!="" & `"`order'"'!="" {
-        di as err "only one of select() and order() allowed"
-        exit 198
+    if `"`select'"'!="" {
+        if `"`drop'"'!="" {
+            di as err "only one of select() and drop() allowed"
+            exit 198
+        }
+        if `"`order'"'!="" {
+            di as err "only one of select() and order() allowed"
+            exit 198
+        }
     }
     if `"`ipolate'"'!=""    parse_ipolate `ipolate'
     if `"`saturate'"'!=""   parse_saturate `saturate'
@@ -226,10 +233,6 @@ program Palette_Get, rclass
             }
         }
     }
-    if `ptype'==0 {
-        mata: backwardcompatibility() // may reset palette
-    }
-    local options `shifted' `cmyk' `options'
     mata: getpalette(strtoreal("`n'"), `ptype')
     // return palette
     local i 0
@@ -348,8 +351,8 @@ program parse_cblind
 end
 
 program parse_class
-    syntax [, Qualitative Sequential Diverging ]
-    local class `qualitative' `sequential' `diverging'
+    syntax [, Qualitative CATegorical Sequential Diverging CYClic CIRCular  ]
+    local class `qualitative' `categorical' `sequential' `diverging' `cyclic' `circular'
     if `:list sizeof class'>1 exit 198
     c_local class `class'
 end
@@ -889,7 +892,7 @@ void colorpalette_mkdir(path)
 void getpalette(real scalar n, real scalar ptype)
 {
     real scalar     ip_n, rc
-    string scalar   pal, p1
+    string scalar   pal, libname
     class ColrSpace scalar S
     pragma unset    S
     pointer scalar  p
@@ -934,17 +937,15 @@ void getpalette(real scalar n, real scalar ptype)
         st_local("palette", "custom") // assign default palette name
     }
     else if (ptype==2) { // ColrSpace palette
-                         // palette: full palette name
-                         // pfirst:  first word of palette name
-        p1 = tokens(pal)[1]
-        if (anyof(("hue", "HCL","LCh","JMh","HSV","HSL"), p1)) {
+        (void) S.pexists(pal, libname="")
+        if (substr(libname, 1, strlen("generators"))=="generators") {
             S.palette(pal, n, strtoreal(tokens(st_local("hue"))), 
                 strtoreal(tokens(st_local("chroma"))), 
                 strtoreal(tokens(st_local("luminance"))),
                 strtoreal(tokens(st_local("power"))))
         }
-        else if (anyof(("viridis", "plasma", "inferno", "magma", "cividis", 
-            "twilight", "matplotlib"), p1)) {
+        else if (substr(libname, 1, strlen("lsmaps"))=="lsmaps" |
+                 substr(libname, 1, strlen("rgbmaps"))=="rgbmaps") {
             S.palette(pal, n, strtoreal(tokens(st_local("range"))))
         }
         else S.palette(pal, n, st_local("noexpand")!="")
@@ -982,19 +983,23 @@ void getpalette(real scalar n, real scalar ptype)
     // option n()
     if (ptype!=2) {
         if (n<. & n!=S.N()) {
-            if (n<S.N() & S.pclass()=="qualitative") S.recycle(n)
-            if (st_local("noexpand")=="") {
-                if (S.pclass()=="qualitative") S.recycle(n)
-                else                           S.ipolate(n)
+            if (anyof(("qualitative","categorical"), S.pclass())) {
+                if (st_local("noexpand")=="")  S.recycle(n)
+                else if (n<S.N())              S.recycle(n)
             }
+            else if (st_local("noexpand")=="") S.ipolate(n)
         }
     }
     // option select()
     if (st_local("select")!="") S.select(strtoreal(tokens(st_local("select"))))
+    // option drop()
+    if (st_local("drop")!="") S.drop(strtoreal(tokens(st_local("drop"))))
     // option order()
     if (st_local("order")!="") S.order(strtoreal(tokens(st_local("order"))))
     // option reverse
     if (st_local("reverse")!="") S.reverse()
+    // option shift()
+    if (st_local("shift")!="") S.shift(strtoreal(st_local("shift")))
     // option opacity()
     if (st_local("opacity")!="") S.opacity(strtoreal(tokens(st_local("opacity"))), 1)
     // option intensity()
@@ -1002,11 +1007,11 @@ void getpalette(real scalar n, real scalar ptype)
     // option ipolate()
     if ((ip_n  = strtoreal(st_local("ipolate_n")))<.) {
         S.ipolate(ip_n, 
-                  st_local("ipolate_space"), 
-                  strtoreal(tokens(st_local("ipolate_range"))), 
-                  strtoreal(st_local("ipolate_power")),
-                  strtoreal(tokens(st_local("ipolate_positions"))),
-                  st_local("ipolate_pad")!="")
+            st_local("ipolate_space"), 
+            strtoreal(tokens(st_local("ipolate_range"))), 
+            strtoreal(st_local("ipolate_power")),
+            strtoreal(tokens(st_local("ipolate_positions"))),
+            st_local("ipolate_pad")!="")
     }
     // option intensify()
     if (st_local("intensify")!="") {
@@ -1041,6 +1046,15 @@ void getpalette(real scalar n, real scalar ptype)
     st_local("note", S.note())
     st_local("source", S.source())
     st_local("class", S.pclass())
+}
+
+void _getpalette_ipolate(class ColrSpace scalar S, real scalar n,
+    string scalar space, real rowvector range, real scalar pow,
+    real rowvector pos, real scalar pad, string scalar cyc)
+{
+    if      (cyc=="cyclic")   S.ipolate(n, space, range, pow, pos, pad, 1)
+    else if (cyc=="nocyclic") S.ipolate(n, space, range, pow, pos, pad, 0)
+    else                      S.ipolate(n, space, range, pow, pos, pad)
 }
 
 void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal0)
@@ -1078,115 +1092,6 @@ void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal
         pal0   = invtokens(PAL)
         ptype = 2
     }
-}
-
-void backwardcompatibility()
-{
-    string scalar    pal, opt
-    string rowvector scheme
-    
-    pal = st_local("palette")
-    if (length(tokens(pal))!=1) return
-    scheme = tokens(st_local("options"))
-    if (length(scheme)==1) {
-        if (anyof(("hcl","lch","jmh"), pal)) {
-            if (smatch(scheme, ("qualitative", "intense", "dark", "light",
-                "pastel", "sequential", "blues", "greens", "grays", "oranges",
-                "purples", "reds", "heat", "heat2", "terrain", "terrain2",
-                "viridis", "plasma", "redblue", "diverging", "bluered",
-                "bluered2", "bluered3", "greenorange", "browngreen",
-                "pinkgreen", "purplegreen")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal=="hsv") {
-            if (smatch(scheme, ("qualitative", "intense", "dark", "light",
-                "pastel", "rainbow", "sequential", "blues", "greens", "grays",
-                "oranges", "purples", "reds", "heat", "terrain", "diverging",
-                "bluered", "bluered2", "bluered3", "greenorange", "browngreen",
-                "pinkgreen", "purplegreen", "heat0", "terrain0")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal==substr("matplotlib", 1, max((7, strlen(pal))))) {
-            if (smatch(scheme, ("jet", "autumn", "spring", "summer",
-                "winter", "bone", "cool", "copper", "coolwarm", "hot")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal=="ptol") {
-            if (smatch(scheme, ("qualitative", "diverging", "rainbow")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal=="lin") {
-            if (smatch(scheme, ("carcolor", "food", "features",
-                "activities", "fruits", "vegetables", "drinks", "brands")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal=="d3") {
-            if (smatch(scheme, ("10", "20", "20b", "20c")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal=="spmap") {
-            if (smatch(scheme, ("blues", "greens", "greys", "reds",
-                "rainbow", "heat", "terrain", "topological")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else if (pal=="sfso") {
-            if (smatch(scheme, ("blue", "brown", "orange", "red", "pink",
-                "purple", "violet", "ltblue", "turquoise", "green", "olive",
-                "black", "parties", "languages", "votes"))) {
-                pal = pal + " " + scheme
-                if (st_local("cmyk")!="") {
-                    pal = pal + " cmyk"
-                    st_local("cmyk", "")
-                }
-            }
-            else return
-        }
-        else if (pal==substr("webcolors", 1, max((3, strlen(pal))))) {
-            if (smatch(scheme, ("pink", "purple", "redorange", "yellow",
-                "green", "cyan", "blue", "brown", "white", "gray", "grey")))
-                pal = pal + " " + scheme
-            else return
-        }
-        else return
-        st_local("options", "")
-    }
-    else if (length(scheme)==2) {
-        opt    = scheme[2]
-        scheme = scheme[1]
-        if (pal=="lin") {
-            if (smatch(scheme, ("carcolor", "food", "features",
-                "activities", "fruits", "vegetables", "drinks", "brands")) 
-                & _smatch(opt,"algorithm"))
-                pal = pal + " " + scheme + " " + opt
-            else return
-        }
-        else return
-        st_local("options", "")
-    }
-    else if (st_local("shifted")!="") {
-        if (pal=="twilight") pal = pal + " shifted"
-        else return
-        st_local("shifted", "")
-    }
-    else if (st_local("cmyk")!="") {
-        if (anyof(("Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1",
-            "Set2", "Set3", "Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "OrRd",
-            "Oranges", "PuBu", "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn",
-            "YlGnBu", "YlOrBr", "YlOrRd", "BrBG", "PRGn", "PiYG", "PuOr", "RdBu",
-            "RdGy", "RdYlBu", "RdYlGn", "Spectral", "sfso"), pal))
-            pal = pal + " cmyk"
-        else return
-        st_local("cmyk", "")
-    }
-    else return
-    st_local("palette", pal)
 }
 
 real scalar smatch(string scalar scheme, string vector schemes)
