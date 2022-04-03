@@ -1,5 +1,5 @@
 {smcl}
-{* 01apr2022}{...}
+{* 03apr2022}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {right:{browse "http://github.com/benjann/palettes/"}}
@@ -46,6 +46,12 @@
 
 {pstd}
 or {cmd:.} to insert a gap.
+
+{pstd}
+    Analyze colors after applying {cmd:colorpalette} (Syntax 1 only)
+
+{p 8 15 2}
+    {cmd:colorcheck} [{cmd:,} {help colorpalette##checkopts:{it:check_options}} ]
 
 
 {synoptset 20 tabbed}{...}
@@ -173,7 +179,7 @@ matching palette in the sorted will be used.
 {syntab:Main}
 {synopt:{helpb colorpalette##title:{ul:ti}tle({it:string})}}custom graph title
     {p_end}
-{synopt:{helpb colorpalette##nonumbers:{ul:nunum}bers}}omit color IDs
+{synopt:{helpb colorpalette##nonumbers:{ul:nonum}bers}}omit color IDs
     {p_end}
 {synopt:{helpb colorpalette##gropts:{ul:gr}opts({it:options})}}options
     passed through to graph command
@@ -197,6 +203,8 @@ matching palette in the sorted will be used.
     {p_end}
 {synopt:{helpb colorpalette##span:span}}use all available space for each palette
     {p_end}
+{synopt:{helpb colorpalette##barwidth:barwidth({it:#})}}width of bars
+    {p_end}
 {synopt:{helpb colorpalette##labels:{ul:lab}els({it:strlist})}}custom palette labels
     {p_end}
 {synopt:{helpb colorpalette##lcolor:{ul:lc}olor({it:colorstyle})}}custom outline color
@@ -206,15 +214,53 @@ matching palette in the sorted will be used.
 {synoptline}
 
 
+{synoptset 20 tabbed}{...}
+{marker checkopts}{synopthdr:check_options}
+{synoptline}
+{syntab:Main}
+{synopt:{helpb colorpalette##metric:{ul:m}etric({it:metric})}}color difference metric
+    {p_end}
+{synopt:{helpb colorpalette##monoc:mono({it:spec})}}grayscale conversion settings
+    {p_end}
+{synopt:{helpb colorpalette##cvd:cvd({it:#})}}severity of color vision deficiency
+    {p_end}
+
+{syntab:Graph}
+{synopt:{helpb colorpalette##nogrcheck:{ul:nogr}aph}}do not generate a graph
+    {p_end}
+{synopt:{helpb colorpalette##sort:sort{sf:[}({it:spec}){sf:]}}}sort the colors in the graph
+    {p_end}
+{synopt:{help colorpalette##gopts:{it:graph_options}}}syntax 2 graph option
+    {p_end}
+{synoptline}
+
+
 {marker description}{...}
 {title:Description}
 
 {pstd}
     {cmd:colorpalette} is a utility command to retrieve or display color
-    palettes. Palette entries are returned in
-    {helpb colorpalette##returns:r()} or, optionally, as global or local
-    {helpb colorpalette##macrooptions:macros} or as
+    palettes. A large collection of named colors, palettes, colormaps, and color
+    generators is provided and color codes can be entered various formats
+    (including, e.g., hex colors). Furthermore, {cmd:colorpalette} provides
+    advances features such as color interpolation, grayscale
+    conversion, or color vision deficiency simulation. Palette entries are
+    returned in {helpb colorpalette##returns:r()} or, optionally, as global
+    or local {helpb colorpalette##macrooptions:macros} or as
     {help colorpalette##stylefiles:style files}.
+
+{pstd}
+    {cmd:colorcheck} analyzes the colors returned by {cmd:colorpalette}
+    by applying grayscale conversion and color vision deficiency transformation,
+    and by computing minimum color differences among the converted colors. The
+    purpose of the command is to evaluate whether the colors will be
+    distinguishable by people who suffer from color vision deficiency and also
+    whether the colors will be distinguishable in (non-color) print. The smallest
+    noticeable difference between two colors has a color difference value
+    (Delta E) of 1.0. A value of, say, 10 seems a reasonable minimum difference
+    for colors used to display different features of data. {cmd:colorcheck}
+    operates on the results returned by {cmd:colorpalette} (Syntax 1 only) and
+    can be applied repeatedly (see {help colorpalette##excheck:example}).
 
 {pstd}
     {cmd:colorpalette} requires version 14.2 of Stata or newer. Users of older
@@ -277,10 +323,11 @@ matching palette in the sorted will be used.
 
 {marker shift}{...}
 {phang}
-    {opth shift(#)} reorders the colors. Positive numbers refer to positions
-    from the start; negative numbers refer to positions from the end. Colors
-    not covered in {it:numlist} will be placed last, in their original order. Only
-    one of {cmd:order()} and {cmd:select()} is allowed. {cmd:shift()} is
+    {opth shift(#)} shifts the positions of the colors up (#>0) or down (#<0),
+    wrapping positions around at the end. If # is in (-1,1),
+    the colors are shifted by trunc(#*n) positions, where n is the size of the
+    palette (proportional shift); if abs(#)>=1, the colors are shifted by
+    trunc(#) positions. {cmd:shift()} is
     applied after {cmd:n()}, {cmd:select()}, {cmd:drop()},
     {cmd:order()}, and {cmd:reverse} have taken effect.
 
@@ -735,6 +782,12 @@ matching palette in the sorted will be used.
     spans the full plot region, irrespective of the
     number of colors (syntax 2 only).
 
+{marker barwidth}{...}
+{phang}
+    {opt barwidth(#)} sets the width of the color bars. The default is
+    {cmd:barwidth(0.7)}. The available space per bar is 1 unit; specifying
+    {cmd:barwidth(1)} will remove the gap between bars.
+
 {marker labels}{...}
 {phang}
     {opt labels(strlist)} provides custom labels for the palettes (syntax 2
@@ -749,6 +802,46 @@ matching palette in the sorted will be used.
 {phang}
     {opth lwidth(linewidthstyle)} specifies a custom outline thickness (syntax 2
     only). The default is {cmd:lwidth(vthin)}.
+
+{dlgtab:Colorcheck options}
+
+{marker metric}{...}
+{phang}
+    {opt metric(metric)} selects the color difference metric to be used. {it:metric}
+    can be {cmd:E76}, {cmd:E94}, {cmd:E2000}, or {cmd:Jab}; see help
+    {helpb colrspace##delta:colrspace} for detail. Default is {cmd:metric(Jab)}.
+
+{marker monoc}{...}
+{phang}
+    {cmd:mono}{cmd:(}[{it:#}] [{cmd:,} {it:method}]{cmd:)} determines the
+    settings for grayscale conversion, where {it:#} in [0,1] specifies the
+    proportion of gray (default is {cmd:mono(1)}, i.e. full conversion)
+    and {it:method} selects the conversion method (default is {cmd:LCh}, see
+    see help {helpb colrspace##gray:colrspace} for available methods).
+
+{marker cvd}{...}
+{phang}
+    {opt cvd(#)}, with {it:#} in [0,1], sets the severity of color vision
+    deficiency. Default is {cmd:cvd(1)} (maximum severity).
+
+{marker nogrcheck}{...}
+{phang}
+    {cmd:nograph} suppresses the graph.
+
+{marker sort}{...}
+{phang}
+    {cmd:sort}[{cmd:(}{it:spec}{cmd:)}] sorts the colors in the graph, where
+    {it:spec} may be {cmdab:n:ormal} (by hue of normal vision),
+    {cmdab:m:ono} (by shading of monochromacy vision), {cmdab:d:euter}
+    (by hue of deuteranomaly vision), {cmdab:p:rot}
+    (by hue of protanomaly vision), or {cmdab:t:rit}
+    (by hue of tritanomaly vision). {cmd:sort} without argument
+    is equivalent to {cmd:sort(normal)}. Sort only has an effect on how the colors
+    are ordered in the graph, but not on how the colors are stored in {cmd:r()}.
+
+{phang}
+    {help colorpalette##gopts:{it:graph_options}} are graph options as for
+    {cmd:colorpalette} (Syntax 2).
 
 
 {marker palettes}{...}
@@ -2244,6 +2337,16 @@ matching palette in the sorted will be used.
     style files will be stored in folder 'style' within the {cmd:PERSONAL} ado-file
     directory; see help {helpb sysdir}.
 
+{marker excheck}{...}
+{dlgtab:Analyzing colors using colorcheck}
+
+        . {stata colorpalette s2, nograph}
+        . {stata colorcheck}
+        . {stata colorcheck, sort(mono)}
+        . {stata colorcheck, sort(deuter)}
+        . {stata colorcheck, metric(E2000) nograph}
+        . {stata colorcheck, mono(0.9) cvd(0.75) vertical}
+
 
 {marker returns}{...}
 {title:Saved results}
@@ -2266,6 +2369,29 @@ matching palette in the sorted will be used.
 {synopt:{cmd:r(p#)}}#th color{p_end}
 {synopt:{cmd:r(p#name)}}name of #th color (if provided){p_end}
 {synopt:{cmd:r(p#info)}}info of #th color (if provided){p_end}
+
+
+{pstd}
+    {cmd:colorcheck} adds the following to {cmd:r()}, in addition to the
+    results from {cmd:colorpalette}:
+
+{synoptset 16 tabbed}{...}
+{p2col 5 16 20 2: Scalars}{p_end}
+{synopt:{cmd:r(mono)}}proportion of gray{p_end}
+{synopt:{cmd:r(cvd)}}CVD severity{p_end}
+
+{synoptset 16 tabbed}{...}
+{p2col 5 16 20 2: Macros}{p_end}
+{synopt:{cmd:r(metric)}}color difference metric{p_end}
+{synopt:{cmd:r(mono_method)}}grayscale conversion method{p_end}
+{synopt:{cmd:r(p_mono)}}list of grayscale converted colors{p_end}
+{synopt:{cmd:r(p_deut)}}list of deteranomaly transformed colors{p_end}
+{synopt:{cmd:r(p_prot)}}list of protanomaly transformed colors{p_end}
+{synopt:{cmd:r(p_trit)}}list of tritanomaly transformed colors{p_end}
+
+{synoptset 16 tabbed}{...}
+{p2col 5 16 20 2: Matrix}{p_end}
+{synopt:{cmd:r(delta)}}color difference statistics{p_end}
 
 
 {marker references}{...}
@@ -2387,6 +2513,6 @@ matching palette in the sorted will be used.
 {title:Also see}
 
 {psee}
-    Online:  help for {helpb colrspace}, {helpb colorpalette9}, {helpb symbolpalette}, 
+    Online:  help for {helpb colrspace}, {helpb colorpalette9}, {helpb symbolpalette},
     {helpb linepalette}, {helpb grstyle set}, {helpb graph}, {help colorstyle}
 

@@ -29,6 +29,12 @@ Installation from GitHub:
 
 Main changes:
 
+    03apr2022
+    - command -colorcheck- added
+    - colorpalette (v 1.2.2)
+      o new barwidth() graph option in syntax 2
+      o shift() now allows non-integer argument
+    
     01apr2022 (colorpalette v 1.2.1)
     - help updated to cover new palettes supported by ColrSpace
     - new options drop() and shift()

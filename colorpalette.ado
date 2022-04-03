@@ -1,4 +1,4 @@
-*! version 1.2.1  01apr2022  Ben Jann
+*! version 1.2.2  03apr2022  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -117,7 +117,7 @@ program Get_Global_Opts
     c_local STYLEFILES2 `stylefiles2'
     c_local NOGRAPH     `nograph'
     c_local GRAPH       `graph'
-    c_local GROPTS      `gropts' `title' `rows' `names'  `nonumbers'
+    c_local GROPTS      `gropts' `title' `rows' `names' `nonumbers'
     if `"`options'"'!="" local options `", `options'"'
     c_local 0 `"`lhs'`options'"'
 end
@@ -161,7 +161,7 @@ end
 program Palette_Get, rclass
     local opts N(numlist max=1 integer >=1) ///
         Select(numlist integer) drop(numlist integer) ///
-        order(numlist integer) REVerse shift(numlist integer max=1) ///
+        order(numlist integer) REVerse shift(numlist max=1) ///
         INtensity(numlist >=0 missingokay) ///
         OPacity(numlist int >=0 missingokay) ///
         IPolate(str) ///
@@ -735,8 +735,10 @@ end
 
 program Graph2
     _parse comma palettes 0 : 0
-    syntax [, TItle(passthru) LABels(str asis) PLabels(str asis) NONUMbers ///
-        GRopts(str asis) LColor(str) LWidth(str) VERTical HORizontal span * ]
+    syntax [, TItle(passthru) LABels(str asis) PLabels(str asis) ///
+        NONUMbers GRopts(str asis) LColor(str) LWidth(str) ///
+        VERTical HORizontal span BARWidth(numlist max=1) * ]
+    if "`barwidth'"=="" local barwidth 0.7
     if `"`labels'"'!="" local plabels `"`labels'"'
     local orientation `vertical' `horizontal'
     if "`orientation'"=="" local orientation horizontal
@@ -759,7 +761,8 @@ program Graph2
         qui set obs `r'
     }
     tempvar y
-    qui generate `y' = ceil(_n/4) - .35 + inlist(mod(_n-1,4)+1,3,4)*.7 in 1/`r'
+    qui generate `y' = ceil(_n/4) - `barwidth'/2 + /*
+        */ inlist(mod(_n-1,4)+1,3,4)*`barwidth' in 1/`r'
     if "`span'"!="" {
         tempvar psize
         qui generate `psize' = .
