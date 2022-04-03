@@ -5,7 +5,9 @@ d Author: Ben Jann, University of Bern, ben.jann@unibe.ch
 d
 d Distribution-Date: 20220403
 f colorpalette.ado
+f colorcheck.ado
 f colorpalette.sthlp
+f colorcheck.sthlp
 f symbolpalette.hlp
 f colorpalette9.hlp
 f symbolpalette.ado
