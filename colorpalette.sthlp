@@ -1,5 +1,5 @@
 {smcl}
-{* 03apr2022}{...}
+{* 18apr2022}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 {right:{browse "http://github.com/benjann/palettes/"}}
@@ -136,7 +136,7 @@ matching palette in the sorted will be used.
     {p_end}
 {synopt:{helpb colorpalette##ipolate:{ul:ip}olate({it:spec})}}interpolate the colors
     {p_end}
-{synopt:{helpb colorpalette##intensify:{ul:in}tensify({it:numlist})}}modify intensity
+{synopt:{helpb colorpalette##intensify:intensify({it:numlist})}}modify intensity
     {p_end}
 {synopt:{helpb colorpalette##saturate:saturate({it:spec})}}modify saturation (colorfulness)
     {p_end}
@@ -191,6 +191,8 @@ matching palette in the sorted will be used.
 {synopt:{helpb colorpalette##names:names}}print names instead of codes
     (if available)
     {p_end}
+{synopt:{helpb colorpalette##noinfo:noinfo}}suppress additional color info
+    {p_end}
 {synopt:{helpb colorpalette##nograph:{ul:nogr}aph}}do not generate a graph
     {p_end}
 {synopt:{helpb colorpalette##graph:graph}}enforce crating the graph
@@ -203,7 +205,7 @@ matching palette in the sorted will be used.
     {p_end}
 {synopt:{helpb colorpalette##span:span}}use all available space for each palette
     {p_end}
-{synopt:{helpb colorpalette##barwidth:barwidth({it:#})}}width of bars
+{synopt:{helpb colorpalette##barwidth:{ul:barw}idth({it:#})}}width of bars
     {p_end}
 {synopt:{helpb colorpalette##labels:{ul:lab}els({it:strlist})}}custom palette labels
     {p_end}
@@ -284,8 +286,8 @@ matching palette in the sorted will be used.
     diverging ColorBrewer palettes, are adaptive to {opt n()} in the sense that
     they return different colors depending on {opt n()}. Other palettes, such
     as {cmd:s2}, contain a fixed set of colors. If {opt n()} is different from
-    the (maximum or minimum) number of colors returned by a palette, the colors
-    are either recycled or interpolated, depending on the class of palette; see
+    the (maximum or minimum) number of colors defined by a palette, the colors
+    are either recycled or interpolated, depending on the class of the palette; see
     option {helpb colorpalette##class:class()} below. To prevent automatic
     recycling/interpolation, specify option {helpb colorpalette##noexpand:noexpand}
     (see below).
@@ -323,7 +325,7 @@ matching palette in the sorted will be used.
 
 {marker shift}{...}
 {phang}
-    {opth shift(#)} shifts the positions of the colors up (#>0) or down (#<0),
+    {opth shift(#)} shifts the positions of the colors up (if #>0) or down (if #<0),
     wrapping positions around at the end. If # is in (-1,1),
     the colors are shifted by trunc(#*n) positions, where n is the size of the
     palette (proportional shift); if abs(#)>=1, the colors are shifted by
@@ -333,8 +335,9 @@ matching palette in the sorted will be used.
 
 {marker opacity}{...}
 {phang}
-    {opth opacity(numlist)} sets the opacity level(s) (0: fully transparent,
-    100: fully opaque; Stata 15 required). Specify multiple values to use
+    {opth opacity(numlist)} sets the opacity level(s) (Stata 15 required). The
+    values in {it:numlist} must be between 0 (fully transparent) and 100
+    (fully opaque). Specify multiple values to use
     different opacity levels across the colors. If the number of specified
     opacity levels is smaller than the number of colors, the levels will be
     recycled; if the number of opacity levels is larger than the number of
@@ -487,7 +490,7 @@ matching palette in the sorted will be used.
     adjusting the saturation of a particular color, you may set the
     corresponding element to {cmd:.} (missing). {cmd:saturate()} is
     applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
-    {cmd:reverse}, {cmd:shift()},, {cmd:opacity()}, {cmd:intensity()},
+    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
     {cmd:ipolate()}, and {cmd:intensify()} have taken effect. Suboptions are as
     follows.
 
@@ -630,6 +633,7 @@ matching palette in the sorted will be used.
     palettes that do not set the class as part of their definition.
 
 {marker pname}{...}
+{phang}
     {opt name(str)} assigns a custom name to the palette.
 
 {marker macrooptions}{...}
@@ -684,7 +688,7 @@ matching palette in the sorted will be used.
     flush graph's working memory using {helpb discard} or {helpb clear all}
     before the new colors become available). Style files will only be
     created for colors that are represented by a simple RGB code; codes that
-    include an intensity-adjustment or opacity operator, CMYK codes, and colors
+    include an intensity-adjustment or opacity operator and colors
     that are referred to by their Stata name will be skipped. The syntax of
     {it:spec} is
 
@@ -755,7 +759,12 @@ matching palette in the sorted will be used.
 {marker names}{...}
 {phang}
     {opt names} replaces the RGB values in the graph by the information found in
-    {cmd:r(p#info)} (e.g. the color names), if such information is available (syntax 1 only).
+    {cmd:r(p#name)} (i.e. the color names), if such information is available (syntax 1 only).
+
+{marker noinfo}{...}
+{phang}
+    {opt noinfo} suppresses the additional color information that is sometimes
+    printed below the RGB values or color names.
 
 {marker nograph}{...}
 {phang}
@@ -784,7 +793,7 @@ matching palette in the sorted will be used.
 
 {marker barwidth}{...}
 {phang}
-    {opt barwidth(#)} sets the width of the color bars. The default is
+    {opt barwidth(#)} sets the width of the color bars (syntax 2 only). The default is
     {cmd:barwidth(0.7)}. The available space per bar is 1 unit; specifying
     {cmd:barwidth(1)} will remove the gap between bars.
 
@@ -1174,7 +1183,7 @@ matching palette in the sorted will be used.
     {browse "http://CRAN.R-project.org/package=colorspace":Ihaka et al. (2016)}; also
     see {browse "http://dx.doi.org/10.1016/j.csda.2008.11.033":Zeileis et al. (2009)}
     and {browse "http://hclwizard.org":hclwizard.org}. The {cmd:LCh} and
-    {cmd:JMmh} generators are implemented analogously.
+    {cmd:JMh} generators are implemented analogously.
 
 {pstd}
     Let h1 and h2 be two hues on the 360 degree color wheel, c1 and c2 two
@@ -1267,19 +1276,19 @@ matching palette in the sorted will be used.
     {help colrspace_library_generators:colrspace_library_generators.sthlp}). Options are:
 
 {phang}
-    {opt hue(h1 [h2])} overwrites the default values for h1 and h2. h1 and h2 are hues on
+    {opt hue(h1 [h2])} overrides the default values for h1 and h2. h1 and h2 are hues on
     the 360 degree color wheel.
 
 {phang}
-    {opt chroma(c1 [c2])} overwrites the default values for c1 and c2, with {it:c#} >= 0. c1 and c2
+    {opt chroma(c1 [c2])} overrides the default values for c1 and c2, with {it:c#} >= 0. c1 and c2
     determine the colorfulness (color intensity).
 
 {phang}
-    {opt luminance(l1 [l2])} overwrites the default values for l1 and l2, with {it:l#} in [0, 100]. l1 and l2
+    {opt luminance(l1 [l2])} overrides the default values for l1 and l2, with {it:l#} in [0, 100]. l1 and l2
     determine the brightness.
 
 {phang}
-    {opt power(p1 [p2])} overwrites the default values for p1 and p2,
+    {opt power(p1 [p2])} overrides the default values for p1 and p2,
     with {it:p#} > 0. p1 and p2 determine the shape of the transition between
     chroma and luminance levels. For linear transitions, set {it:p#}=1; {it:p#}>1 makes
     the transition faster, {it:p#}<1 makes the transition slower.
@@ -1351,20 +1360,20 @@ matching palette in the sorted will be used.
     Options are:
 
 {phang}
-    {opt h:ue(h1 [h2])} overwrites the default values for h1 and h2. h1 and h2
+    {opt h:ue(h1 [h2])} overrides the default values for h1 and h2. h1 and h2
     are hues on the 360 degree color wheel.
 
 {phang}
-    {opt sat:uration(c1 [c2])} overwrites the default values for
+    {opt sat:uration(c1 [c2])} overrides the default values for
     c1 and c2, with {it:c#} in [0, 1]. c1 and c2 determine the colorfulness
     (color intensity).
 
 {phang}
-    {opt val:ue(l1 [l2])} overwrites the default values for l1 and l2, with
+    {opt val:ue(l1 [l2])} overrides the default values for l1 and l2, with
     {it:l#} in [0, 1]. l1 and l2 determine the brightness.
 
 {phang}
-    {opt power(p1 [p2])} overwrites the default values for p1 and p2,
+    {opt power(p1 [p2])} overrides the default values for p1 and p2,
     with {it:p#} > 0. p1 and p2 determine the shape of the transition between
     saturation and value levels. For linear transitions, set {it:p#}=1; {it:p#}>1 makes
     the transition faster, {it:p#}<1 makes the transition slower.
@@ -1421,7 +1430,8 @@ matching palette in the sorted will be used.
 {p2col:10 colors ({stata "colorpalette: sb deep / sb muted / sb pastel / sb bright / sb dark / sb colorblind":{it:view}})}
     6 colors ({stata "colorpalette: sb deep6 / sb muted6 / sb pastel6 / sb bright6 / sb dark6 / sb colorblind6":{it:view}}){p_end}
 {p2col:{hline 18}} {hline 38}{p_end}
-{p2col:{stata colorpalette sb muted:{bf:muted}} (default)} {stata colorpalette sb muted6:{bf:muted6}} (also available as palette {stata colorpalette sb6:{bf:sb6}}){p_end}
+{p2col:{stata colorpalette sb deep:{bf:deep}} (default)}   {stata colorpalette sb deep6:{bf:deep6}} (also available as palette {stata colorpalette sb6:{bf:sb6}}){p_end}
+{p2col:{stata colorpalette sb muted:{bf:muted}}}           {stata colorpalette sb muted6:{bf:muted6}}{p_end}
 {p2col:{stata colorpalette sb pastel:{bf:pastel}}}         {stata colorpalette sb pastel6:{bf:pastel6}}{p_end}
 {p2col:{stata colorpalette sb bright:{bf:bright}}}         {stata colorpalette sb bright6:{bf:bright6}}{p_end}
 {p2col:{stata colorpalette sb dark:{bf:dark}}}             {stata colorpalette sb dark6:{bf:dark6}}{p_end}
@@ -1567,6 +1577,13 @@ matching palette in the sorted will be used.
 {p2col:{stata colorpalette tol sunset:{bf:sunset}}} 11 colors{p_end}
 {p2col:{stata colorpalette tol BuRd:{bf:BuRd}}} 9 colors{p_end}
 {p2col:{stata colorpalette tol PRGn:{bf:PRGn}}} 9 colors{p_end}
+
+{pstd}
+    The definitions of the schemes have been obtained from source file
+    {browse "http://personal.sron.nl/~pault/data/tol_colors.py":tol_colors.py}. These
+    definitions may deviate from how the palettes are presented at 
+    {browse "http://personal.sron.nl/~pault/":personal.sron.nl/~pault} (e.g., 
+    with respect to the order of colors in the qualitative schemes).
 
 {marker ptol}{...}
 {dlgtab:ptol}
@@ -1898,7 +1915,7 @@ matching palette in the sorted will be used.
     {stata colorpalette CET C4:{bf:C4}},
     {stata colorpalette CET C5:{bf:C5}},
     {stata colorpalette CET C6:{bf:C6}},
-    {stata colorpalette CET C7:{bf:C7}},
+    {stata colorpalette CET C7:{bf:C7}}
     {p_end}
 {p2col:Colorblind-friendly:}
     {stata colorpalette CET CBD1:{bf:CBD1}},
@@ -1918,7 +1935,7 @@ matching palette in the sorted will be used.
 {dlgtab:scico}
 
 {pstd}
-    The {cmd:CET} collection provides perceptually uniform colorblind-friendly colormaps by
+    The {cmd:scico} collection provides perceptually uniform colorblind-friendly colormaps by
     {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}. The syntax is
 
 {p 8 15 2}
@@ -2211,26 +2228,67 @@ matching palette in the sorted will be used.
     A personal named palette can be provided in form of a program called
     {cmd:colorpalette_}{it:myname}, where {it:myname} is the name of the
     palette. Palette {it:myname} will then be available to {cmd:colorpalette}
-    like any other palette. Your program should return the color definitions as
-    a comma-separated list in local macro {cmd:P}. In addition you may provide
-    a comma-separated list of names in local macro {cmd:N}. For example,
-    the following program provides a palette called {cmd:bootstrap3} containing
-    the semantic colors used for buttons in
-    {browse "http://getbootstrap.com/docs/3.3":Bootstrap v3.3}:
+    like any other palette. Your program should behave as follows.
+
+{phang2}
+    (1) It must return the color definitions as a comma-separated list in local
+    macro {cmd:P}. All types of {help colorpalette##colorlist:color specifications}
+    supported by {cmd:colorpalette}, including opacity and intensity operators, 
+    are allowed for the individual colors in the list.
+
+{phang2}
+    (2) If input is parsed using {helpb syntax}, option {cmd:n()} must
+    be allowed. In addition to {cmd:n()}, all options not consumed by {cmd:colorpalette}
+    will be passed through to {cmd:colorpalette_}{it:myname}. This makes
+    it possible to support custom options in your program.
+
+{phang2}
+    (3) Color names can be returned as a comma-separated list in local
+    macro {cmd:N}.
+
+{phang2}
+    (4) Color descriptions can be returned as a comma-separated list in local
+    macro {cmd:I}.
+
+{phang2}
+    (5) The palette name can be returned in local macro {cmd:name} ({it:myname}
+    is used as the palette name if no name is returned).
+
+{phang2}
+    (6) The palette class can be returned in local macro {cmd:class}.
+
+{phang2}
+    (7) A palette description can be returned in local macro {cmd:note}.
+
+{phang2}
+    (8) Information on the source of the palette can be returned in local macro {cmd:source}.
+
+{pstd}
+    For example, the following program provides a palette called
+    {cmd:bootstrap3} containing semantic colors used for buttons in 
+    {browse "http://getbootstrap.com/docs/3.3/":Bootstrap 3.3}:
 
         {com}program colorpalette_bootstrap3
-            c_local P #ffffff,#337ab7,#5cb85c,#5bc0de,#f0ad4e,#d9534f, ///
-                      #e6e6e6,#286090,#449d44,#31b0d5,#ec971f,#c9302c
-            c_local N default,primary,success,info,warning,danger, ///
-                default.focus,primary.focus,success.focus,info.focus, ///
-                warning.focus,danger.focus
+            syntax [, n(str) ] // n() not used
+            c_local P #ffffff,#337ab7,#5cb85c,#5bc0de,#f0ad4e,#d9534f,/*
+                    */#e6e6e6,#286090,#449d44,#31b0d5,#ec971f,#c9302c
+            c_local N default,primary,success,info,warning,danger,/*
+                */default.focus,primary.focus,success.focus,info.focus,/*
+                */warning.focus,danger.focus
             c_local class qualitative
+            c_local note Button colors from Bootstrap 3.3
+            c_local source https://getbootstrap.com/docs/3.3/
         end{txt}
 
 {pstd}
     After defining the program, you can, for example, type
 
         {com}. colorpalette bootstrap3, rows(6){txt}
+
+{pstd}
+    To make the new palette permanently available, store the program in
+    file {cmd:colorpalette_}{it:myname}{cmd:.ado} in the working directory or
+    somewhere along Stata’s ado path (see {helpb sysdir}).
 
 {marker mata}{...}
 {dlgtab:Mata ColrSpace object}

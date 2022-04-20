@@ -1,4 +1,4 @@
-*! version 1.2.2  03apr2022  Ben Jann
+*! version 1.2.3  13apr2022  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -108,7 +108,8 @@ program Get_Global_Opts
         LOCals LOCals2(passthru) ///
         STYLEFiles STYLEFiles2(passthru) ///
         NOGRaph GRAPH ///
-        GRopts(str asis) TItle(passthru) rows(passthru) names NONUMbers * ]
+        GRopts(str asis) TItle(passthru) rows(passthru) ///
+        names NOINFO NONUMbers * ]
     c_local GLOBALS     `globals'
     c_local GLOBALS2    `globals2'
     c_local LOCALS      `locals'
@@ -117,7 +118,7 @@ program Get_Global_Opts
     c_local STYLEFILES2 `stylefiles2'
     c_local NOGRAPH     `nograph'
     c_local GRAPH       `graph'
-    c_local GROPTS      `gropts' `title' `rows' `names' `nonumbers'
+    c_local GROPTS      `gropts' `title' `rows' `names' `noinfo' `nonumbers'
     if `"`options'"'!="" local options `", `options'"'
     c_local 0 `"`lhs'`options'"'
 end
@@ -364,8 +365,8 @@ end
 
 program parse_psopts // options for color generators and matplotlib colormaps
     syntax [, Hue(numlist max=2) ///
-        Chroma(numlist max=1 >=0) SATuration(numlist max=2 >=0 <=1) ///
-        Luminance(numlist max=1 >=0 <=100) VALue(numlist max=2 >=0 <=1) ///
+        Chroma(numlist max=2 >=0) SATuration(numlist max=2 >=0 <=1) ///
+        Luminance(numlist max=2 >=0 <=100) VALue(numlist max=2 >=0 <=1) ///
         POWer(numlist max=2 >0) DIRection(numlist int max=1) /// 
         RAnge(numlist max=2 >=0 <=1) ]
     if "`saturation'"!="" {
@@ -638,7 +639,7 @@ end
 /*----------------------------------------------------------------------------*/
 
 program Graph
-    syntax [, rows(int 5) TItle(passthru) names NONUMbers * ]
+    syntax [, rows(int 5) TItle(passthru) names NOINFO NONUMbers * ]
     local n = r(n)
     local c = max(3,ceil(sqrt(`n'/12*3)))
     local cut = max(`rows',ceil(`n'/`c'))
@@ -702,25 +703,29 @@ program Graph
         local lblsize medsmall
         local infosize small
     }
-    local pnum (scatteri `pnum', ms(i) msize(`size') mlabpos(9) ///
+    if "`nonumbers'"=="" {
+        local pnum (scatteri `pnum', ms(i) msize(`size') mlabpos(9) ///
             mlabgap(`lblgap') mlabsize(`pnumsize') mlabcolor(black))
+    }
+    else local pnum
     if `"`lbl'"'!="" {
         local lbl (scatteri `lbl', ms(i) msize(`size') mlabpos(3) ///
             mlabgap(`lblgap') mlabsize(`lblsize') mlabcolor(black))
     }
-    if `"`info'"'!="" {
-        local info (scatteri `info', ms(i) msize(`size') mlabpos(4) ///
-            mlabgap(`infogap') mlabsize(`infosize') mlabcolor(black))
+    if "`noinfo'"=="" {
+        if `"`info'"'!="" {
+            local info (scatteri `info', ms(i) msize(`size') mlabpos(4) ///
+                mlabgap(`infogap') mlabsize(`infosize') mlabcolor(black))
+        }
     }
     else local info
-    local l = `size'/2 + 9
+    local l = `size'/2 + cond("`nonumbers'"=="", 9, 5)
     local r = `size'/2 + `rgap'
     local b = `size'/2 + 5
     local t = `size'/2 + 4
     if `"`title'"'=="" {
         local title title(`"`r(pname)'"')
     }
-    if "`nonumbers'"!="" local pnum
     two `plots' `pnum' `lbl' `info' , `title' scheme(s2color) ///
         legend(off) ylabel(none) graphr(color(white)) ///
         xlabel(none) xscale(range(1 3) off) ///

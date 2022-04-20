@@ -29,12 +29,19 @@ Installation from GitHub:
 
 Main changes:
 
+    18apr2022
+    - colorpalette (v 1.2.3)
+      o options chroma() and luminance() of the HCL/LCH/JMh color generator only
+        allowed one argument instead of two; this is fixed
+      o option -noinfo- added to syntax 1 graph options;
+      o some corrections to helpfile
+
     03apr2022
     - command -colorcheck- added
     - colorpalette (v 1.2.2)
       o new barwidth() graph option in syntax 2
       o shift() now allows non-integer argument
-    
+
     01apr2022 (colorpalette v 1.2.1)
     - help updated to cover new palettes supported by ColrSpace
     - new options drop() and shift()
