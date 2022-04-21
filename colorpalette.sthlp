@@ -2,6 +2,7 @@
 {* 18apr2022}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
+({browse "http://ideas.repec.org/p/bss/wpaper/43.html":PDF manual}){...}
 {right:{browse "http://github.com/benjann/palettes/"}}
 {hline}
 
@@ -2552,19 +2553,21 @@ matching palette in the sorted will be used.
     Ben Jann, University of Bern, ben.jann@unibe.ch
 
 {pstd}
-    Thanks for citing this software as
+    Thanks for citing this software in one of the following ways:
 
-{pmore}
-    Jann, B. (2018). {browse "http://www.stata-journal.com/article.html?article=gr0075":Color palettes for Stata graphics}. The Stata Journal
+{phang}
+    Jann, B. 2022. Color palettes for Stata graphics: an update.  University of Bern 
+    Social Sciences Working Papers No. 43. Available from {browse "http://ideas.repec.org/p/bss/wpaper/43.html"}.
+    {p_end}
+{phang}
+    Jann, B. 2018. {browse "http://www.stata-journal.com/article.html?article=gr0075":Color palettes for Stata graphics}. The Stata Journal
     18(4): 765-785.
-
-{pstd}
-    or
-
-{pmore}
-    Jann, B. (2017). palettes: Stata module providing color palettes, symbol
+    {p_end}
+{phang}
+    Jann, B. 2017. palettes: Stata module providing color palettes, symbol
     palettes, and line pattern palettes. Available from
     {browse "http://ideas.repec.org/c/boc/bocode/s458444.html"}.
+    {p_end}
 
 
 {marker alsosee}{...}
@@ -2572,5 +2575,5 @@ matching palette in the sorted will be used.
 
 {psee}
     Online:  help for {helpb colrspace}, {helpb colorpalette9}, {helpb symbolpalette},
-    {helpb linepalette}, {helpb grstyle set}, {helpb graph}, {help colorstyle}
+    {helpb linepalette}, {helpb grstyle set}, {helpb graph}, {it:{help colorstyle}}
 
