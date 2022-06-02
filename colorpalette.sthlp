@@ -1,5 +1,5 @@
 {smcl}
-{* 18apr2022}{...}
+{* 30may2022}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 ({browse "http://ideas.repec.org/p/bss/wpaper/43.html":PDF manual}){...}
@@ -85,9 +85,9 @@ or {cmd:.} to insert a gap.
 {synopt:{helpb colorpalette##hsv:HSV} | {helpb colorpalette##hsv:HSL}}HSV or HSL color generator{p_end}
 
 {syntab:Collections}
+{synopt:{it:{help colorpalette##pals:pals}}}categorical palettes from the {browse "http://github.com/kwstat/pals":{bf:pals}} package in R{p_end}
 {synopt:{helpb colorpalette##d3:d3}}categorical palettes from {browse "http://d3js.org/":D3.js}{p_end}
 {synopt:{helpb colorpalette##sb:sb}}categorical palettes from {browse "http://seaborn.pydata.org/":seaborn.pydata.org}{p_end}
-{synopt:{helpb colorpalette##pals:pals}}categorical palettes from the {browse "http://github.com/kwstat/pals":{bf:pals}} package in R{p_end}
 {synopt:{helpb colorpalette##tab:tab}}color schemes from {browse "http://www.tableau.com/about/blog/2016/7/colors-upgrade-tableau-10-56782":Tableau 10}{p_end}
 {synopt:{helpb colorpalette##tol:tol}}color schemes by Paul Tol from {browse "http://personal.sron.nl/~pault/":personal.sron.nl/~pault}{p_end}
 {synopt:{helpb colorpalette##ptol:ptol}}color schemes from {browse "http://personal.sron.nl/~pault/colourschemes.pdf":Tol (2012)}{p_end}
@@ -1384,6 +1384,31 @@ matching palette in the sorted will be used.
     {help colrspace_library_generators:colrspace_library_generators.sthlp} for default
     parameter values of the above schemes.
 
+{marker pals}{...}
+{dlgtab:pals}
+
+{pstd}
+    The {it:pals} collection provides some categorical color schemes that have been
+    obtained from the {bf:pals} package in R; see
+    {browse "http://github.com/kwstat/pals":github.com/kwstat/pals}. The
+    syntax is
+
+{p 8 15 2}
+    {it:scheme} [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
+
+{pstd}
+    where {it:scheme} is one of the following (abbreviations allowed)
+    ({stata "colorpalette: alphabet / alphabet2 / cols25 / glasbey / kelly / polychrome / watlington":{it:view}}).
+
+{p2colset 9 24 26 2}{...}
+{p2col:{stata colorpalette alphabet:{bf:alphabet}}}26 colors{p_end}
+{p2col:{stata colorpalette alphabet2:{bf:alphabet2}}}26 colors{p_end}
+{p2col:{stata colorpalette cols25:{bf:cols25}}}25 colors{p_end}
+{p2col:{stata colorpalette glasbey:{bf:glasbey}}}32 colors{p_end}
+{p2col:{stata colorpalette kelly:{bf:kelly}}}22 colors{p_end}
+{p2col:{stata colorpalette polychrome:{bf:polychrome}}}36 colors{p_end}
+{p2col:{stata colorpalette watlington:{bf:watlington}}}16 colors{p_end}
+
 {marker d3}{...}
 {dlgtab:d3}
 
@@ -1437,31 +1462,6 @@ matching palette in the sorted will be used.
 {p2col:{stata colorpalette sb bright:{bf:bright}}}         {stata colorpalette sb bright6:{bf:bright6}}{p_end}
 {p2col:{stata colorpalette sb dark:{bf:dark}}}             {stata colorpalette sb dark6:{bf:dark6}}{p_end}
 {p2col:{stata colorpalette sb colorblind:{bf:colorblind}}} {stata colorpalette sb colorblind6:{bf:colorblind6}}{p_end}
-
-{marker pals}{...}
-{dlgtab:pals}
-
-{pstd}
-    The {cmd:pals} collection provides some categorical color schemes that have been
-    obtained from the {bf:pals} package in R; see
-    {browse "http://github.com/kwstat/pals":github.com/kwstat/pals}. The
-    syntax is
-
-{p 8 15 2}
-    {cmd:pals} [{it:scheme}] [{cmd:,} {help colorpalette##opts:{it:palette_options}} ]
-
-{pstd}
-    where {it:scheme} is one of the following (abbreviations allowed)
-    ({stata "colorpalette: pals alphabet / pals alphabet2 / pals cols25 / pals glasbey / pals kelly / pals polychrome / pals watlington":{it:view}}).
-
-{p2colset 9 24 26 2}{...}
-{p2col:{stata colorpalette pals alphabet:{bf:alphabet}}}26 colors{p_end}
-{p2col:{stata colorpalette pals alphabet2:{bf:alphabet2}}}26 colors{p_end}
-{p2col:{stata colorpalette pals cols25:{bf:cols25}}}25 colors{p_end}
-{p2col:{stata colorpalette pals glasbey:{bf:glasbey}}}32 colors{p_end}
-{p2col:{stata colorpalette pals kelly:{bf:kelly}}}22 colors; the default{p_end}
-{p2col:{stata colorpalette pals polychrome:{bf:polychrome}}}36 colors{p_end}
-{p2col:{stata colorpalette pals watlington:{bf:watlington}}}16 colors{p_end}
 
 {marker tab}{...}
 {dlgtab:tab}
@@ -1695,7 +1695,7 @@ matching palette in the sorted will be used.
     spelling allowed).
 
 {pmore}
-    Qualitative (2-11 colors) ({stata "colorpalette: carto Antique / carto Bold / carto Pastel / carto Prism / carto Safe / carto Vivid":{it:view}})
+    Qualitative (2-11 colors, plus one color for missing data) ({stata "colorpalette: carto Antique / carto Bold / carto Pastel / carto Prism / carto Safe / carto Vivid":{it:view}})
     {p_end}
 {pmore}
     {stata colorpalette carto Antique:{bf:Antique}},

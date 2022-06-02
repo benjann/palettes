@@ -29,6 +29,9 @@ Installation from GitHub:
 
 Main changes:
 
+    02jun2022
+    - updated colorpalette.sthlp to reflect renaming of -pals- palettes
+    
     18apr2022
     - colorpalette (v 1.2.3)
       o options chroma() and luminance() of the HCL/LCH/JMh color generator only
