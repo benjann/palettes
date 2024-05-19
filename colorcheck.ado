@@ -1,4 +1,4 @@
-*! version 1.0.0  03apr2022  Ben Jann
+*! version 1.0.1  18may2024  Ben Jann
 
 program colorcheck
     version 14.2
@@ -98,6 +98,7 @@ program _colorcheck, rclass
     return local  mono_method `"`mono_method'"'
     return scalar cvd         = `cvd'
     return matrix delta       = `delta'
+    return local  p_norm      `"`p_norm'"'
     return local  p_mono      `"`p_mono'"'
     return local  p_deut      `"`p_deut'"'
     return local  p_prot      `"`p_prot'"'
@@ -173,7 +174,7 @@ program _colorcheck_graph
     mata: colorcheck_sort(`"`sort2'"')
     colorpalette, `title' `horizontal' `vertical' `lcolor' `lwidth' /*
         */ `barwidth' `nonumbers' `labels' gropts(`gopts' `gropts'): /*
-        */ `p_normal' / `p_mono' / `p_deut'  / `p_prot' / `p_trit'
+        */ `p_norm' / `p_mono' / `p_deut'  / `p_prot' / `p_trit'
 end
 
 program _parse_sort
@@ -211,12 +212,19 @@ void colorcheck()
         stata(`"di as err "need at least two colors""')
         exit(error(498))
     }
+    S.Intensify() // resolve intensity multipliers
+    if (any(S.opacity():<.)) {
+        displayas("txt")
+        printf("(ignoring opacity settings)\n")
+    }
+    S.opacity(.)  // remove opacity
     RGB   = S.get("RGB1")
     P     = colorcheck_subsets(S.N())
     delta = J(5,3,.)
     // original
     E = S.delta(P, metric)
     delta[1,] = minmax(E), mean(E)
+    st_local("p_norm", S.colors())
     // grayscale
     S.gray(gs_p, gs_space)
     E = S.delta(P, metric)
@@ -255,11 +263,11 @@ void colorcheck_sort(string scalar sort)
     class ColrSpace scalar S
     
     if (sort=="") {
-        st_local("p_normal", st_global("r(p)"))
-        st_local("p_mono",   st_global("r(p_mono)"))
-        st_local("p_deut",   st_global("r(p_deut)"))
-        st_local("p_prot",   st_global("r(p_prot)"))
-        st_local("p_trit",   st_global("r(p_trit)"))
+        st_local("p_norm", st_global("r(p_norm)"))
+        st_local("p_mono", st_global("r(p_mono)"))
+        st_local("p_deut", st_global("r(p_deut)"))
+        st_local("p_prot", st_global("r(p_prot)"))
+        st_local("p_trit", st_global("r(p_trit)"))
         return
     }
     if (sort=="mono") {
@@ -279,14 +287,14 @@ void colorcheck_sort(string scalar sort)
         p = order(S.get("HSL")[,1],1)
     }
     else if (sort=="normal") {
-        S.colors(st_global("r(p)"))
+        S.colors(st_global("r(p_norm)"))
         p = order(S.get("HSL")[,1],1)
     }
-    st_local("p_normal", invtokens((`"""':+tokens(st_global("r(p)")):+`"""')[p]))
-    st_local("p_mono",   invtokens((`"""':+tokens(st_global("r(p_mono)")):+`"""')[p]))
-    st_local("p_deut",   invtokens((`"""':+tokens(st_global("r(p_deut)")):+`"""')[p]))
-    st_local("p_prot",   invtokens((`"""':+tokens(st_global("r(p_prot)")):+`"""')[p]))
-    st_local("p_trit",   invtokens((`"""':+tokens(st_global("r(p_trit)")):+`"""')[p]))
+    st_local("p_norm", invtokens((`"""':+tokens(st_global("r(p_norm)")):+`"""')[p]))
+    st_local("p_mono", invtokens((`"""':+tokens(st_global("r(p_mono)")):+`"""')[p]))
+    st_local("p_deut", invtokens((`"""':+tokens(st_global("r(p_deut)")):+`"""')[p]))
+    st_local("p_prot", invtokens((`"""':+tokens(st_global("r(p_prot)")):+`"""')[p]))
+    st_local("p_trit", invtokens((`"""':+tokens(st_global("r(p_trit)")):+`"""')[p]))
     if (st_local("nonumbers")=="") {
         xlab = invtokens((strofreal(1::S.N()):+" ":+`"""':+strofreal(p):+`"""')')
         if (st_local("vertical")!="") st_local("gopts", st_local("gopts") +

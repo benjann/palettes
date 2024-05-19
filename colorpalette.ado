@@ -1,4 +1,4 @@
-*! version 1.2.3  13apr2022  Ben Jann
+*! version 1.2.4  19may2024  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -170,7 +170,9 @@ program Palette_Get, rclass
         saturate(str) luminate(str) ///
         GScale GScale2(str) ///
         CBlind CBlind2(str) ///
-        NOEXPAND class(str) name(str) FORCErgb
+        TORDer(str) ///
+        IConvert IConvert2(str) ///
+        FORCErgb NOEXPAND class(str) name(str)
     syntax [anything(name=palette id="palette" everything equalok)] ///
         [, `opts' ///
         /// palette-specific options
@@ -207,31 +209,33 @@ program Palette_Get, rclass
     if "`gscale'"!=""       parse_gscale `gscale2'
     if `"`cblind2'"'!=""    local cblind cblind
     if "`cblind'"!=""       parse_cblind `cblind2'
+    parse_torder `torder'
+    if `"`iconvert2'"'!=""  local iconvert iconvert
+    if "`iconvert'"!=""     parse_iconvert, `iconvert2'
     if `"`class'"'!=""      capture parse_class, `class'
     // get colors
     local ptype 0
     if `"`palette'"'=="" { // use s2 if palette is empty
-        local palette s2
+        if c(stata_version)<18 local palette s2
+        else                   local palette st
         local ptype 2
     }
     else {  // check whether palette is mata(name)
         capt parse_mata, `palette' // returns local mataname
         if _rc==0 local ptype 3
     }
-    if `ptype'==0 {
-        // check whether palette has more than 3 words
-        // (ColrSpace currently has no palette names with more than 3 words)
-        if `:list sizeof palette'>3 {
+    if `ptype'==0 { // check whether palette is list of colors in (...)
+        gettoken pal rest : palette, match(paren)
+        if "`paren'"=="(" {
+            if `"`rest'"'!="" local palette `"`pal' `rest'"'
+            else              local palette `"`pal'"'
             local ptype 1
         }
-        // check whether palette is list of colors in (...)
-        else {
-            gettoken pal rest : palette, match(paren)
-            if "`paren'"=="(" {
-                if `"`rest'"'!="" local palette `"`pal' `rest'"'
-                else              local palette `"`pal'"'
-                local ptype 1
-            }
+    }
+    if `ptype'==0 { // check whether palette has more than 3 words (ColrSpace
+                    // currently has no palette names with more than 3 words)
+        if `:list sizeof palette'>3 {
+            local ptype 1
         }
     }
     mata: getpalette(strtoreal("`n'"), `ptype')
@@ -335,9 +339,10 @@ program parse_gscale
     _parse comma p opts : 0
     gettoken comma opts : opts, parse(",")
     local 0 `", gscale(`p') `opts'"'
-    syntax [, gscale(numlist >=0 <=1 missingokay) * ]
+    syntax [, gscale(numlist >=0 <=1 missingokay) noIConvert * ]
     if "`gscale'"=="" local gscale 1
     c_local gscale_p `gscale'
+    c_local gscale_noic "`iconvert'"
     c_local gscale_method `"`options'"'
 end
 
@@ -345,10 +350,38 @@ program parse_cblind
     _parse comma p opts : 0
     gettoken comma opts : opts, parse(",")
     local 0 `", cblind(`p') `opts'"'
-    syntax [, cblind(numlist >=0 <=1 missingokay) * ]
+    syntax [, cblind(numlist >=0 <=1 missingokay) noIConvert * ]
     if "`cblind'"=="" local cblind 1
     c_local cblind_p `cblind'
+    c_local cblind_noic "`iconvert'"
     c_local cblind_method `"`options'"'
+end
+
+program parse_torder
+    local KW IPolate INtensify SATurate LUMinate GScale CBlind
+    local O0 = strlower("`KW'")
+    local o0: copy local 0
+    foreach o of local o0 {
+        local 0 `", `o'"'
+        syntax [, `KW' ]
+        foreach O of local O0 {
+            local ord `ord' ``O''
+        }
+    }
+    local ord: list uniq ord
+    local ord: list ord | O0
+    c_local torder `ord'
+end
+
+program parse_iconvert
+    syntax [, First Last IPolate INtensify SATurate LUMinate ]
+    local iconvert `first' `last' `ipolate' `intensify' `saturate' `luminate'
+    if `: list sizeof iconvert'>1 {
+        di as err "invalid iconvert(): only one argument allowed"
+        exit 198
+    }
+    if "`iconvert'"=="" local iconvert first
+    c_local iconvert `iconvert'
 end
 
 program parse_class
@@ -899,11 +932,12 @@ void colorpalette_mkdir(path)
 
 void getpalette(real scalar n, real scalar ptype)
 {
-    real scalar     ip_n, rc
-    string scalar   pal, libname
+    real scalar      ip_n, rc, ti, tn, ic
+    string scalar    pal, libname, iconv
+    string rowvector torder
     class ColrSpace scalar S
-    pragma unset    S
-    pointer scalar  p
+    pragma unset     S
+    pointer scalar   p
 
     // Step 1: determine type of palette and parse additional options
     //    ptype 0 = <not defined>
@@ -1012,41 +1046,57 @@ void getpalette(real scalar n, real scalar ptype)
     if (st_local("opacity")!="") S.opacity(strtoreal(tokens(st_local("opacity"))), 1)
     // option intensity()
     if (st_local("intensity")!="") S.intensity(strtoreal(tokens(st_local("intensity"))), 1)
-    // option ipolate()
-    if ((ip_n  = strtoreal(st_local("ipolate_n")))<.) {
-        S.ipolate(ip_n, 
-            st_local("ipolate_space"), 
-            strtoreal(tokens(st_local("ipolate_range"))), 
-            strtoreal(st_local("ipolate_power")),
-            strtoreal(tokens(st_local("ipolate_positions"))),
-            st_local("ipolate_pad")!="")
+    // transformation options
+    iconv = st_local("iconvert"); ic = 0
+    if (iconv=="first") {; S.Intensify(); ic = 1; } // iconvert()
+    torder = tokens(st_local("torder")); tn = length(torder)
+    for (ti=1; ti<=tn; ti++) {
+        if (torder[ti]=="gscale") { // gscale()
+            if (st_local("gscale")=="") continue
+            if (st_local("gscale_noic")=="" & ic==0) {; S.Intensify(); ic = 1; }
+            S.gray(strtoreal(tokens(st_local("gscale_p"))),
+                st_local("gscale_method"))
+            continue
+        }
+        if (torder[ti]=="cblind") { // cblind()
+            if (st_local("cblind")=="") continue
+            if (st_local("cblind_noic")=="" & ic==0) {; S.Intensify(); ic = 1; }
+            S.cvd(strtoreal(tokens(st_local("cblind_p"))),
+                  st_local("cblind_method"))
+            continue
+        }
+        if (iconv==torder[ti] & ic==0) {; S.Intensify(); ic = 1; } // iconvert()
+        if (torder[ti]=="ipolate") { // ipolate()
+            if ((ip_n = strtoreal(st_local("ipolate_n")))>=.) continue
+            S.ipolate(ip_n, 
+                st_local("ipolate_space"), 
+                strtoreal(tokens(st_local("ipolate_range"))), 
+                strtoreal(st_local("ipolate_power")),
+                strtoreal(tokens(st_local("ipolate_positions"))),
+                st_local("ipolate_pad")!="")
+            continue
+        }
+        if (torder[ti]=="intensify") { // intensify()
+            if (st_local("intensify")=="") continue
+            S.intensify(strtoreal(tokens(st_local("intensify"))))
+            continue
+        }
+        if (torder[ti]=="saturate") { // saturate()
+            if (st_local("saturate_p")=="") continue
+            S.saturate(strtoreal(tokens(st_local("saturate_p"))), 
+                st_local("saturate_method"),
+                st_local("saturate_level")!="")
+            continue
+        }
+        if (torder[ti]=="luminate") { // luminate()
+            if (st_local("luminate_p")=="") continue
+            S.luminate(strtoreal(tokens(st_local("luminate_p"))), 
+                st_local("luminate_method"),
+                st_local("luminate_level")!="")
+            continue
+        }
     }
-    // option intensify()
-    if (st_local("intensify")!="") {
-        S.intensify(strtoreal(tokens(st_local("intensify"))))
-    }
-    // option saturate()
-    if (st_local("saturate_p")!="") {
-        S.saturate(strtoreal(tokens(st_local("saturate_p"))), 
-                   st_local("saturate_method"),
-                   st_local("saturate_level")!="")
-    }
-    // option luminate()
-    if (st_local("luminate_p")!="") {
-        S.luminate(strtoreal(tokens(st_local("luminate_p"))), 
-                   st_local("luminate_method"),
-                   st_local("luminate_level")!="")
-    }
-    // option gscale()
-    if (st_local("gscale")!="") {
-        S.gray(strtoreal(tokens(st_local("gscale_p"))), 
-               st_local("gscale_method"))
-    }
-    // option cblind()
-    if (st_local("cblind")!="") {
-        S.cvd(strtoreal(tokens(st_local("cblind_p"))),
-              st_local("cblind_method"))
-    }
+    if (iconv=="last" & ic==0) {; S.Intensify(); ic = 1; } // iconvert()
     // return colors
     st_local("plist", S.colors(st_local("forcergb")!=""))
     st_local("pnames", S.names())
@@ -1067,15 +1117,45 @@ void _getpalette_ipolate(class ColrSpace scalar S, real scalar n,
 
 void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal0)
 {
-    string scalar    pal, p1
+    real scalar      l
+    string scalar    PAL0, pal, p1, OP, IN
     string rowvector PAL
 
-    // characters % * # " may occur in color specifications, but are currently
+    // characters # " may occur in color specifications, but are currently
     // not used in ColrSpace palette names; exit if such characters are found
-    if (any(strpos(pal0, ("%", "*", "#",`"""')))) return
+    if (any(strpos(pal0, ("#",`"""')))) return
+    // check for opacity and intensity specifications at end
+    PAL0 = pal0
+    if (l=strpos(PAL0,"%")) { // parse "...%#[*#]"
+        OP   = substr(PAL0,l,.)
+        PAL0 = substr(PAL0,1,l-1)
+        if (substr(PAL0,-1,1)==" ") return // space not allowed
+        if (l=strpos(OP,"*")) {
+            IN = substr(OP,l,.)
+            OP = substr(OP,1,l-1)
+            if (substr(OP,-1,1)==" ") return // space not allowed
+        }
+    }
+    if (IN=="") {
+        if (l=strpos(PAL0,"*")) { // parse "...*#"
+            IN   = substr(PAL0,l,.)
+            PAL0 = substr(PAL0,1,l-1)
+            if (substr(PAL0,-1,1)==" ") return // space not allowed
+        }
+    }
+    if (OP!="") {
+        OP = substr(OP,2,.)
+        if (substr(OP,1,1)==" ") return // space not allowed
+        if (strtoreal(OP)>=.) return
+    }
+    if (IN!="") {
+        IN = substr(IN,2,.)
+        if (substr(IN,1,1)==" ") return // space not allowed
+        if (strtoreal(IN)>=.) return
+    }
     // case 1: palette exists in ColrSpace
-    PAL = tokens(pal0)
-    if ((pal=S.pexists(pal0))!="") {
+    PAL = tokens(PAL0)
+    if ((pal=S.pexists(PAL0))!="") {
         p1 = tokens(pal)[1]
         if (PAL[1]!=p1) {
             // if first word is not an exact match, check whether first word has 
@@ -1086,6 +1166,8 @@ void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal
         }
         pal0 = pal  // return expanded palette name
         ptype = 2
+        if (OP!="") st_local("opacity", OP)   // overwrite opacity()
+        if (IN!="") st_local("intensity", IN) // overwrite intensity()
         return
     }
     // case 2: check whether first word matches a palette
@@ -1097,8 +1179,10 @@ void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal
         }
         // modify palette such that first word is expanded
         PAL[1] = p1
-        pal0   = invtokens(PAL)
+        pal0 = invtokens(PAL)
         ptype = 2
+        if (OP!="") st_local("opacity", OP)   // overwrite opacity()
+        if (IN!="") st_local("intensity", IN) // overwrite intensity()
     }
 }
 

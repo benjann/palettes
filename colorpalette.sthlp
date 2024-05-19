@@ -1,5 +1,5 @@
 {smcl}
-{* 30may2022}{...}
+{* 19may2024}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 ({browse "http://ideas.repec.org/p/bss/wpaper/43.html":PDF manual}){...}
@@ -23,13 +23,13 @@
         {help colorpalette##macroopts:{it:macro_options}}
         {help colorpalette##gopts:{it:graph_options}} ]
 
-{pstd}
+{pmore}
     where {it:argument} is
 
-{p 8 15 2}
-    {help colorpalette##palette:{it:palette}}
+{p 12 19 2}
+    {help colorpalette##colors:{it:colors}}
     [[, {help colorpalette##opts:{it:palette_options}}] /
-    [ {help colorpalette##palette:{it:palette}}
+    [ {help colorpalette##colors:{it:colors}}
     [, {help colorpalette##opts:{it:palette_options}}] / ... ]]
 
 {pstd}
@@ -39,14 +39,28 @@
     {cmd:colorpalette} [{cmd:,} {help colorpalette##opts:{it:palette_options}}
         {help colorpalette##gopts:{it:graph_options}} ] {cmd::} {it:pspec} [ {cmd:/} {it:pspec} {cmd:/} ... ]
 
+{pmore}
+    where {it:pspec} is {cmd:.} to insert a gap or
+
+{p 12 19 2}
+    {help colorpalette##colors:{it:colors}} [{cmd:,} {help colorpalette##opts:{it:palette_options}}]
+
+{marker colors}{...}
 {pstd}
-    where {it:pspec} is
+    In both syntax variants, argument {it:colors} either is
+    a {it:{help colorpalette##colorlist:colorlist}}
+    specifying a custom list of colors ({help colorpalette##colorlist:see below})
+    or
 
 {p 8 15 2}
-    {help colorpalette##palette:{it:palette}} [{cmd:,} {help colorpalette##opts:{it:palette_options}}]
+        {it:{help colorpalette##palette:palette}}[{cmd:%}{it:#}][*{it:#}]
 
 {pstd}
-or {cmd:.} to insert a gap.
+    where {it:{help colorpalette##palette:palette}} is the name of a color palette,
+    {cmd:%}{it:#} sets the opacity level (in percent; 0 = fully transparent,
+    100 = fully opaque; Stata 15 required), and {cmd:*}{it:#} sets the intensity
+    adjustment multiplier (values between 0 and 1 make the colors
+    lighter; values larger than one make the colors darker).
 
 {pstd}
     Analyze colors after applying {cmd:colorpalette} (Syntax 1 only)
@@ -61,8 +75,9 @@ or {cmd:.} to insert a gap.
 {syntab:Color list}
 {synopt:{it:{help colorpalette##colorlist:colorlist}}}custom list of colors{p_end}
 
-{syntab:Stata palettes ({stata "colorpalette, lc(black): s2 / s1 / s1r / economist / mono":{it:view}})}
-{synopt:{helpb colorpalette##s2:s2}}15 colors as in Stata's {helpb scheme s2:s2color} scheme; the default{p_end}
+{syntab:Stata palettes ({stata "colorpalette, lc(black): st / s2 / s1 / s1r / economist / mono":{it:view}})}
+{synopt:{helpb colorpalette##st:st}}15 colors as in Stata's {helpb scheme st:stcolor} scheme; the default in Stata 18 or above{p_end}
+{synopt:{helpb colorpalette##s2:s2}}15 colors as in Stata's {helpb scheme s2:s2color} scheme; the default in Stata 17 or below{p_end}
 {synopt:{helpb colorpalette##s1:s1}}15 colors as in Stata's {helpb scheme s1:s1color} scheme{p_end}
 {synopt:{helpb colorpalette##s1r:s1r}}15 colors as in Stata's {helpb scheme s1:s1rcolor} scheme{p_end}
 {synopt:{helpb colorpalette##economist:economist}}15 colors as in Stata's {helpb scheme economist:economist} scheme{p_end}
@@ -135,6 +150,10 @@ matching palette in the sorted will be used.
     {p_end}
 {synopt:{helpb colorpalette##intensity:{ul:in}tensity({it:numlist})}}set color intensity multipliers
     {p_end}
+{synopt:{help colorpalette##other:{it:other}}}palette-specific options
+    {p_end}
+
+{syntab:Transformation}
 {synopt:{helpb colorpalette##ipolate:{ul:ip}olate({it:spec})}}interpolate the colors
     {p_end}
 {synopt:{helpb colorpalette##intensify:intensify({it:numlist})}}modify intensity
@@ -147,10 +166,12 @@ matching palette in the sorted will be used.
     {p_end}
 {synopt:{helpb colorpalette##cblnd:{ul:cb}lind{sf:[}({it:spec}){sf:]}}}simulate color vision deficiency
     {p_end}
-{synopt:{help colorpalette##other:{it:other}}}palette-specific options
+{synopt:{helpb colorpalette##torder:{ul:tord}er({it:list})}}set order of transformation options
     {p_end}
 
 {syntab:Technical}
+{synopt:{helpb colorpalette##iconvert:{ul:ic}onvert{sf:[}({it:pos}){sf:]}}}resolve intensity multipliers
+    {p_end}
 {synopt:{helpb colorpalette##forcergb:{ul:force}rgb}}enforce translation to RGB
     {p_end}
 {synopt:{helpb colorpalette##noexpand:noexpand}}omit automatic interpolation/recycling
@@ -255,7 +276,9 @@ matching palette in the sorted will be used.
 {pstd}
     {cmd:colorcheck} analyzes the colors returned by {cmd:colorpalette}
     by applying grayscale conversion and color vision deficiency transformation,
-    and by computing minimum color differences among the converted colors. The
+    and by computing minimum color differences among the converted colors
+    (intensity multipliers will be resolved before converting and analyzing the
+    colors; opacity settings will be ignored). The
     purpose of the command is to evaluate whether the colors will be
     distinguishable by people who suffer from color vision deficiency and also
     whether the colors will be distinguishable in (non-color) print. The smallest
@@ -346,7 +369,8 @@ matching palette in the sorted will be used.
     particular color, you may set the corresponding element to
     {cmd:.} (missing). {cmd:opacity()} is applied after
     {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()}, {cmd:reverse},
-    and {cmd:shift()} have taken effect.
+    and {cmd:shift()} have taken effect. Opacity levels specified in
+    {it:{help colorpalette##colors:colors}} take precedence over {cmd:opacity()}.
 
 {marker intensity}{...}
 {phang}
@@ -362,18 +386,27 @@ matching palette in the sorted will be used.
     color, you may set the corresponding element to {cmd:.} (missing).
     {cmd:intensity()} is applied after
     {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()}, {cmd:reverse}, and
-    {cmd:shift()} have taken effect.
+    {cmd:shift()} have taken effect. Intensity multipliers specified in
+    {it:{help colorpalette##colors:colors}} take precedence over {cmd:intensity()}.
 
 {pmore}
     Example: {stata `"colorpalette "189 30 36", intensity(0.1(.05)1) name(Reds)"'}
 
+{marker other}{...}
+{phang}
+    {it:other} are additional palette-specific options. See the descriptions of
+    the palettes below. Palette-specific options have to be unique, that is, they
+    can only be specified once per palette. When collecting results from multiple
+    palettes, palette options can be specified at the global level, to define
+    default settings for all palettes, or at the local level of an individual
+    palette. For general palette options, defaults set at the global
+    level can be overridden by repeating an option at the local level. Such
+    repetitions are not allowed for palette-specific options.
+
 {marker ipolate}{...}
 {phang}
     {cmd:ipolate(}{it:n}[{cmd:,} {it:suboptions}]{cmd:)}
-    interpolates the colors to a total of {it:n} colors. {cmd:ipolate()}
-    is applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
-    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, and {cmd:intensity()}
-    have taken effect (intensity multipliers
+    interpolates the colors to a total of {it:n} colors (intensity multipliers
     and opacity levels, if defined, will also be interpolated).
 
 {pmore}
@@ -461,10 +494,7 @@ matching palette in the sorted will be used.
     the number of colors, the values will be recycled; if the number of
     values is larger than the number of colors, the colors will be
     recycled. To skip adjusting the intensity of a particular color, you may
-    set the corresponding element to {cmd:.} (missing). {cmd:intensify()} is
-    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
-    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()}, and
-    {cmd:ipolate()} have taken effect.
+    set the corresponding element to {cmd:.} (missing).
 
 {pmore}
     {cmd:intensify()} applies the same kind of intensity adjustment as
@@ -472,9 +502,7 @@ matching palette in the sorted will be used.
     The difference between {cmd:intensify()} and {cmd:intensity()} is that
     {cmd:intensity()} only records the intensity multipliers (which are then
     returned as part of the color definitions), whereas {cmd:intensify()}
-    directly applies intensity adjustment by transforming the RGB values. A
-    second difference is that {cmd:intensity()} is applied before
-    interpolation, whereas {cmd:intensify()} is applied after interpolation.
+    directly applies intensity adjustment by transforming the RGB values.
 
 {pmore}
     Example: {stata `"colorpalette "189 30 36", intensify(0.1(.05)1) name(Reds)"'}
@@ -489,10 +517,7 @@ matching palette in the sorted will be used.
     number of colors, the values will be recycled; if the number of values is
     larger than the number of colors, the colors will be recycled. To skip
     adjusting the saturation of a particular color, you may set the
-    corresponding element to {cmd:.} (missing). {cmd:saturate()} is
-    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
-    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
-    {cmd:ipolate()}, and {cmd:intensify()} have taken effect. Suboptions are as
+    corresponding element to {cmd:.} (missing). Suboptions are as
     follows.
 
 {phang2}
@@ -521,11 +546,7 @@ matching palette in the sorted will be used.
     number of colors, the values will be recycled; if the number of values is
     larger than the number of colors, the colors will be recycled. To skip
     adjusting the luminance of a particular color, you may set the
-    corresponding element to {cmd:.} (missing). {cmd:luminate()} is
-    applied after {cmd:n()}, {cmd:select()}, {cmd:drop()}, {cmd:order()},
-    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
-    {cmd:ipolate()}, {cmd:intensify()}, and {cmd:saturate()} have taken
-    effect. Suboptions are as follows.
+    corresponding element to {cmd:.} (missing). Suboptions are as follows.
 
 {phang2}
     {it:cspace} specifies the color space in which the colors are manipulated.
@@ -553,32 +574,28 @@ matching palette in the sorted will be used.
 
 {marker gscale}{...}
 {phang}
-    {cmd:gscale}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:cspace} ]{cmd:)}] converts the
-    colors to gray, where {it:numlist} in [0,1] specifies the proportion of gray. The
-    default is {cmd:1} (full conversion). Specify multiple values to apply different
-    adjustments across the colors. If the number of values is smaller than the
-    number of colors, the values will be recycled; if the number of values is
-    larger than the number of colors, the colors will be recycled. To skip
-    adjusting a particular color, you may set the
+    {cmd:gscale}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:cspace} {cmdab:noic:onvert}]{cmd:)}]
+    converts the colors to gray, where {it:numlist} in [0,1] specifies the
+    proportion of gray. The default is {cmd:1} (full conversion). Specify
+    multiple values to apply different adjustments across the colors. If the
+    number of values is smaller than the number of colors, the values will be
+    recycled; if the number of values is larger than the number of colors, the
+    colors will be recycled. To skip adjusting a particular color, you may set the
     corresponding element to {cmd:.} (missing). Suboption {it:cspace} specifies the
     color space in which the conversion is performed; it may be {cmd:LCh}
     (cylindrical representation of CIE L*a*b*), {cmd:HCL} (cylindrical
     representation of CIE L*u*v*), {cmd:JCh} (CIECAM02 JCh), and {cmd:JMh}
-    (CIECAM02-based J'M'h). The default is {cmd:LCh}. Example:
+    (CIECAM02-based J'M'h). The default is {cmd:LCh}. Subption {cmdab:noiconvert}
+    omits resolving intensity multipliers before applying grayscale
+    conversion. Example:
 
 {p 12 16 2}
     . {stata "colorpalette: s2 / s2, gscale(.5) name(50% gray) / s2, gscale name(100% gray)"}
 
-{pmore}
-    {cmd:gscale()} is applied after {cmd:n()}, {cmd:select()}, {cmd:drop()},
-    {cmd:order()}, {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
-    {cmd:ipolate()}, {cmd:intensify()}, {cmd:saturate()}, and {cmd:luminate()} have taken
-    effect.
-
 {marker cblnd}{...}
 {phang}
-    {cmd:cblind}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:type} ]{cmd:)}]
-    simulates color vision deficiency, where {it:numlist} in [0,1] specifies
+    {cmd:cblind}[{cmd:(}[{it:{help numlist}}] [{cmd:,} {it:type} {cmdab:noic:onvert}]{cmd:)}]
+    simulates color vision deficiency (CVD), where {it:numlist} in [0,1] specifies
     the severity of the deficiency. The default is {cmd:1} (maximum severity,
     i.e. deuteranopia, protanopia, or tritanopia, respectively). Specify
     multiple values to apply different adjustments across the colors. If the
@@ -586,31 +603,53 @@ matching palette in the sorted will be used.
     recycled; if the number of values is larger than the number of colors, the
     colors will be recycled. To skip adjusting a particular color, you may set
     the corresponding element to {cmd:.} (missing). Suboption {it:type}
-    specifies type of color vision deficiency, which may be
-    {cmdab:d:euteranomaly} (the default), {cmdab:p:rotanomaly}, or
-    {cmdab:t:ritanomaly}. See
+    specifies type of CVD, which may be {cmdab:d:euteranomaly} (the default),
+    {cmdab:p:rotanomaly}, or {cmdab:t:ritanomaly}. See
     {browse "http://en.wikipedia.org/wiki/Color_blindness":Wikipedia} for basic
-    information on color blindness. Example:
+    information on color blindness. Subption {cmdab:noiconvert}
+    omits resolving intensity multipliers before applying CVD conversion. Example:
 
 {p 12 16 2}
     . {stata "colorpalette: Set1 / Set1, cblind(.5, deut) name(50% deut) / Set1, cblind(.5, prot) name(50% prot) / Set1, cblind(1, trit) name(tritanopia)"}
 
-{pmore}
-    {cmd:cblind()} is applied after {cmd:n()}, {cmd:select()}, {cmd:drop()},
-    {cmd:order()}, {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, {cmd:intensity()},
-    {cmd:ipolate()}, {cmd:intensify()}, {cmd:saturate()}, {cmd:luminate()}, and
-    {cmd:gscale()} have taken effect.
-
-{marker other}{...}
+{marker torder}{...}
 {phang}
-    {it:other} are additional palette-specific options. See the descriptions of
-    the palettes below. Palette-specific options have to be unique, that is, they
-    can only be specified once per palette. When collecting results from multiple
-    palettes, palette options can be specified at the global level, to define
-    default settings for all palettes, or at the local level of an individual
-    palette. For general palette options, defaults set at the global
-    level can be overridden by repeating an option at the local level. Such
-    repetitions are not allowed for palette-specific options.
+    {opt torder(list)} specifies the order in which the transformation options
+    {helpb colorpalette##ipolate:ipolate()},
+    {helpb colorpalette##intensify:intensify()},
+    {helpb colorpalette##saturate:saturate()},
+    {helpb colorpalette##luminate:luminate()},
+    {helpb colorpalette##gscale:gscale()}, and
+    {helpb colorpalette##cblnd:cblind()} are applied. The default order is
+    {cmdab:ip:olate} {cmdab:in:tensify} {cmdab:sat:urate} {cmdab:lum:inate}
+    {cmdab:gs:cale} {cmdab:cb:lind}. If {it:list} does not contain all keywords,
+    the remaining options will be applied last, in their default order. In any case,
+    the transformation options will be applied after {cmd:n()},
+    {cmd:select()}, {cmd:drop()}, {cmd:order()},
+    {cmd:reverse}, {cmd:shift()}, {cmd:opacity()}, and {cmd:intensity()}
+    have taken effect.
+
+{marker iconvert}{...}
+{phang}
+    {cmd:iconvert}[{cmd:(}{it:pos}{cmd:)}] resolves intensity adjustment
+    multipliers that may have been specified as part of the color definitions
+    or in option {helpb colorpalette##intensity:intensity()}. The RGB values of the colors will be adjusted
+    and the intensity multipliers will be removed. Argument {it:pos} specifies
+    the position at which the conversion is applied; it can be one of the
+    following.
+
+{p2colset 13 25 30 2}{...}
+{p2col:{cmdab:f:irst}}at the beginning, directly after {helpb colorpalette##intensity:intensity()}{p_end}
+{p2col:{cmdab:ip:olate}}before {helpb colorpalette##ipolate:ipolate()}{p_end}
+{p2col:{cmdab:in:tensify}}before {helpb colorpalette##intensify:intensify()}{p_end}
+{p2col:{cmdab:sat:urate}}before {helpb colorpalette##saturate:saturate()}{p_end}
+{p2col:{cmdab:lum:inate}}before {helpb colorpalette##luminate:luminate()}{p_end}
+{p2col:{cmdab:l:ast}}at the very end{p_end}
+
+{pmore}
+    Default is {cmd:first}. Note that {helpb colorpalette##gscale:gscale()}
+    and {helpb colorpalette##cblnd:cblind()} will automatically call
+    {cmd:iconvert} (unless suboption {cmd:noiconvert} is applied).
 
 {marker forcergb}{...}
 {phang}
@@ -874,9 +913,9 @@ matching palette in the sorted will be used.
 {pstd}
     Parentheses around the list may be used to prevent name conflict with palette
     specifications. Color specifications containing spaces must be included in
-    double quotes. Argument {cmd:%}{it:#} in {it:colorspec} sets the opacity
+    double quotes. Argument {cmd:%}{it:#} in {it:colorspec} sets the opacity level
     (in percent; 0 = fully transparent, 100 = fully opaque; Stata 15 required),
-    {cmd:*}{it:#} adjusts the intensity (values between 0 and 1 make the color
+    {cmd:*}{it:#} sets the intensity adjustment multiplier (values between 0 and 1 make the color
     lighter; values larger than one make the color darker), and {it:color} is
     one of the following:
 
@@ -1003,13 +1042,21 @@ matching palette in the sorted will be used.
     match including case. For example, {cmd:pink} will refer to official
     Stata's pink, whereas {cmd:Pink} will refer to HTML color pink.
 
+{marker st}{...}
+{dlgtab:st}
+
+{pstd}
+    Palette {cmd:st} ({stata colorpalette st:{it:view}}) contains the 15 colors
+    used for p1 to p15 in Stata's {helpb scheme st:stcolor} scheme. {cmd:st} is
+    the default palette in Stata 18 or above.
+
 {marker s2}{...}
 {dlgtab:s2}
 
 {pstd}
     Palette {cmd:s2} ({stata colorpalette s2:{it:view}}) contains the 15 colors
     used for p1 to p15 in Stata's {helpb scheme s2:s2color} scheme. {cmd:s2} is
-    the default palette.
+    the default palette in Stata 17 or below.
 
 {marker s1}{...}
 {dlgtab:s1}
@@ -1582,8 +1629,8 @@ matching palette in the sorted will be used.
 {pstd}
     The definitions of the schemes have been obtained from source file
     {browse "http://personal.sron.nl/~pault/data/tol_colors.py":tol_colors.py}. These
-    definitions may deviate from how the palettes are presented at 
-    {browse "http://personal.sron.nl/~pault/":personal.sron.nl/~pault} (e.g., 
+    definitions may deviate from how the palettes are presented at
+    {browse "http://personal.sron.nl/~pault/":personal.sron.nl/~pault} (e.g.,
     with respect to the order of colors in the qualitative schemes).
 
 {marker ptol}{...}
@@ -2234,7 +2281,7 @@ matching palette in the sorted will be used.
 {phang2}
     (1) It must return the color definitions as a comma-separated list in local
     macro {cmd:P}. All types of {help colorpalette##colorlist:color specifications}
-    supported by {cmd:colorpalette}, including opacity and intensity operators, 
+    supported by {cmd:colorpalette}, including opacity and intensity operators,
     are allowed for the individual colors in the list.
 
 {phang2}
@@ -2266,7 +2313,7 @@ matching palette in the sorted will be used.
 
 {pstd}
     For example, the following program provides a palette called
-    {cmd:bootstrap3} containing semantic colors used for buttons in 
+    {cmd:bootstrap3} containing semantic colors used for buttons in
     {browse "http://getbootstrap.com/docs/3.3/":Bootstrap 3.3}:
 
         {com}program colorpalette_bootstrap3
@@ -2443,6 +2490,7 @@ matching palette in the sorted will be used.
 {p2col 5 16 20 2: Macros}{p_end}
 {synopt:{cmd:r(metric)}}color difference metric{p_end}
 {synopt:{cmd:r(mono_method)}}grayscale conversion method{p_end}
+{synopt:{cmd:r(p_norm)}}list of normal sight colors{p_end}
 {synopt:{cmd:r(p_mono)}}list of grayscale converted colors{p_end}
 {synopt:{cmd:r(p_deut)}}list of deteranomaly transformed colors{p_end}
 {synopt:{cmd:r(p_prot)}}list of protanomaly transformed colors{p_end}
@@ -2556,7 +2604,7 @@ matching palette in the sorted will be used.
     Thanks for citing this software in one of the following ways:
 
 {phang}
-    Jann, B. 2022. Color palettes for Stata graphics: an update.  University of Bern 
+    Jann, B. 2022. Color palettes for Stata graphics: an update.  University of Bern
     Social Sciences Working Papers No. 43. Available from {browse "http://ideas.repec.org/p/bss/wpaper/43.html"}.
     {p_end}
 {phang}

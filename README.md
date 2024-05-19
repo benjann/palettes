@@ -29,6 +29,25 @@ Installation from GitHub:
 
 Main changes:
 
+    19may2024
+    colorpalette (v 1.2.4)
+    - default palette in Stata 18 now -st-
+    - opacity and intensity operators can now be applied to palette names; the
+      specified operators will take precedence over opacity() and intensity()
+    - new option -iconvert()- to resolve intensity multipliers
+    - new option -torder()- to determine order in which transformation options are
+      applied
+    - options gscale() and cblind() now resolve intensity multipliers; specify
+      suboption noiconvert for old behavior
+    - specifying a colorlist enclosed in parentheses failed if the list contained
+      more than three tokens; this is fixed
+    colorcheck (v 1.0.1)
+    - intensity multipliers were handled inconsistently; this is fixed; intensity
+      multipliers are now resolved before converting colors and computing distances
+    - (resolved) normal sight colors are stored in r(p_norm)
+    - normal sight colors are now displayed without applying opacity settings (i.e.,
+      opacity settings are now completely ignored)
+
     02jun2022
     - updated colorpalette.sthlp to reflect renaming of -pals- palettes
     
