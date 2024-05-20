@@ -1,4 +1,4 @@
-*! version 1.2.4  19may2024  Ben Jann
+*! version 1.2.5  20may2024  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -1022,16 +1022,8 @@ void getpalette(real scalar n, real scalar ptype)
     }
     // class
     if (S.pclass()=="") S.pclass(st_local("class"))
-    // option n()
-    if (ptype!=2) {
-        if (n<. & n!=S.N()) {
-            if (anyof(("qualitative","categorical"), S.pclass())) {
-                if (st_local("noexpand")=="")  S.recycle(n)
-                else if (n<S.N())              S.recycle(n)
-            }
-            else if (st_local("noexpand")=="") S.ipolate(n)
-        }
-    }
+    // option n() (only if not ColrSpace palette)
+    if (n<. & ptype!=2) _recycle_or_ipolate(S, n, st_local("noexpand")!="")
     // option select()
     if (st_local("select")!="") S.select(strtoreal(tokens(st_local("select"))))
     // option drop()
@@ -1184,6 +1176,63 @@ void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal
         if (OP!="") st_local("opacity", OP)   // overwrite opacity()
         if (IN!="") st_local("intensity", IN) // overwrite intensity()
     }
+}
+
+void _recycle_or_ipolate(class ColrSpace scalar S, real scalar n,
+    real scalar noexpand)
+{
+    real scalar      j, r
+    string rowvector kw
+    string colvector C
+    
+    C = S.Colors()
+    r = rows(C)
+    // special handling of ".." and "..." at end (noexpand will be ignored)
+    if (anyof(("..","..."), C[r])) {
+        if (r<2) return // do not expand if no colors
+        if (n<r) { // select first n colors if too many colors
+            S.select(1::n)
+            return
+        }
+        // remove last element and repeat preceding color
+        S.drop(-1)
+        S.add_select(J(n-r+1, 1, -1))
+        return
+    }
+    // exit if correct number of colors
+    if (n==r) return
+    // if noexpand: select first n colors if too many colors
+    if (noexpand) {
+        if (n<r) S.select(1::n)
+        return
+    }
+    // recycle if only one color
+    if (r<2) {
+        S.recycle(n)
+        return
+    }
+    // recycle if palette is categorical
+    if (anyof(("qualitative","categorical"), S.pclass())) {
+        S.recycle(n)
+        return
+    }
+    // recycle if the palette contains elements that cannot be interpolated
+    kw = ("none","fg","foreground","bg","background","=",".")
+    for (j=length(kw); j; j--) {
+        if (anyof(C, kw[j])) {
+            S.recycle(n)
+            return
+        }
+    }
+    kw = ("%","*")
+    for (j=length(kw); j; j--) {
+        if (anyof(substr(C,1,1), kw[j])) {
+            S.recycle(n)
+            return
+        }
+    }
+    // else interpolate
+    S.ipolate(n)
 }
 
 real scalar smatch(string scalar scheme, string vector schemes)

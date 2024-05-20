@@ -29,6 +29,18 @@ Installation from GitHub:
 
 Main changes:
 
+    20may2024
+    colorpalette (v 1.2.5)
+    - option n() now recycles colorlist (rather than interpolating) if there are
+      elements that are supported by Stata's colorstyle but cannot be interpolated
+      (like, e.g., "none" or "."); furthermore, the last color will be repeated if
+      colorlist ends with .. or ...
+    - the behavior of option -noexpand- slightly changed; if the
+      number of requested colors by n() is smaller then the minimum number of
+      colors defined in a palette, -noexpand- now always causes the first few
+      colors to be selected; the old behavior was to apply such selection only
+      in case of qualitative palettes
+
     19may2024
     colorpalette (v 1.2.4)
     - default palette in Stata 18 now -st-
