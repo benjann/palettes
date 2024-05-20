@@ -1,4 +1,4 @@
-*! version 1.2.5  20may2024  Ben Jann
+*! version 1.2.6  20may2024  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -1217,7 +1217,7 @@ void _recycle_or_ipolate(class ColrSpace scalar S, real scalar n,
         return
     }
     // recycle if the palette contains elements that cannot be interpolated
-    kw = ("none","fg","foreground","bg","background","=",".")
+    kw = ("none","fg","foreground","bg","background",".")
     for (j=length(kw); j; j--) {
         if (anyof(C, kw[j])) {
             S.recycle(n)

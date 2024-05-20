@@ -30,6 +30,10 @@ Installation from GitHub:
 Main changes:
 
     20may2024
+    colorpalette (v 1.2.6)
+    - no longer checking for "=" in colorlist when applying n()
+
+    20may2024
     colorpalette (v 1.2.5)
     - option n() now recycles colorlist (rather than interpolating) if there are
       elements that are supported by Stata's colorstyle but cannot be interpolated
