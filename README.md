@@ -29,6 +29,11 @@ Installation from GitHub:
 
 Main changes:
 
+    23may2024
+    colorpalette (v 1.2.7)
+    - error was returned if a single opacity or intensity operator without
+      color or palette was specified; this is fixed
+
     20may2024
     colorpalette (v 1.2.6)
     - no longer checking for "=" in colorlist when applying n()

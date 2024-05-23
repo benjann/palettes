@@ -1,4 +1,4 @@
-*! version 1.2.6  20may2024  Ben Jann
+*! version 1.2.7  23may2024  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -1135,6 +1135,7 @@ void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal
             if (substr(PAL0,-1,1)==" ") return // space not allowed
         }
     }
+    if (strtrim(PAL0)=="") return // opacify/intensity only; treat as colorlist
     if (OP!="") {
         OP = substr(OP,2,.)
         if (substr(OP,1,1)==" ") return // space not allowed
