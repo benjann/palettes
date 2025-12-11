@@ -1,4 +1,4 @@
-*! version 1.2.7  23may2024  Ben Jann
+*! version 1.2.8  11dec2025  Ben Jann
 
 if c(stata_version)<14.2 {
     di as err "{bf:colorpalette} requires version 14.2 of Stata" _c
@@ -172,7 +172,8 @@ program Palette_Get, rclass
         CBlind CBlind2(str) ///
         TORDer(str) ///
         IConvert IConvert2(str) ///
-        FORCErgb NOEXPAND class(str) name(str)
+        FORCErgb NOEXPAND class(str) name(str) ///
+        Return(str)
     syntax [anything(name=palette id="palette" everything equalok)] ///
         [, `opts' ///
         /// palette-specific options
@@ -204,7 +205,6 @@ program Palette_Get, rclass
     if `"`ipolate'"'!=""    parse_ipolate `ipolate'
     if `"`saturate'"'!=""   parse_saturate `saturate'
     if `"`luminate'"'!=""   parse_luminate `luminate'
-    if `"`ipolate'"'!=""    parse_ipolate `ipolate'
     if `"`gscale2'"'!=""    local gscale gscale
     if "`gscale'"!=""       parse_gscale `gscale2'
     if `"`cblind2'"'!=""    local cblind cblind
@@ -213,6 +213,7 @@ program Palette_Get, rclass
     if `"`iconvert2'"'!=""  local iconvert iconvert
     if "`iconvert'"!=""     parse_iconvert, `iconvert2'
     if `"`class'"'!=""      capture parse_class, `class'
+    if `"`return'"'!=""     parse_return `return'
     // get colors
     local ptype 0
     if `"`palette'"'=="" { // use s2 if palette is empty
@@ -240,6 +241,8 @@ program Palette_Get, rclass
     }
     mata: getpalette(strtoreal("`n'"), `ptype')
     // return palette
+    return local cspace `"`r_cspace'"'
+    return local c `"`r_c'"'
     local i 0
     foreach p of local plist {
         local ++i
@@ -389,6 +392,14 @@ program parse_class
     local class `qualitative' `categorical' `sequential' `diverging' `cyclic' `circular'
     if `:list sizeof class'>1 exit 198
     c_local class `class'
+end
+
+program parse_return
+    syntax anything(id="{it:cspace}") [, format(str) ]
+    if `"`format'"'=="" local format %9.0g
+    else confirm numeric format `format'
+    c_local r_cspace `anything'
+    c_local r_fmt `format'
 end
 
 program parse_mata
@@ -1096,15 +1107,7 @@ void getpalette(real scalar n, real scalar ptype)
     st_local("note", S.note())
     st_local("source", S.source())
     st_local("class", S.pclass())
-}
-
-void _getpalette_ipolate(class ColrSpace scalar S, real scalar n,
-    string scalar space, real rowvector range, real scalar pow,
-    real rowvector pos, real scalar pad, string scalar cyc)
-{
-    if      (cyc=="cyclic")   S.ipolate(n, space, range, pow, pos, pad, 1)
-    else if (cyc=="nocyclic") S.ipolate(n, space, range, pow, pos, pad, 0)
-    else                      S.ipolate(n, space, range, pow, pos, pad)
+    st_local("r_c", _get_colors(S, st_local("r_cspace"), st_local("r_fmt")))
 }
 
 void checkpalette(class ColrSpace scalar S, real scalar ptype, string scalar pal0)
@@ -1236,24 +1239,20 @@ void _recycle_or_ipolate(class ColrSpace scalar S, real scalar n,
     S.ipolate(n)
 }
 
-real scalar smatch(string scalar scheme, string vector schemes)
+string scalar _get_colors(class ColrSpace scalar S, string scalar cspace,
+    string scalar fmt)
 {
-    real scalar i, n
+    real scalar  i
+    transmorphic C
     
-    n = length(schemes)
-    for (i=1; i<=n; i++) {
-        if (_smatch(scheme, schemes[i])) return(1)
+    if (cspace=="") return("")
+    C = S.get(cspace)
+    if (!isstring(C)) {
+        C = strofreal(C, fmt)
+        for (i=rows(C);i;i--) C[i,1] = invtokens(C[i,])
+        C = `"""' :+ C[,1] :+ `"""'
     }
-    return(0)
-}
-
-real scalar _smatch(string scalar A, string scalar B)
-{
-    if (A==substr(B, 1, strlen(A))) {
-        A = B
-        return(1)
-    }
-    return(0)
+    return(invtokens(C'))
 }
 
 end

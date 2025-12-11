@@ -1,5 +1,5 @@
 {smcl}
-{* 19may2024}{...}
+{* 11dec2025}{...}
 {hi:help colorpalette}{...}
 {right:{browse "http://repec.sowi.unibe.ch/stata/palettes/"}}
 ({browse "http://ideas.repec.org/p/bss/wpaper/43.html":PDF manual}){...}
@@ -112,7 +112,8 @@
 {synopt:{it:{help colorpalette##seaborn:seaborn}}}perceptually uniform colormaps from {browse "http://seaborn.pydata.org/":seaborn.pydata.org}{p_end}
 {synopt:{helpb colorpalette##matplotlib:matplotlib}}further colormaps from {browse "http://matplotlib.org":matplotlib.org}{p_end}
 {synopt:{helpb colorpalette##CET:CET}}perceptually uniform colormaps by {browse "http://arxiv.org/abs/1509.03700":Kovesi (2015)}{p_end}
-{synopt:{helpb colorpalette##scico:scico}}perceptually uniform colorblind-friendly colormaps by {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}{p_end}
+{synopt:{helpb colorpalette##scico:scico}}Scientific color maps by {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)} ({browse "http://doi.org/10.5281/zenodo.5501399":version 7.0.1}){p_end}
+{synopt:{helpb colorpalette##scico8:scico8}}Scientific color maps by {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)} ({browse "http://doi.org/10.5281/zenodo.8409685":version 8.0.1}){p_end}
 {synopt:{helpb colorpalette##lin:lin}}semantic colors schemes by {browse "http://dx.doi.org/10.1111/cgf.12127":Lin et al. (2013)}{p_end}
 {synopt:{helpb colorpalette##spmap:spmap}}color schemes from {cmd:spmap} by {browse "http://ideas.repec.org/c/boc/bocode/s456812.html":Pisati (2007)}{p_end}
 {synopt:{helpb colorpalette##sfso:sfso}}color schemes used by the Swiss Federal
@@ -191,6 +192,8 @@ matching palette in the sorted will be used.
 {synopt:{helpb colorpalette##macrooptions:{ul:loc}als{sf:[}({it:spec}){sf:]}}}store color codes in local macros
     {p_end}
 {synopt:{helpb colorpalette##stylefiles:{ul:stylef}iles{sf:[}({it:spec}){sf:]}}}store color codes in style files
+    {p_end}
+{synopt:{helpb colorpalette##return:{ul:r}eturn({it:spec})}}convert colors and store in macro {cmd:r(c)}
     {p_end}
 {synoptline}
 
@@ -775,6 +778,30 @@ matching palette in the sorted will be used.
 
 {pmore}
     Graph display will be disabled unless option {cmd:graph} is specified.
+
+{marker return}{...}
+{phang}
+    {cmd:return(}{it:spec}{cmd:)} converts the colors to the specified color
+    space and stores them as a space-separated list in macro {cmd:r(c)}. The
+    syntax of {it:spec} is
+
+{p 12 16 2}
+    {it:cspace} [{cmd:,} {cmdab:f:ormat(}{it:{help format:%fmt}}{cmd:)} ]
+
+{pmore}
+    where {it:cspace} is one of {cmd:HEX}, {cmd:RGB}, {cmd:RGB1}, {cmd:lRGB},
+    {cmd:HSV}, {cmd:HSL}, {cmd:CMYK}, {cmd:CMYK1}, {cmd:XYZ}, {cmd:XYZ1},
+    {cmd:xyY}, {cmd:xyY1}, {cmd:Lab}, {cmd:LCh}, {cmd:Luv}, {cmd:HCL},
+    {cmd:CAM02} [{help colrspace##CAM02:{it:mask}}]{cmd:}, 
+    {cmd:JMh} [{it:{help colrspace##JMh:coefs}}]{cmd:},
+    {cmd:Jab} [{it:{help colrspace##JMh:coefs}}]{cmd:}, {cmd:RGBA}, or
+    {cmd:RGBA1} (lowercase spelling allowed); see help
+    {helpb colrspace##cspace:colrspace} for details. Intensity adjustment
+    multipliers and opacity level will be ignored when converting the colors
+    (except {cmd:RGBA} and {cmd:RGBA1} that include opacity). Option {cmd:format()}
+    sets the {help format:display format} for numeric values (default is
+    {cmd:%9.0g}). In addition to {cmd:r(c)}, {it:cspace} is stored in
+    {cmd:r(cspace)}.
 
 {dlgtab:Graph options}
 
@@ -1824,7 +1851,7 @@ matching palette in the sorted will be used.
 {pstd}
     and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
     must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
-    {it:ub}, the colors are returned in reverse order. {cmd:range()} has not
+    {it:ub}, the colors are returned in reverse order. {cmd:range()} has no
     effect for cyclic colormaps.
 
 {marker seaborn}{...}
@@ -1976,22 +2003,25 @@ matching palette in the sorted will be used.
 {pstd}
     and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
     must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
-    {it:ub}, the colors are returned in reverse order. {cmd:range()} has not
+    {it:ub}, the colors are returned in reverse order. {cmd:range()} has no
     effect for circular colormaps.
 
 {marker scico}{...}
 {dlgtab:scico}
 
 {pstd}
-    The {cmd:scico} collection provides perceptually uniform colorblind-friendly colormaps by
-    {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}. The syntax is
+    The {cmd:scico} collection provides
+    {browse "http://doi.org/10.5281/zenodo.5501399":version 7.0.1} variants of
+    the perceptually uniform and colorblind-friendly Scientific color maps by
+    {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}. The syntax
+    is
 
 {p 8 15 2}
     {cmd:scico} {it:scheme} [{cmd:,} {opt ra:nge(lb [ub])} {help colorpalette##opts:{it:palette_options}} ]
 
 {pstd}
     where {it:scheme} is one of the following (lower case spelling allowed)
-    (see {browse "http://www.fabiocrameri.ch/ws/media-library/0ce197f7ec5c4405bf8a5d6a07192b2b/readme_scientificcolourmaps.pdf":readme_scientificcolourmaps.pdf}
+    (see the {browse "http://www.fabiocrameri.ch/colourmaps-userguide/":User Guide}
     for an overview)
 
 {p2colset 9 22 23 2}{...}
@@ -2035,10 +2065,36 @@ matching palette in the sorted will be used.
     {p_end}
 
 {pstd}
-    and option {opt range(lb [ub])} selects the range of the colormap to be used, where {it:lb} and {it:ub}
-    must be in [0,1]. The default is {cmd:range(0 1)}. If {it:lb} is larger than
-    {it:ub}, the colors are returned in reverse order. {cmd:range()} has not
-    effect for cyclic colormaps.
+    and option {opt range(lb [ub])} selects the range of the colormap to be
+    used, where {it:lb} and {it:ub} must be in [0,1]. The default is
+    {cmd:range(0 1)}. If {it:lb} is larger than {it:ub}, the colors are
+    returned in reverse order. {cmd:range()} has no effect for cyclic colormaps.
+
+{marker scico8}{...}
+{dlgtab:scico8}
+
+{pstd}
+    The {cmd:scico8} collection provides
+    {browse "http://doi.org/10.5281/zenodo.8409685":version 8.0.1} variants of
+    the Scientific color maps by
+    {browse "http://www.fabiocrameri.ch/colourmaps/":Crameri (2018)}. The syntax
+    is as for {helpb colorpalette##scico:sico}, but {cmd:scico8} provides additional
+    sequential maps
+    {stata colorpalette scico8 glasgow:{bf:glasgow}},
+    {stata colorpalette scico8 lipari:{bf:lipari}},
+    {stata colorpalette scico8 navia:{bf:navia}}, and
+    {stata colorpalette scico8 naviaW:{bf:naviaW}} as well as
+    additional diverging map
+    {stata colorpalette scico8 managua:{bf:managua}}. Furthermore,
+    {cmd:scico8} provides updated variants of
+    {stata colorpalette scico8 batlowK:{bf:batlowK}},
+    {stata colorpalette scico8 lajolla:{bf:lajolla}},
+    {stata colorpalette scico8 bamako:{bf:bamako}},
+    {stata colorpalette scico8 bilbao:{bf:bilbao}},
+    {stata colorpalette scico8 grayC:{bf:grayC}},
+    {stata colorpalette scico8 tokyo:{bf:tokyo}}, and
+    {stata colorpalette scico8 acton:{bf:acton}}. For the remaining colormaps,
+    {cmd:scico8} is redirected to {helpb colorpalette##scico:sico}.
 
 {marker lin}{...}
 {dlgtab:lin}
@@ -2471,11 +2527,12 @@ matching palette in the sorted will be used.
 {synopt:{cmd:r(pclass)}}palette class (if provided){p_end}
 {synopt:{cmd:r(pnote)}}palette description (if provided){p_end}
 {synopt:{cmd:r(psource)}}palette source (if provided){p_end}
-{synopt:{cmd:r(p)}}space separated list of colors{p_end}
+{synopt:{cmd:r(p)}}space-separated list of colors{p_end}
 {synopt:{cmd:r(p#)}}#th color{p_end}
 {synopt:{cmd:r(p#name)}}name of #th color (if provided){p_end}
 {synopt:{cmd:r(p#info)}}info of #th color (if provided){p_end}
-
+{synopt:{cmd:r(c)}}space-separated list of colors stored by option {helpb colorpalette##return:return()}{p_end}
+{synopt:{cmd:r(cspace)}}color space applied by option {helpb colorpalette##return:return()}{p_end}
 
 {pstd}
     {cmd:colorcheck} adds the following to {cmd:r()}, in addition to the

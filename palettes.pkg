@@ -3,15 +3,15 @@ d palettes: module providing color palettes, symbol palettes, and line pattern p
 d 
 d Author: Ben Jann, University of Bern, ben.jann@unibe.ch
 d
-d Distribution-Date: 20240523
-f colorpalette.ado
+d Distribution-Date: 20251211
 f colorcheck.ado
-f colorpalette.sthlp
 f colorcheck.sthlp
-f symbolpalette.hlp
-f colorpalette9.hlp
-f symbolpalette.ado
+f colorpalette.ado
+f colorpalette.sthlp
 f colorpalette9.ado
-f palettes.hlp
+f colorpalette9.hlp
 f linepalette.ado
 f linepalette.hlp
+f palettes.hlp
+f symbolpalette.ado
+f symbolpalette.hlp

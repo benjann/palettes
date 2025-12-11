@@ -29,6 +29,11 @@ Installation from GitHub:
 
 Main changes:
 
+    11dec2025
+    colorpalette (v 1.2.8)
+    - option return() added
+    - scico8 palettes now documented in helpfile
+
     23may2024
     colorpalette (v 1.2.7)
     - error was returned if a single opacity or intensity operator without
